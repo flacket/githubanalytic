@@ -1,30 +1,30 @@
 <template>
 
     <v-expansion-panel>
-        <v-expansion-panel-content :class="`project ${project.status}`">
+        <v-expansion-panel-content :class="`project ${project.isPrivate}`">
           <v-layout slot="header" wrap row class="pr-2">
             <v-flex xs12 md6>
               <div class="caption grey--text">Titulo Proyecto</div>
-              <div>{{ project.title }}</div>
+              <div>{{ project.name }}</div>
             </v-flex>
             <v-flex xs6 sm4 md2>
               <div class="caption grey--text">Persona</div>
-              <div>{{ project.person }}</div>
+              <div>{{ project.nameWithOwner }}</div>
             </v-flex>
             <v-flex xs6 sm4 md2>
               <div class="caption grey--text">Fecha Creación</div>
-              <div>{{ project.due }}</div>
+              <div>{{ project.createdAt }}</div>
             </v-flex>
             <v-flex xs2 sm4 md2>
               <div class="right">
-                <v-chip small :class="`${project.status} white--text my-2 caption`">{{ project.status }}</v-chip>
+                <v-chip small :class="`${project.isPrivate} white--text my-2 caption`">{{ project.isPrivate }}</v-chip>
               </div>
             </v-flex>
 
           </v-layout>
           <v-card>
             <v-card-text class="px-3 grey--text">
-              <div>{{ project.content }}</div>
+              <div>{{ project.description }}</div>
             </v-card-text>
           </v-card>
         </v-expansion-panel-content>

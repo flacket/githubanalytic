@@ -1,15 +1,43 @@
 import Vue from 'vue'
 import VueApollo from 'vue-apollo'
-import { createApolloClient, restartWebsockets } from 'vue-cli-plugin-apollo/graphql-client'
+import ApolloClient from 'apollo-boost'
+//import { createApolloClient, restartWebsockets } from 'vue-cli-plugin-apollo/graphql-client'
 
 // Install the vue plugin
 Vue.use(VueApollo)
 
+// Call this in the Vue app file
+export function createProvider () {
+  //creating apollo client
+  const client = new ApolloClient({
+    uri: "https://api.github.com/graphql",
+    request: operation => {
+      operation.setContext({
+        headers: {
+          authorization: 'Bearer '+'a939e8d7ddad933d9e5d86887e01a00f1545067a'
+        },
+      });
+    }
+  });
+
+  // Create vue apollo provider
+  const apolloProvider = new VueApollo({
+    defaultClient: client,
+    errorHandler (error) {
+      // eslint-disable-next-line no-console
+      console.log('%cError', 'background: red; color: white; padding: 2px 4px; border-radius: 3px; font-weight: bold;', error.message)
+    },
+  })
+
+  return apolloProvider
+}
+
+/*
 // Name of the localStorage item
-const AUTH_TOKEN = 'apollo-token'
+const AUTH_TOKEN = 'a939e8d7ddad933d9e5d86887e01a00f1545067a'
 
 // Http endpoint
-const httpEndpoint = process.env.VUE_APP_GRAPHQL_HTTP || 'http://localhost:4000/graphql'
+const httpEndpoint = process.env.VUE_APP_GRAPHQL_HTTP || 'https://api.github.com/graphql'
 
 // Config
 const defaultOptions = {
@@ -27,23 +55,6 @@ const defaultOptions = {
   websocketsOnly: false,
   // Is being rendered on the server?
   ssr: false,
-
-  // Override default apollo link
-  // note: don't override httpLink here, specify httpLink options in the
-  // httpLinkOptions property of defaultOptions.
-  // link: myLink
-
-  // Override default cache
-  // cache: myCache
-
-  // Override the way the Authorization header is set
-  // getAuth: (tokenName) => ...
-
-  // Additional ApolloClient options
-  // apollo: { ... }
-
-  // Client local data (see apollo-link-state)
-  // clientState: { resolvers: { ... }, defaults: { ... } }
 }
 
 // Call this in the Vue app file
@@ -99,3 +110,4 @@ export async function onLogout (apolloClient) {
     console.log('%cError on cache reset (logout)', 'color: orange;', e.message)
   }
 }
+*/
