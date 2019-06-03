@@ -1,8 +1,8 @@
 <template>
   <div class="estadisticas">
   <h1 class="subheading-1 blue--text">Estadísticas</h1>
-  <!--<h1 class="subheading grey--text">{{user.name}}</h1>
-  --><v-container>
+  <!--<h1 class="subheading grey--text">{{user.name}}</h1>-->
+  <v-container>
 
   <v-layout row class="pb-3">
     <v-btn-toggle class="transparent" v-model="btn_toggle">
@@ -53,7 +53,7 @@
 
 <script>
 import CardProyecto from '../components/CardProyecto'
-import {GET_REPOS} from '../queries.js'
+import {GET_USER} from '../queries.js'
 
 export default {
   components: {
@@ -66,7 +66,10 @@ export default {
     }
   },
   apollo:{
-    user: GET_REPOS
+    user: {
+      query: GET_USER,
+      variables: {login: "Flacket"}
+    }
   }/*,
   methods: {
     sortBy(prop) {
@@ -74,10 +77,4 @@ export default {
     }
   }*/
 }
-/*
-        { title: 'Design a new website', person: 'The Net Ninja', due: '1st Jan 2019', status: 'ongoing', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-        { title: 'Code up the homepage', person: 'Chun Li', due: '10th Jan 2019', status: 'complete', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-        { title: 'Design video thumbnails', person: 'Ryu', due: '20th Dec 2018', status: 'complete', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-        { title: 'Create a community forum', person: 'Gouken', due: '20th Oct 2018', status: 'overdue', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-     */ 
 </script>
