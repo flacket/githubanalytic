@@ -4,36 +4,36 @@
   <!--<h1 class="subheading grey--text">{{user.name}}</h1>
   --><v-container>
 
-    <v-layout row class="pb-3">
-      <v-btn-toggle class="transparent" v-model="btn_toggle">
-        <v-tooltip top>
-          <v-btn small flat @click="sortBy('title')" slot="activator">
-            <v-icon small left>folder</v-icon>
-            <span class="caption text-lowercase">Por proyecto</span>
-          </v-btn>
-          <span>Ordena la lista por proyectos</span>
-        </v-tooltip> 
-        <v-tooltip top>
-          <v-btn small flat @click="sortBy('person')" slot="activator">
-            <v-icon small left>person</v-icon>
-            <span class="caption text-lowercase">Por persona</span>
-          </v-btn>
-          <span>Ordena la lista por persona</span>
-        </v-tooltip> 
-        <v-tooltip top>
-          <v-btn small flat @click="sortBy('status')" slot="activator">
-            <v-icon small left>check_circle</v-icon>
-            <span class="caption text-lowercase">Por estado</span>
-          </v-btn>
-          <span>Ordena la lista por estado</span>
-        </v-tooltip> 
-      </v-btn-toggle>
-    </v-layout>
+  <v-layout row class="pb-3">
+    <v-btn-toggle class="transparent" v-model="btn_toggle">
+      <v-tooltip top>
+        <v-btn small flat @click="sortBy('title')" slot="activator">
+          <v-icon small left>folder</v-icon>
+          <span class="caption text-lowercase">Por proyecto</span>
+        </v-btn>
+        <span>Ordena la lista por proyectos</span>
+      </v-tooltip> 
+      <v-tooltip top>
+        <v-btn small flat @click="sortBy('person')" slot="activator">
+          <v-icon small left>person</v-icon>
+          <span class="caption text-lowercase">Por persona</span>
+        </v-btn>
+        <span>Ordena la lista por persona</span>
+      </v-tooltip> 
+      <v-tooltip top>
+        <v-btn small flat @click="sortBy('status')" slot="activator">
+          <v-icon small left>check_circle</v-icon>
+          <span class="caption text-lowercase">Por estado</span>
+        </v-btn>
+        <span>Ordena la lista por estado</span>
+      </v-tooltip> 
+    </v-btn-toggle>
+  </v-layout>
 
-    <CardProyecto v-for="item in user.repositories.edges" 
-    v-bind:project="item.node" v-bind:key="item.node.id">
-              <v-divider></v-divider>
-    </CardProyecto>
+  <CardProyecto v-for="item in user.repositories.edges" 
+  v-bind:project="item.node" v-bind:key="item.node.id">
+            <v-divider></v-divider>
+  </CardProyecto>
 
 <!--    <ApolloQuery :query="require('@/queries/repositories.gql')">
       <template slot-scope="{ result: { data, loading } }">
