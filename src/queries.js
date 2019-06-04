@@ -18,12 +18,13 @@ query ($login: String!){
 }`;
 
 export const GET_REPO = gql`
-query GET_REPO($owner: String!, $name: String!, $number: Int!) {
+query getrepos($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       number
       state
       title
+      url
       participants {
         totalCount
       }

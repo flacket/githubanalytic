@@ -1,8 +1,17 @@
 <template>
   <div class="pullrequest">
-  <h1 class="subheading-1 blue--text">Pull Request:</h1>
+
+  <h1 class="subheading-1 blue--text">Pull Request:</h1>    
+  <v-form>
+    <v-select 
+      v-model="number" :items="pulls" label="Número"
+    ></v-select>
+  </v-form>
   <h1 class="headline grey--text">{{repository.pullRequest.title}}
-    <span class="subheading grey--text">#{{repository.pullRequest.number}}</span>
+    <a class="subheading" target="_blank"
+    :href="repository.pullRequest.url">
+    #{{repository.pullRequest.number}}
+    </a> 
   </h1>
   <v-container>
     <Comment v-for="item in repository.pullRequest.comments.edges"
@@ -24,19 +33,15 @@ export default {
   data() {
     return {
       btn_toggle: 0,
-      repository: ''
+      repository: '',
+      number: 146,
+      pulls: [56, 146, 157]
     }
   },
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 154},
-      /*update(data) {
-        console.log(data)
-        // The returned value will update
-        // the vue property 'pingMessage'
-        return data.pullRequest
-      },*/
+      variables: {owner: "cdr", name: "code-server", number: 146},
     },
   }
 }
