@@ -42,7 +42,7 @@ export default {
     links: [
       { icon: 'home', text: 'Inicio', route: '/' },
       { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
-      { icon: 'timeline', text: 'Linea de Tiempo', route: '/lineadetiempo' },
+      { icon: 'timeline', text: 'Pull Request', route: '/pullrequest' },
       { icon: 'list_alt', text: 'Informes', route: '/informes' },
       { icon: 'settings', text: 'Configuración', route: '/configuracion' },
       { icon: 'help', text: 'Acerca de', route: '/acerca' }
