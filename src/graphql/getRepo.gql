@@ -1,4 +1,4 @@
-query repo($owner: String!, $name: String!, $number: Int!) {
+query getRepo($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       number

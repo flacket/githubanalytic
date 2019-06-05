@@ -1,9 +1,9 @@
 <template>
   <div class="pullrequest">
 
-  <h1 class="subheading-1 blue--text">Pull Request:</h1>    
+  <h1 class="subheading-1 blue--text">Pull Request:</h1>
   <v-form>
-    <v-select 
+    <v-select
       v-model="number" :items="pulls" label="Número"
     ></v-select>
   </v-form>
