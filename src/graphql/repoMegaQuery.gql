@@ -11,8 +11,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
           totalCount
         }
       }
-      reviewThreads(first: 50) {
-        totalCount
+      reviewThreads(first: 100) {
         edges {
           node {
             comments(first: 100) {
@@ -23,8 +22,14 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
                     login
                   }
                   createdAt
-                  reactions {
-                    totalCount
+                  reactions(first:100) {
+                    edges{
+                      node{
+                        user{
+                          login
+                        }
+                      }
+                    }
                   }
                 }
               }
