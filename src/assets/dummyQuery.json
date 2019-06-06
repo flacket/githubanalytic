@@ -1,0 +1,73 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "number": 0,
+        "state": "",
+        "title": "",
+        "url": "",
+        "reactionGroups": [],
+        "reviewThreads": {
+          "edges": [
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "",
+                        "author": {
+                          "login": ""
+                        },
+                        "createdAt": "2000-01-01T00:00:00Z",
+                        "reactions": {
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": ""
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "participants": {
+          "totalCount": 0
+        },
+        "comments": {
+          "edges": [
+            {
+              "node": {
+                "body": "",
+                "createdAt": "2001-01-01T00:00:00Z",
+                "author": {
+                  "login": "",
+                  "avatarUrl": "https://i.pravatar.cc/300"
+                },
+                "reactions": {
+                  "edges": [
+                    {
+                      "node": {
+                        "user": {
+                          "login": ""
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
