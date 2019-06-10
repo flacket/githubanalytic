@@ -1,5 +1,8 @@
-query getRepo($owner: String!, $name: String!, $number: Int!) {
-  repository(owner: $owner, name: $name) {
+import { gql } from "apollo-boost"
+
+export default gql`
+query repository($number: Int!) {
+  repository(owner: "cdr", name: "code-server") {
     pullRequest(number: $number) {
       number
       state
@@ -30,4 +33,4 @@ query getRepo($owner: String!, $name: String!, $number: Int!) {
       }
     }
   }
-}
+}`

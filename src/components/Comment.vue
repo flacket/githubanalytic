@@ -3,20 +3,20 @@
     <v-layout row wrap class="pa-2">
       <v-flex xs4 sm1 md1>
         <v-avatar size="50" class="grey lighten-2">
-          <img :src="item.author.avatarUrl">
+          <img :src="avatarUrl">
         </v-avatar>
       </v-flex>
       <v-flex xs4 sm2 md1>
-        <div>{{ item.author.login }}</div>
-        <div class="caption grey--text">Reactions: {{ item.reactions.edges.length }}</div>
+        <div>{{ login }}</div>
+        <div class="caption grey--text">Reactions: {{ reactCant }}</div>
       </v-flex>
       <v-flex xs4 sm2 md1>
         <div class="caption grey--text">Fecha Creación</div>
-        <div>{{ item.createdAt }}</div>
+        <div>{{ createdAt }}</div>
       </v-flex>
 
       <v-flex xs12 sm7 md9>
-        <div>{{ item.body }}</div>
+        <div>{{ body }}</div>
       </v-flex>
     </v-layout>
     <v-divider></v-divider>
@@ -25,6 +25,6 @@
 
 <script>
 export default {
-  props: ['item']
+  props: ['avatarUrl', 'login', 'reactCant', 'createdAt', 'body']
 }
 </script>

@@ -15,8 +15,13 @@
   </h1>
   <v-container>
     <Comment v-for="item in repository.pullRequest.comments.edges"
-    v-bind:item="item.node" v-bind:key="item.node.id">
-      <v-divider></v-divider>
+    v-bind:avatarUrl="item.node.author.avatarUrl"
+    v-bind:login="item.node.author.login"
+    v-bind:createdAt="item.node.createdAt"
+    v-bind:reactCant="item.node.reactions.edges.length"
+    v-bind:body="item.node.body "
+    v-bind:key="item.node.id">
+    <v-divider></v-divider>
     </Comment>
   </v-container>
   </div>
