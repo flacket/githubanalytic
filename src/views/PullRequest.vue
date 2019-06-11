@@ -31,8 +31,9 @@
     v-bind:key="item.node.id">
     <v-divider></v-divider>
     </Comment>
+      <h1 class="subheading grey--text mt-3">Reviews:</h1>
     <div v-for="item in repository.pullRequest.reviewThreads.edges"
-    v-bind:key="item.node.id" class="border-left 2px solid orange my-2 ml-4">
+    v-bind:key="item.node.id" class="my-2 ml-4">
       <Comment v-for="com in item.node.comments.edges"
       v-bind:avatarUrl="com.node.author.avatarUrl"
       v-bind:login="com.node.author.login"
@@ -67,7 +68,7 @@ export default {
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: 'cdr', name: 'code-server', number: 146},
+      variables: {owner: 'cdr', name: 'code-server', number: 104},
     },
   }
 }
