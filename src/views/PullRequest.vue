@@ -14,15 +14,35 @@
     </a> 
   </h1>
   <v-container>
+    <Comment 
+      v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"
+      v-bind:login="repository.pullRequest.author.login"
+      v-bind:createdAt="repository.pullRequest.createdAt"
+      v-bind:reactCant="repository.pullRequest.reactions.totalCount"
+      v-bind:body="repository.pullRequest.body"
+    ><v-divider></v-divider>
+    </Comment>
     <Comment v-for="item in repository.pullRequest.comments.edges"
     v-bind:avatarUrl="item.node.author.avatarUrl"
     v-bind:login="item.node.author.login"
     v-bind:createdAt="item.node.createdAt"
-    v-bind:reactCant="item.node.reactions.edges.length"
-    v-bind:body="item.node.body "
+    v-bind:reactCant="item.node.reactions.totalCount"
+    v-bind:body="item.node.body"
     v-bind:key="item.node.id">
     <v-divider></v-divider>
     </Comment>
+    <div v-for="item in repository.pullRequest.reviewThreads.edges"
+    v-bind:key="item.node.id" class="border-left 2px solid orange my-2 ml-4">
+      <Comment v-for="com in item.node.comments.edges"
+      v-bind:avatarUrl="com.node.author.avatarUrl"
+      v-bind:login="com.node.author.login"
+      v-bind:createdAt="com.node.createdAt"
+      v-bind:reactCant="com.node.reactions.totalCount"
+      v-bind:body="com.node.body"
+      v-bind:key="com.node.id">
+      <v-divider></v-divider>
+      </Comment>
+    </div>
   </v-container>
   </div>
 </template>
@@ -39,14 +59,15 @@ export default {
     return {
       btn_toggle: 0,
       repository: '',
-      number: 146,
-      pulls: [56, 146, 157]
+      number: 104,
+      owner: 'cdr', name: 'code-server',
+      pulls: [56, 104, 146, 157]
     }
   },
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 146},
+      variables: {owner: 'cdr', name: 'code-server', number: 146},
     },
   }
 }
