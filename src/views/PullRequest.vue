@@ -60,7 +60,7 @@ export default {
     return {
       btn_toggle: 0,
       repository: '',
-      number: 146,
+      number: 104,
       owner: 'cdr', name: 'code-server',
       pulls: [56, 104, 146, 157]
     }
@@ -68,7 +68,7 @@ export default {
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: 'cdr', name: 'code-server', number: 146},
+      variables: {owner: 'cdr', name: 'code-server', number: 104},
     },
   }
 }
