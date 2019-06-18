@@ -68,7 +68,7 @@ export default {
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: 'cdr', name: 'code-server', number: 104},
+      variables: {owner: "cdr", name: "code-server", number: 104},
     },
   }
 }
