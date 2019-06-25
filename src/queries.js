@@ -17,6 +17,35 @@ query ($login: String!){
   }
 }`;
 
+export const GET_COMMITCOMMENTS = gql`
+query getCommitComments($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    commitComments(first:50){
+      totalCount
+      edges{
+        node{
+          url
+          author{
+            login
+            avatarUrl
+          }
+          createdAt
+          body
+          reactions(first:100){
+            edges{
+              node{
+                user{
+                  login
+                }
+              }
+            }
+          }          
+        }
+      }
+    }
+  }
+}`;
+
 export const GET_REPO = gql`
 query getrepos($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
