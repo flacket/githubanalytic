@@ -138,22 +138,18 @@ export default {
         },
       number: 146,
       owner: 'cdr', name: 'code-server',
-      pulls: [57, 104, 146, 517]
+      pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640]
     }
   },
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 146},
+      variables: {owner: "cdr", name: "code-server", number: 154},
     },
   },
   methods: {
     refreshQuery() {
-      console.log('refrescando query: ', this.number)
-      this.$apollo.queries.repository.refetch({
-        number: this.number
-      })
-      //this.$apollo.queries.repository.refresh()
+      this.$apollo.queries.repository.refetch({ number: this.number })
     }
   }
 }
