@@ -54,14 +54,6 @@
         {
           text: 'Made with Vuetify',
           href: 'https://madewithvuetifyjs.com'
-        },
-        {
-          text: 'Twitter',
-          href: 'https://twitter.com/vuetifyjs'
-        },
-        {
-          text: 'Articles',
-          href: 'https://medium.com/vuetify'
         }
       ]
     })

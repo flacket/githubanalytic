@@ -4,7 +4,7 @@
   <h1 class="subheading-1 blue--text">Pull Request:</h1>
   <v-form>
     <v-select
-      v-model="number" :items="pulls" label="Número"
+      v-model="number" :items="pulls" label="Número" v-on:change='refreshQuery'
     ></v-select>
   </v-form>
   <h1 class="headline grey--text">{{repository.pullRequest.title}}
@@ -59,17 +59,102 @@ export default {
   data() {
     return {
       btn_toggle: 0,
-      repository: '',
+      repository: {
+        pullRequest: {
+          author: {
+            login: '',
+            avatarUrl: ''
+          },
+          body: '',
+          createdAt: '',
+          number: '',
+          state: '',
+          title: '',
+          url: '',
+          reactions: {
+            totalCount:'',
+            edges: [{
+              node: {
+                user: {
+                  login:''
+                }
+              }
+            }]
+          },
+          participants: {
+            totalCount: ''
+          },
+          reviewThreads: {
+            edges: [{
+              node: {
+                comments: {
+                  edges: [{
+                    node: {
+                      body: '',
+                      author: {
+                        login: '',
+                        avatarUrl: ''
+                      },
+                      createdAt: '',
+                      reactions: {
+                        totalCount: '',
+                        edges: [{
+                          node: {
+                            user: {
+                              login: ''
+                            }
+                          }
+                        }]
+                      }
+                    }
+                  }]
+                }
+              }
+            }]
+          },
+          comments: {
+            edges: [{
+              node: {
+                body: '',
+                createdAt: '',
+                author : {
+                  login: '',
+                  avatarUrl: ''
+                },
+                reactions: {
+                  totalCount: '',
+                  edges: [{
+                    node: {
+                      user: {
+                        login: ''
+                      }
+                    }
+                  }]
+                }
+              }
+            }]
+          }
+          }
+        },
       number: 146,
       owner: 'cdr', name: 'code-server',
-      pulls: [56, 104, 146, 157]
+      pulls: [57, 104, 146, 517]
     }
   },
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 104},
+      variables: {owner: "cdr", name: "code-server", number: 146},
     },
+  },
+  methods: {
+    refreshQuery() {
+      console.log('refrescando query: ', this.number)
+      this.$apollo.queries.repository.refetch({
+        number: this.number
+      })
+      //this.$apollo.queries.repository.refresh()
+    }
   }
 }
 </script>

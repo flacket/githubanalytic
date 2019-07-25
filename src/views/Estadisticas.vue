@@ -62,7 +62,19 @@ export default {
   data() {
     return {
       btn_toggle: 0,
-      user: ''
+      user: {
+        repositories: {
+          edges: [{
+            node: {
+              name: '',
+              nameWithOwner: '',
+              createdAt: '',
+              isPrivate: '',
+              description: ''
+            }
+          }]
+        }
+      }
     }
   },
   apollo:{
