@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-layout row wrap class="pa-2">
+    <v-layout wrap class="pa-2">
       <v-flex xs4 sm1 md1>
         <v-avatar size="50" class="grey lighten-2">
           <img :src="avatarUrl">

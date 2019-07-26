@@ -2,7 +2,7 @@
 
     <v-expansion-panel>
         <v-expansion-panel-content :class="`project ${project.isPrivate}`">
-          <v-layout slot="header" wrap row class="pr-2">
+          <v-layout slot="header" wrap class="pr-2">
             <v-flex xs12 md6>
               <div class="caption grey--text">Titulo Proyecto</div>
               <div>{{ project.name }}</div>
