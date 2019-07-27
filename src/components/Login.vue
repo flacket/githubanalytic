@@ -1,7 +1,12 @@
 <template>
-  <v-dialog max-width="600px">
+  <v-dialog max-width="600px" v-model="dialog">
+    <template v-slot:activator="{ on }">
+      <v-btn text v-on="on">Iniciar Sesión
+        <v-icon>account</v-icon>
+      </v-btn>
+    </template>
 
-    <v-btn flat slot="activator"><v-icon class="mr-2">person</v-icon>Iniciar Sesión</v-btn>
+
     <v-card>
       <v-card-title>
         <h2>Iniciar Sesión</h2>
@@ -33,6 +38,7 @@ data() {
         user: '',
         password: '',
         show: false,
+        dialog: false,
         rules: {
             required: value => !!value || 'Campo Obligatorio',
             min: v => v.length >= 8 || 'Mínimo 8 Caracteres',

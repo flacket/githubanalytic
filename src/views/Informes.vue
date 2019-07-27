@@ -15,7 +15,7 @@
               <div class="grey--text">{{ person.role }}</div>
             </v-card-text>
             <v-card-actions>
-              <v-btn flat color="grey">
+              <v-btn text color="grey">
                 <v-icon small left>message</v-icon>
                 <span class="">Message</span>
               </v-btn>
