@@ -16,7 +16,7 @@
               <div>{{ project.createdAt }}</div>
             </v-flex>
             <v-flex xs2 sm4 md2>
-              <div class="right">
+              <div class="float-right">
                 <v-chip small :class="`${project.isPrivate} white--text my-2 caption`">{{ project.isPrivate }}</v-chip>
               </div>
             </v-flex>

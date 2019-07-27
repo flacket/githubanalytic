@@ -4,7 +4,7 @@
   <!--<h1 class="subheading grey--text">{{user.name}}</h1>-->
   <v-container>
 
-  <v-layout row class="pb-3">
+  <v-layout class="pb-3">
     <v-btn-toggle class="transparent" v-model="btn_toggle">
       <v-tooltip top>
         <v-btn small flat @click="sortBy('title')" slot="activator">
