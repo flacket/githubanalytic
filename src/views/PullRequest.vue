@@ -150,6 +150,10 @@ export default {
   methods: {
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
+      .then(()=> {
+        var cantPersonas = this.repository.participants.totalCount
+        console.log('Participantes: ', cantPersonas)
+      })
     }
   }
 }

@@ -7,26 +7,34 @@
   <v-layout class="pb-3">
     <v-btn-toggle class="transparent" v-model="btn_toggle">
       <v-tooltip top>
-        <v-btn small flat @click="sortBy('title')" slot="activator">
-          <v-icon small left>folder</v-icon>
-          <span class="caption text-lowercase">Por proyecto</span>
-        </v-btn>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('title')" v-on="on">
+            <v-icon small left>folder</v-icon>
+            <span class="caption text-lowercase">Por proyecto</span>
+          </v-btn>
+        </template>
         <span>Ordena la lista por proyectos</span>
-      </v-tooltip> 
+      </v-tooltip>
+
       <v-tooltip top>
-        <v-btn small flat @click="sortBy('person')" slot="activator">
-          <v-icon small left>person</v-icon>
-          <span class="caption text-lowercase">Por persona</span>
-        </v-btn>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('person')" v-on="on">
+            <v-icon small left>person</v-icon>
+            <span class="caption text-lowercase">Por persona</span>
+          </v-btn>
+        </template>
         <span>Ordena la lista por persona</span>
       </v-tooltip> 
+
       <v-tooltip top>
-        <v-btn small flat @click="sortBy('status')" slot="activator">
-          <v-icon small left>check_circle</v-icon>
-          <span class="caption text-lowercase">Por estado</span>
-        </v-btn>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('status')" v-on="on">
+            <v-icon small left>check_circle</v-icon>
+            <span class="caption text-lowercase">Por estado</span>
+          </v-btn>
+        </template>
         <span>Ordena la lista por estado</span>
-      </v-tooltip> 
+      </v-tooltip>
     </v-btn-toggle>
   </v-layout>
 
