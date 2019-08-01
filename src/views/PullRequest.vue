@@ -13,6 +13,22 @@
     #{{repository.pullRequest.number}}
     </a> 
   </h1>
+
+
+    <v-simple-table>
+    <thead>
+      <tr>
+        <th v-for="item in countMatrix[0]" :key="item.jota" class="text-left">Fila: {{item + 1}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in countMatrix" :key="item.jota">
+        <td v-for="jota in item" :key="jota.j">{{jota}}</td>
+      </tr>
+    </tbody>
+  </v-simple-table>
+
+
   <v-container>
     <Comment 
       v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"
@@ -59,6 +75,7 @@ export default {
   data() {
     return {
       btn_toggle: 0,
+      countMatrix: '',
       repository: {
         pullRequest: {
           author: {
@@ -151,8 +168,28 @@ export default {
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
       .then(()=> {
-        var cantPersonas = this.repository.participants.totalCount
+        var cantPersonas = this.repository.pullRequest.participants.totalCount
         console.log('Participantes: ', cantPersonas)
+        /*this.countMatrix = [cantPersonas][cantPersonas]
+        counter.forEach(function (elemento, indice, array) {
+          console.log(elemento, indice)
+        })*/
+
+        //crear matriz
+        var x = new Array(cantPersonas);
+        for (var l = 0; l < x.length; l++) {
+          x[l] = new Array(cantPersonas);
+        }
+        this.countMatrix = x
+
+        //cargar matriz
+        for (var i = 0; i < x.length; i++) {
+          for (var j = 0; j < x.length; j++) {
+            x[i][j] = 0
+          }
+        }
+        console.log(x);
+
       })
     }
   }
