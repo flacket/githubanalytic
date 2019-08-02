@@ -70,8 +70,13 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
           }
         }
       }
-      participants {
+      participants(first: 100) {
         totalCount
+        edges{
+          node{
+          	login
+          }
+        }
       }
       reviewThreads(first: 50) {
         edges {

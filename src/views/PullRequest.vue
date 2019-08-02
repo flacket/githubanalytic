@@ -14,11 +14,10 @@
     </a> 
   </h1>
 
-
     <v-simple-table>
     <thead>
       <tr>
-        <th v-for="item in countMatrix[0]" :key="item.jota" class="text-left">Fila: {{item + 1}}</th>
+        <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
       </tr>
     </thead>
     <tbody>
@@ -27,7 +26,6 @@
       </tr>
     </tbody>
   </v-simple-table>
-
 
   <v-container>
     <Comment 
@@ -76,6 +74,7 @@ export default {
     return {
       btn_toggle: 0,
       countMatrix: '',
+      participants: '',
       repository: {
         pullRequest: {
           author: {
@@ -162,6 +161,7 @@ export default {
     repository: {
       query: GET_REPO,
       variables: {owner: "cdr", name: "code-server", number: 154},
+      //{"owner": "cdr", "name": "code-server", "number": 517}
     },
   },
   methods: {
@@ -169,7 +169,20 @@ export default {
       this.$apollo.queries.repository.refetch({ number: this.number })
       .then(()=> {
         var cantPersonas = this.repository.pullRequest.participants.totalCount
-        console.log('Participantes: ', cantPersonas)
+        this.participants = new Array(cantPersonas);
+        
+        //cargar personas
+        var contPers = 0
+        this.participants[0] = this.repository.pullRequest.author.login
+        contPers = contPers + 1
+
+        this.repository.pullRequest.participants.edges.forEach(function(element) {
+          this.participants[contPers] = element.node.login
+          contPers + 1
+        })
+
+        
+        //console.log('Participantes: ', cantPersonas)
         /*this.countMatrix = [cantPersonas][cantPersonas]
         counter.forEach(function (elemento, indice, array) {
           console.log(elemento, indice)
@@ -177,19 +190,29 @@ export default {
 
         //crear matriz
         var x = new Array(cantPersonas);
-        for (var l = 0; l < x.length; l++) {
+        for (var l = 0; l < cantPersonas; l++) {
           x[l] = new Array(cantPersonas);
+          console.log('Participantes: ', participants[l])
         }
         this.countMatrix = x
 
         //cargar matriz
-        for (var i = 0; i < x.length; i++) {
-          for (var j = 0; j < x.length; j++) {
+        for (var i = 0; i < cantPersonas; i++) {
+          for (var j = 0; j < cantPersonas; j++) {
             x[i][j] = 0
           }
         }
-        console.log(x);
 
+        for (var p = contPers; l < cantPersonas; p++) {
+          while(p == contPers){
+            if (this.repository.pullRequest.comments){
+              contPers++
+            }
+          x[l] = new Array(cantPersonas);
+          }
+        }
+
+        console.log(x);
       })
     }
   }

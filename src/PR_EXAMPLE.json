@@ -1,0 +1,402 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "author": {
+          "login": "nol166",
+          "avatarUrl": "https://avatars3.githubusercontent.com/u/5651438?v=4"
+        },
+        "body": "### Describe in detail the problem you had and how this PR fixes it\r\nChecks to see if there is a newer release available when running the CLI\r\n\r\n### Is there an open issue you can link to?\r\nFixes #213.\r\n",
+        "createdAt": "2019-03-27T21:28:59Z",
+        "number": 362,
+        "state": "CLOSED",
+        "title": "Check version",
+        "url": "https://github.com/cdr/code-server/pull/362",
+        "reactions": {
+          "totalCount": 2,
+          "edges": [
+            {
+              "node": {
+                "user": {
+                  "login": "NGTmeaty"
+                }
+              }
+            },
+            {
+              "node": {
+                "user": {
+                  "login": "koalalorenzo"
+                }
+              }
+            }
+          ]
+        },
+        "participants": {
+          "totalCount": 4
+        },
+        "reviewThreads": {
+          "edges": [
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "We'll want to follow [Github's user-agent requirements](https://developer.github.com/v3/#user-agent-required) and change it to code-server. ",
+                        "author": {
+                          "login": "NGTmeaty",
+                          "avatarUrl": "https://avatars2.githubusercontent.com/u/2244519?v=4"
+                        },
+                        "createdAt": "2019-03-27T21:36:55Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Looking at the API again, we could possibly [call /latest](https://developer.github.com/v3/repos/releases/#get-the-latest-release) and get just compare those names? ",
+                        "author": {
+                          "login": "NGTmeaty",
+                          "avatarUrl": "https://avatars2.githubusercontent.com/u/2244519?v=4"
+                        },
+                        "createdAt": "2019-03-27T21:40:59Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "You're inside a Promise. Maybe you should let the caller knows by rejecting it?\r\n\r\n```suggestion\r\n\t\t\t\trej(new Error(\"Failed to acquire release information\"));\r\n```",
+                        "author": {
+                          "login": "lsmoura",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/453756?v=4"
+                        },
+                        "createdAt": "2019-03-28T17:42:32Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "No need to compare versions. If the latest version !== the current version then an update is available.",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:10:32Z",
+                        "reactions": {
+                          "totalCount": 0,
+                          "edges": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Would be cleaner to do something like:\r\n```\r\nif (isCli) {\r\n    const currentVersion = process.env.VERSION;\r\n    if (!currentVersion) {\r\n        return;\r\n    }\r\n    const recentRelease = await getRecentRelease();\r\n    ...\r\n}\r\n```",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:11:19Z",
+                        "reactions": {
+                          "totalCount": 0,
+                          "edges": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Shouldn't output anything if latest imo",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:11:30Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "lsmoura"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Should spell out `reject` fully since we spelt out `resolve` fully",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:11:50Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Should throw this directly into the `https.get`",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:12:35Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "Needs to handle if this is rejected",
+                        "author": {
+                          "login": "kylecarbs",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/7122116?v=4"
+                        },
+                        "createdAt": "2019-03-28T18:12:58Z",
+                        "reactions": {
+                          "totalCount": 1,
+                          "edges": [
+                            {
+                              "node": {
+                                "user": {
+                                  "login": "nol166"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "body": "made all these changes",
+                        "author": {
+                          "login": "nol166",
+                          "avatarUrl": "https://avatars3.githubusercontent.com/u/5651438?v=4"
+                        },
+                        "createdAt": "2019-04-01T13:40:52Z",
+                        "reactions": {
+                          "totalCount": 0,
+                          "edges": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "This value is never reassigned. Use `const` instead?\r\n\r\n```suggestion\r\n\t\tconst currentVersion = process.env.VERSION;\r\n```",
+                        "author": {
+                          "login": "lsmoura",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/453756?v=4"
+                        },
+                        "createdAt": "2019-03-29T14:53:55Z",
+                        "reactions": {
+                          "totalCount": 0,
+                          "edges": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "comments": {
+                  "edges": [
+                    {
+                      "node": {
+                        "body": "This value is never reassigned. use `const` instead?\r\n\r\n```suggestion\r\n\t\t\t\tconst release = JSON.parse(body);\r\n```\r\n\r\nI'd wrap everything here into a `try/catch` block in case `JSON.parse` fails. Something like:\r\n\r\n```suggestion\r\n\t\t\t\ttry {\r\n\t\t\t\t\tconst release = JSON.parse(body);\r\n\t\t\t\t\tresolve(release.name);\r\n\t\t\t\t} catch (ex) {\r\n\t\t\t\t\treject(ex);\r\n\t\t\t\t}\r\n```",
+                        "author": {
+                          "login": "lsmoura",
+                          "avatarUrl": "https://avatars0.githubusercontent.com/u/453756?v=4"
+                        },
+                        "createdAt": "2019-03-29T14:54:44Z",
+                        "reactions": {
+                          "totalCount": 0,
+                          "edges": []
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "comments": {
+          "edges": [
+            {
+              "node": {
+                "body": "The Docker version we compile doesn't get a version number. Might be a different issue, but it'd be nice to get version checking in there too :)\r\n![](https://owo.whats-th.is/9ZNDV7y.png)\r\n",
+                "createdAt": "2019-03-27T23:00:31Z",
+                "author": {
+                  "login": "NGTmeaty",
+                  "avatarUrl": "https://avatars2.githubusercontent.com/u/2244519?v=4"
+                },
+                "reactions": {
+                  "totalCount": 0,
+                  "edges": []
+                }
+              }
+            },
+            {
+              "node": {
+                "body": "> The Docker version we compile doesn't get a version number. Might be a different issue, but it'd be nice to get version checking in there too :)\r\n> ![](https://camo.githubusercontent.com/e60e248d006ee3a3c8429801ad3aaa587996cfaa/68747470733a2f2f6f776f2e77686174732d74682e69732f395a4e445637792e706e67)\r\n\r\nThe docker image eventually inherits the source code from the binary so as soon as the CI catches up (if and when) this is merged it should work for the docker image as well.",
+                "createdAt": "2019-03-28T15:09:46Z",
+                "author": {
+                  "login": "nol166",
+                  "avatarUrl": "https://avatars3.githubusercontent.com/u/5651438?v=4"
+                },
+                "reactions": {
+                  "totalCount": 0,
+                  "edges": []
+                }
+              }
+            },
+            {
+              "node": {
+                "body": "resolved conflicts",
+                "createdAt": "2019-04-17T23:15:44Z",
+                "author": {
+                  "login": "nol166",
+                  "avatarUrl": "https://avatars3.githubusercontent.com/u/5651438?v=4"
+                },
+                "reactions": {
+                  "totalCount": 0,
+                  "edges": []
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
