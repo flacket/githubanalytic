@@ -1,6 +1,6 @@
 <template>
 <v-container>
-    <v-layout text-xs-center wrap>
+    <v-layout text-center wrap>
       <v-flex xs12>
         <v-img
           :src="require('../assets/logo.svg')"
@@ -54,14 +54,6 @@
         {
           text: 'Made with Vuetify',
           href: 'https://madewithvuetifyjs.com'
-        },
-        {
-          text: 'Twitter',
-          href: 'https://twitter.com/vuetifyjs'
-        },
-        {
-          text: 'Articles',
-          href: 'https://medium.com/vuetify'
         }
       ]
     })

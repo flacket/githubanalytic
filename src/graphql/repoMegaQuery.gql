@@ -1,0 +1,66 @@
+query getrepos($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      number
+      state
+      title
+      url
+      reactionGroups {
+        content
+        users {
+          totalCount
+        }
+      }
+      reviewThreads(first: 100) {
+        edges {
+          node {
+            comments(first: 100) {
+              edges {
+                node {
+                  body
+                  author {
+                    login
+                  }
+                  createdAt
+                  reactions(first:100) {
+                    edges{
+                      node{
+                        user{
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      participants {
+        totalCount
+      }
+      comments(first: 100) {
+        edges {
+          node {
+            body
+            createdAt
+            author {
+              login
+              avatarUrl
+            }
+            reactions(first: 100) {
+              edges {
+                node {
+                  user {
+                    login
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@ import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Estadisticas from './views/Estadisticas.vue'
 import Informes from './views/Informes.vue'
-import LineaDeTiempo from './views/LineaDeTiempo.vue'
+import PullRequest from './views/PullRequest.vue'
 import Configuracion from './views/Configuracion.vue'
 import Acerca from './views/Acerca.vue'
 
@@ -24,9 +24,9 @@ export default new Router({
       component: Estadisticas
     },
     {
-      path: '/lineadetiempo',
-      name: 'lineadetiempo',
-      component: LineaDeTiempo
+      path: '/pullrequest',
+      name: 'pullrequest',
+      component: PullRequest
     },
     {
       path: '/informes',
