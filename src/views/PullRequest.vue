@@ -22,7 +22,7 @@
     </thead>
     <tbody>
       <tr v-for="item in countMatrix" :key="item.jota">
-        <td v-for="jota in item" :key="jota.j">{{jota}}</td>
+        <td v-for="jota in item" :key="jota.x">{{jota}}</td>
       </tr>
     </tbody>
   </v-simple-table>
@@ -169,50 +169,88 @@ export default {
       this.$apollo.queries.repository.refetch({ number: this.number })
       .then(()=> {
         var cantPersonas = this.repository.pullRequest.participants.totalCount
-        this.participants = new Array(cantPersonas);
-        
-        //cargar personas
-        var contPers = 0
-        this.participants[0] = this.repository.pullRequest.author.login
-        contPers = contPers + 1
+        this.participants = new Array();
 
+        //cargar lista personas
+        var self = this
         this.repository.pullRequest.participants.edges.forEach(function(element) {
-          this.participants[contPers] = element.node.login
-          contPers + 1
+          self.participants.push(element.node.login)
         })
 
-        
-        //console.log('Participantes: ', cantPersonas)
-        /*this.countMatrix = [cantPersonas][cantPersonas]
-        counter.forEach(function (elemento, indice, array) {
-          console.log(elemento, indice)
-        })*/
-
-        //crear matriz
+        //crear matriz NxN
         var x = new Array(cantPersonas);
         for (var l = 0; l < cantPersonas; l++) {
           x[l] = new Array(cantPersonas);
-          console.log('Participantes: ', participants[l])
         }
         this.countMatrix = x
 
-        //cargar matriz
+        //cargar matriz (con ceros)
         for (var i = 0; i < cantPersonas; i++) {
           for (var j = 0; j < cantPersonas; j++) {
-            x[i][j] = 0
+            this.countMatrix[i][j] = 0
           }
         }
-
-        for (var p = contPers; l < cantPersonas; p++) {
-          while(p == contPers){
-            if (this.repository.pullRequest.comments){
-              contPers++
-            }
-          x[l] = new Array(cantPersonas);
-          }
+        
+        //Primer Cometario
+        for (i = 1; i < cantPersonas; i++){
+          this.countMatrix[0][i]++
         }
+        this.repository.pullRequest.reactions.edges.forEach(function(element) {
+          let encontrado = false
+          let e = 1 //salteo el participante de la pos[0], no se va a autorreaccionar
+          while (!encontrado){
+            if (self.participants[e] == element.node.user.login){
+              //este participante le reacciono al creador del PR
+              self.countMatrix[e][0]++
+              console.log('reacciona: ', element.node.user.login)
+              encontrado = true
+            } else if (e == cantPersonas) 
+              {encontrado = true}
+            e++
+          }
+        })
 
-        console.log(x);
+        //Contar Cometarios
+        this.repository.pullRequest.comments.edges.forEach(function(element) {
+          let encontrado = false
+          let c = 0
+          while (!encontrado){
+            if (self.participants[c] == element.node.author.login){
+              //este participante ha hecho un comentario
+              for (i=0; i < cantPersonas; i++){
+                if (c!=i)
+                  self.countMatrix[c][i]++
+              }
+
+              //FIXME:la reaccion no se guarda en donde deberia (vaariable c en cero)
+              //reacciones al comentario
+              element.node.reactions.edges.forEach(function(elem,c){              
+                console.log('reacciona: ', elem.node.user.login)
+                console.log('a coment: ', c)
+                  let enc = false
+                  let r = 0
+                  while (!enc){
+                    if (self.participants[r] == elem.node.user.login){
+                      //este participante le reacciono al creador del PR
+                      self.countMatrix[r][c]++
+                      console.log('numero: ', r)
+                      console.log('a coment: ', c)
+                      encontrado = true
+                    } else if (r == cantPersonas) 
+                      {enc = true}
+                    r++
+                  }
+              })
+
+
+              encontrado = true
+            } else if (c == cantPersonas)
+              {encontrado = true}
+            c++
+          }
+        })
+
+        console.log(x)
       })
     }
   }
