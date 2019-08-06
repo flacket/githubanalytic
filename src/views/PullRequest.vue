@@ -152,7 +152,7 @@ export default {
           }
           }
         },
-      number: 146,
+      number: 154,
       owner: 'cdr', name: 'code-server',
       pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640]
     }
@@ -202,7 +202,6 @@ export default {
             if (self.participants[e] == element.node.user.login){
               //este participante le reacciono al creador del PR
               self.countMatrix[e][0]++
-              console.log('reacciona: ', element.node.user.login)
               encontrado = true
             } else if (e == cantPersonas) 
               {encontrado = true}
@@ -216,40 +215,93 @@ export default {
           let c = 0
           while (!encontrado){
             if (self.participants[c] == element.node.author.login){
+              encontrado = true
               //este participante ha hecho un comentario
+              //se suma 1 a las personas
               for (i=0; i < cantPersonas; i++){
                 if (c!=i)
                   self.countMatrix[c][i]++
               }
 
-              //FIXME:la reaccion no se guarda en donde deberia (vaariable c en cero)
-              //reacciones al comentario
-              element.node.reactions.edges.forEach(function(elem,c){              
-                console.log('reacciona: ', elem.node.user.login)
-                console.log('a coment: ', c)
+              //reacciones al comentarios
+              for (var index=0; index<element.node.reactions.totalCount; index++){
+                console.log('reacciona: ', element.node.reactions.edges[index].node.user.login)
+                console.log('a coment: ', self.participants[c])
                   let enc = false
-                  let r = 0
+                  let j = 0
                   while (!enc){
-                    if (self.participants[r] == elem.node.user.login){
+                    if (self.participants[j] == element.node.reactions.edges[index].node.user.login){
                       //este participante le reacciono al creador del PR
-                      self.countMatrix[r][c]++
-                      console.log('numero: ', r)
-                      console.log('a coment: ', c)
-                      encontrado = true
-                    } else if (r == cantPersonas) 
+                      self.countMatrix[j][c]++
+                      enc = true
+                    } else if (j == cantPersonas)
                       {enc = true}
-                    r++
+                    j++
                   }
-              })
-
-
-              encontrado = true
+              }
             } else if (c == cantPersonas)
               {encontrado = true}
             c++
           }
-        })
+        }) //contar comentarios
 
+        //contar reviews
+        this.repository.pullRequest.reviewThreads.edges.forEach(function(element){
+          //este array va a mantener las personas que comentaron en el review
+          //para despues poder usarlas como receptor en el conteo de interacciones
+          var reviewArray = new Array()
+          
+          for (var comm=0; comm<element.node.comments.totalCount; comm++){
+            //busco el index del comentarista
+            let encontrado = false
+            let c = 0
+            let posicion
+            while (!encontrado){
+              if (self.participants[c] == element.node.comments.edges[comm].node.author.login){
+                encontrado = true
+                //este participante ha hecho un comentario
+                //se guarda su posicion
+                posicion = c
+              } else if (c == cantPersonas)
+                {encontrado = true}
+              c++
+            }
+            
+            //Agrego el comentarista al array
+            var data = { name: element.node.comments.edges[comm].node.author.login,
+                        pos: posicion }
+            reviewArray.push(data)
+            console.log('cant de reviews(reviewArray.length): ', reviewArray.length)
+            console.log('body: ', element.node.comments.edges[comm].node.body)
+            
+            //si es el primer comentario del review
+            if (reviewArray.length <= 1){
+              console.log('entra if')
+              //Si es el que crea el PR el que comenta primero
+              if(posicion == 0){
+                for (i=1; i < cantPersonas; i++){
+                  //el comentario va para todos los participantes
+                  self.countMatrix[0][i]++
+                }
+              } else {
+                //el comentario va para el creador del PR
+                self.countMatrix[i][0]++
+              } 
+            } else {
+              console.log('entra else')
+              //sumo comentario de <<posicion> a las personas
+              //que ya comentaron en el mismo review
+              for (i=0; i < reviewArray.length; i++){
+                  if (posicion!=reviewArray[i].pos)
+                    console.log('hacia: ', reviewArray[i].name)
+                    self.countMatrix[posicion][reviewArray[i].pos]++
+              }
+            }
+
+            //TODO: contar reacciones al comentario del review
+
+          }
+        })
         console.log(x)
       })
     }

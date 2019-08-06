@@ -82,6 +82,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
         edges {
           node {
             comments(first: 50) {
+              totalCount
               edges {
                 node {
                   body
