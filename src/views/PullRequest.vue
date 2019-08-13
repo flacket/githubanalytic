@@ -167,7 +167,7 @@ export default {
   methods: {
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
-      .then(()=> {
+      .then(() => {
         var cantPersonas = this.repository.pullRequest.participants.totalCount
         this.participants = new Array();
 
@@ -240,7 +240,7 @@ console.log('----- COMMENTS -----')
               }
 
               //reacciones al comentarios
-              for (var index=0; index<element.node.reactions.totalCount; index++){
+              for (var index = 0; index<element.node.reactions.totalCount; index++){
                 console.log('  -Reacciona: ', element.node.reactions.edges[index].node.user.login)
                 let enc = false
                 let j = 0
@@ -266,7 +266,7 @@ console.log('----- REVIEWS -----')
           //para despues poder usarlas como receptor en el conteo de interacciones
           var reviewArray = new Array()
           console.log('---')
-          for (var comm=0; comm<element.node.comments.totalCount; comm++){
+          for (var comm = 0; comm < element.node.comments.totalCount; comm++){
             //busco el index del comentarista
             var encontrado = false
             var c = 0
@@ -306,7 +306,7 @@ console.log('----- REVIEWS -----')
             if (reviewArray.length == 0){
               //Si es el que crea el PR el que comenta primero
               if(posicion == 0){
-                for (i=1; i < cantPersonas; i++){
+                for (i = 1; i < cantPersonas; i++){
                   //el comentario va para todos los participantes
                   self.countMatrix[0][i]++
                 }
@@ -317,15 +317,15 @@ console.log('----- REVIEWS -----')
             } else {
               //sumo comentario de <<posicion>> a las personas
               //que ya comentaron en el mismo review
-              for (i=0; i < reviewArray.length; i++){
-                  if (posicion!=reviewArray[i].pos){
-                    self.countMatrix[posicion][reviewArray[i].pos]++
-                  }
+              for (i = 0; i < reviewArray.length; i++){
+                if (posicion!=reviewArray[i].pos){
+                  self.countMatrix[posicion][reviewArray[i].pos]++
+                }
               }
             }
 
             //reacciones al comentarios
-            for (var index=0; index<element.node.comments.edges[comm].node.reactions.totalCount; index++){
+            for (var index = 0; index < element.node.comments.edges[comm].node.reactions.totalCount; index++){
               let enc = false
               let j = 0
               //busco la posicion en la matriz del que reacciona
