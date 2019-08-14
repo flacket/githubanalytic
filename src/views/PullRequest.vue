@@ -61,7 +61,7 @@ export default {
     return {
       show: false,
       repository: '',
-      number: 154,
+      number: '',
       owner: 'cdr', name: 'code-server',
       pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640]
     }

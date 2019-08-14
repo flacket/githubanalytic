@@ -48,8 +48,8 @@ export default {
     links: [
       { icon: 'home', text: 'Inicio', route: '/' },
       { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
-      { icon: 'timeline', text: 'Pull Request', route: '/pullrequest' },
-      { icon: 'list_alt', text: 'Informes', route: '/informes' },
+      { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
+      { icon: 'timeline', text: 'Informes', route: '/informes' },
       { icon: 'settings', text: 'Configuración', route: '/configuracion' },
       { icon: 'help', text: 'Acerca de', route: '/acerca' }
     ]

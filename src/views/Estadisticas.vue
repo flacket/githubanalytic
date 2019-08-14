@@ -13,32 +13,48 @@
     #{{repository.pullRequest.number}}
     </a> 
   </h1>
-
+  <div v-if="show">
+    <h1 class="headline blue--text mt-4 mb-1">Tabla de Conteo</h1>
     <v-simple-table>
-    <thead>
-      <tr>
-        <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="item in countMatrix" :key="item.jota">
-        <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-      </tr>
-    </tbody>
-  </v-simple-table>
+      <thead>
+        <tr>
+          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in countMatrix" :key="item.jota">
+          <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+    <h1 class="headline blue--text mt-4 mb-1">Matriz de Cohesion Individual</h1>
+    <v-simple-table>
+      <thead>
+        <tr>
+          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in cohesionMatrix" :key="item.jota">
+          <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+    <h1 class="headline blue--text mt-4 mb-1">Promedio Cohesion Individual</h1>
+    <v-simple-table>
+      <thead>
+        <tr>
+          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr >
+          <td v-for="item in cohesionInd" :key="item.jota">{{item}}</td>
+        </tr>
+      </tbody>
+    </v-simple-table>
+  </div>
 
-      <v-simple-table>
-    <thead>
-      <tr>
-        <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="item in cohesionMatrix" :key="item.jota">
-        <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-      </tr>
-    </tbody>
-  </v-simple-table>
   </div>
 </template>
 
@@ -51,6 +67,7 @@ export default {
       show: false,
       countMatrix: '',
       cohesionMatrix: '',
+      cohesionInd: '',
       participants: '',
       repository: '',
       number: '',
@@ -66,16 +83,33 @@ export default {
     },
   },
   methods: {
+    cohesionIndividual() {
+      var cantPersonas = this.participants.length
+      var x = new Array(cantPersonas);
+
+      console.log('--- Cohesion Individual ---')
+      for (var i = 0; i < cantPersonas; i++){
+        var coInd = 0 
+        for(var j = 0; j < cantPersonas; j++){
+          coInd += this.cohesionMatrix[i][j]
+        }
+        x[i] = (coInd / (cantPersonas - 1))
+        console.log(this.participants[i], ':')
+        console.log('  -', x[i])
+      }
+      this.cohesionInd = x
+      console.log(this.cohesionInd)
+    },
     cohesionFormula() {
       var cantPersonas = this.participants.length
       //crear matriz NxN
       var x = new Array(cantPersonas);
-      for (var i = 0; i < cantPersonas; i++)
-        { x[i] = new Array(cantPersonas) }
+      for (let n = 0; n < cantPersonas; n++)
+        { x[n] = new Array(cantPersonas) }
       this.cohesionMatrix = x
 
-      for(var c = 0; c < cantPersonas; c++){
-        for(var f = 0; f < cantPersonas; f++){
+      for(let c = 0; c < cantPersonas; c++){
+        for(let f = 0; f < cantPersonas; f++){
           //contar cohesion para [c][f]
           if (c==f) 
             this.cohesionMatrix[c][f] = 0
@@ -90,6 +124,7 @@ export default {
           }
         }
       }
+      this.cohesionIndividual()
     },
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
@@ -289,8 +324,7 @@ console.log('----- REVIEWS -----')
 
           }
         }) //contar reviews
-        console.log(x)
-        this.cohesionFormula();
+        this.cohesionFormula()
         this.show = true
       })
     }//refresh query
