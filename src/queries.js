@@ -56,6 +56,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
       }
       body
       createdAt
+      closedAt
       number
       state
       title

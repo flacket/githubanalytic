@@ -1,44 +1,100 @@
 <template>
-  <div class="team">
-    <h1 class="subheading grey--text">Team</h1>
-    <v-container class="my-5">
-      <v-layout wrap>
-        <v-flex xs12 sm6 md4 lg3 v-for="person in team" :key="person.name">
-          <v-card flat class="text-center ma-3">
-            <v-responsive class="pt-4">
-              <v-avatar size="100" class="grey lighten-2">
-                <img :src="person.avatar">
-              </v-avatar>
-            </v-responsive>
-            <v-card-text>
-              <div class="subheading">{{ person.name }}</div>
-              <div class="grey--text">{{ person.role }}</div>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn text color="grey">
-                <v-icon small left>message</v-icon>
-                <span class="">Message</span>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-flex>
-      </v-layout>
-    </v-container>
+  <div class="Informes">
+  <h1 class="subheading-1 blue--text">Informes</h1>
+  <!--<h1 class="subheading grey--text">{{user.name}}</h1>-->
+  <v-container>
+
+  <v-layout class="pb-3">
+    <v-btn-toggle class="transparent" v-model="btn_toggle">
+      <v-tooltip top>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('title')" v-on="on">
+            <v-icon small left>folder</v-icon>
+            <span class="caption text-lowercase">Por proyecto</span>
+          </v-btn>
+        </template>
+        <span>Ordena la lista por proyectos</span>
+      </v-tooltip>
+
+      <v-tooltip top>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('person')" v-on="on">
+            <v-icon small left>person</v-icon>
+            <span class="caption text-lowercase">Por persona</span>
+          </v-btn>
+        </template>
+        <span>Ordena la lista por persona</span>
+      </v-tooltip> 
+
+      <v-tooltip top>
+        <template v-slot:activator="{ on }">
+          <v-btn small text @click="sortBy('status')" v-on="on">
+            <v-icon small left>check_circle</v-icon>
+            <span class="caption text-lowercase">Por estado</span>
+          </v-btn>
+        </template>
+        <span>Ordena la lista por estado</span>
+      </v-tooltip>
+    </v-btn-toggle>
+  </v-layout>
+
+  <CardProyecto v-for="item in user.repositories.edges" 
+  v-bind:project="item.node" v-bind:key="item.node.id">
+            <v-divider></v-divider>
+  </CardProyecto>
+
+<!--    <ApolloQuery :query="require('@/queries/repositories.gql')">
+      <template slot-scope="{ result: { data, loading } }">
+        <div v-if="loading">Loading...</div>
+        <ul v-else>
+          // eslint-disable-next-line vue/require-v-for-key
+          <li v-for="repo of user.name" class="user">
+            {{ item.name }}
+          </li>
+        </ul>
+      </template>
+    </ApolloQuery>-->
+
+  </v-container>
   </div>
 </template>
 
 <script>
+import CardProyecto from '../components/CardProyecto'
+import {GET_USER} from '../queries.js'
+
 export default {
+  components: {
+    CardProyecto
+  },
   data() {
     return {
-      team: [
-        { name: 'The Net Ninja', role: 'Web developer', avatar: 'https://i.pravatar.cc/100' },
-        { name: 'Ryu', role: 'Graphic designer', avatar: 'https://i.pravatar.cc/110' },
-        { name: 'Chun Li', role: 'Web developer', avatar: 'https://i.pravatar.cc/120' },
-        { name: 'Gouken', role: 'Social media maverick', avatar: 'https://i.pravatar.cc/130' },
-        { name: 'Yoshi', role: 'Sales guru', avatar: 'https://i.pravatar.cc/140'}
-      ]
+      btn_toggle: 0,
+      user: {
+        repositories: {
+          edges: [{
+            node: {
+              name: '',
+              nameWithOwner: '',
+              createdAt: '',
+              isPrivate: '',
+              description: ''
+            }
+          }]
+        }
+      }
     }
-  }
+  },
+  apollo:{
+    user: {
+      query: GET_USER,
+      variables: {login: "Flacket"}
+    }
+  }/*,
+  methods: {
+    sortBy(prop) {
+      this.projects.sort((a,b) => a[prop] < b[prop] ? -1 : 1)
+    }
+  }*/
 }
 </script>

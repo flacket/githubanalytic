@@ -1,100 +1,299 @@
 <template>
-  <div class="estadisticas">
+  <div class="pullrequest">
+
   <h1 class="subheading-1 blue--text">Estadísticas</h1>
-  <!--<h1 class="subheading grey--text">{{user.name}}</h1>-->
-  <v-container>
+  <v-form>
+    <v-select
+      v-model="number" :items="pulls" label="Pull Request" v-on:change='refreshQuery'
+    ></v-select>
+  </v-form>
+  <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
+    <a class="subheading" target="_blank"
+    :href="repository.pullRequest.url">
+    #{{repository.pullRequest.number}}
+    </a> 
+  </h1>
 
-  <v-layout class="pb-3">
-    <v-btn-toggle class="transparent" v-model="btn_toggle">
-      <v-tooltip top>
-        <template v-slot:activator="{ on }">
-          <v-btn small text @click="sortBy('title')" v-on="on">
-            <v-icon small left>folder</v-icon>
-            <span class="caption text-lowercase">Por proyecto</span>
-          </v-btn>
-        </template>
-        <span>Ordena la lista por proyectos</span>
-      </v-tooltip>
+    <v-simple-table>
+    <thead>
+      <tr>
+        <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in countMatrix" :key="item.jota">
+        <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+      </tr>
+    </tbody>
+  </v-simple-table>
 
-      <v-tooltip top>
-        <template v-slot:activator="{ on }">
-          <v-btn small text @click="sortBy('person')" v-on="on">
-            <v-icon small left>person</v-icon>
-            <span class="caption text-lowercase">Por persona</span>
-          </v-btn>
-        </template>
-        <span>Ordena la lista por persona</span>
-      </v-tooltip> 
-
-      <v-tooltip top>
-        <template v-slot:activator="{ on }">
-          <v-btn small text @click="sortBy('status')" v-on="on">
-            <v-icon small left>check_circle</v-icon>
-            <span class="caption text-lowercase">Por estado</span>
-          </v-btn>
-        </template>
-        <span>Ordena la lista por estado</span>
-      </v-tooltip>
-    </v-btn-toggle>
-  </v-layout>
-
-  <CardProyecto v-for="item in user.repositories.edges" 
-  v-bind:project="item.node" v-bind:key="item.node.id">
-            <v-divider></v-divider>
-  </CardProyecto>
-
-<!--    <ApolloQuery :query="require('@/queries/repositories.gql')">
-      <template slot-scope="{ result: { data, loading } }">
-        <div v-if="loading">Loading...</div>
-        <ul v-else>
-          // eslint-disable-next-line vue/require-v-for-key
-          <li v-for="repo of user.name" class="user">
-            {{ item.name }}
-          </li>
-        </ul>
-      </template>
-    </ApolloQuery>-->
-
-  </v-container>
+      <v-simple-table>
+    <thead>
+      <tr>
+        <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in cohesionMatrix" :key="item.jota">
+        <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+      </tr>
+    </tbody>
+  </v-simple-table>
   </div>
 </template>
 
 <script>
-import CardProyecto from '../components/CardProyecto'
-import {GET_USER} from '../queries.js'
+import {GET_REPO} from '../queries.js'
 
 export default {
-  components: {
-    CardProyecto
-  },
   data() {
     return {
-      btn_toggle: 0,
-      user: {
-        repositories: {
-          edges: [{
-            node: {
-              name: '',
-              nameWithOwner: '',
-              createdAt: '',
-              isPrivate: '',
-              description: ''
-            }
-          }]
-        }
-      }
+      show: false,
+      countMatrix: '',
+      cohesionMatrix: '',
+      participants: '',
+      repository: '',
+      number: '',
+      owner: 'cdr', name: 'code-server',
+      pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640]
     }
   },
   apollo:{
-    user: {
-      query: GET_USER,
-      variables: {login: "Flacket"}
-    }
-  }/*,
+    repository: {
+      query: GET_REPO,
+      variables: {owner: "cdr", name: "code-server", number: 154},
+      //{"owner": "cdr", "name": "code-server", "number": 517}
+    },
+  },
   methods: {
-    sortBy(prop) {
-      this.projects.sort((a,b) => a[prop] < b[prop] ? -1 : 1)
-    }
-  }*/
+    cohesionFormula() {
+      var cantPersonas = this.participants.length
+      //crear matriz NxN
+      var x = new Array(cantPersonas);
+      for (var i = 0; i < cantPersonas; i++)
+        { x[i] = new Array(cantPersonas) }
+      this.cohesionMatrix = x
+
+      for(var c = 0; c < cantPersonas; c++){
+        for(var f = 0; f < cantPersonas; f++){
+          //contar cohesion para [c][f]
+          if (c==f) 
+            this.cohesionMatrix[c][f] = 0
+          else{ 
+            var result
+            var dif = Math.abs(this.countMatrix[c][f] - this.countMatrix[f][c])
+            if(dif > 0){
+              result = 1 - (dif / (this.countMatrix[c][f] + this.countMatrix[f][c]))
+            } else result = 0
+            this.cohesionMatrix[c][f] = result
+            this.cohesionMatrix[f][c] = result
+          }
+        }
+      }
+    },
+    refreshQuery() {
+      this.$apollo.queries.repository.refetch({ number: this.number })
+      .then(() => {
+        var cantPersonas = this.repository.pullRequest.participants.totalCount
+        this.participants = new Array();
+
+        //cargar lista personas
+        var self = this
+        this.repository.pullRequest.participants.edges.forEach(function(element) {
+          self.participants.push(element.node.login)
+        })
+
+        //crear matriz NxN
+        var x = new Array(cantPersonas);
+        for (var l = 0; l < cantPersonas; l++) {
+          x[l] = new Array(cantPersonas);
+        }
+        this.countMatrix = x
+
+        //cargar matriz (con ceros)
+        for (var i = 0; i < cantPersonas; i++) {
+          for (var j = 0; j < cantPersonas; j++) {
+            this.countMatrix[i][j] = 0
+          }
+        }
+        
+        //Primer Cometario
+        for (i = 1; i < cantPersonas; i++){
+          this.countMatrix[0][i]++
+        }
+        this.repository.pullRequest.reactions.edges.forEach(function(element) {
+          let encontrado = false
+          let e = 1 //salteo el participante de la pos[0], no se va a autorreaccionar
+          while (!encontrado){
+            if (self.participants[e] == element.node.user.login){
+              console.log('Reacciona 1er comment: ', self.participants[e])
+              //este participante le reacciono al creador del PR
+              self.countMatrix[e][0]++
+              encontrado = true
+            } else if (e == cantPersonas) 
+              {encontrado = true}
+            e++
+          }
+        })
+console.log('----- COMMENTS -----')
+        //Contar Cometarios
+        this.repository.pullRequest.comments.edges.forEach(function(element) {
+          //verifico si el comentario esta antes de la fecha de cierre
+          if(element.node.createdAt < self.repository.pullRequest.closedAt || !self.repository.pullRequest.closedAt){
+          let encontrado = false
+          let c = 0
+          while (!encontrado){
+            if (self.participants[c] == element.node.author.login){
+              console.log('Comenta: ', self.participants[c])
+              encontrado = true
+              //este participante ha hecho un comentario
+              //Busco si el comentario menciona (@) algun participante
+              var arrobaBandera = false
+              for (i = 0; i < cantPersonas; i++){
+                if(element.node.body.search('@' + self.participants[i])>-1){
+                  //el comentario menciona esta persona
+                  if (c != i){  //si no es el que comenta
+                    console.log(' -Hacia: @' + self.participants[i])
+                    self.countMatrix[c][i]++
+                    arrobaBandera = true
+                  }
+                }
+              }
+              if(!arrobaBandera){
+                console.log(' -Hacia: Todos')
+                //el comentario va para todos
+                for (i = 0; i < cantPersonas; i++){
+                  if (c != i) //si no es el que comenta
+                    self.countMatrix[c][i]++
+                }
+              }
+
+              //reacciones al comentarios
+              //crear array de reaccionadores
+              var reactionArray = new Array()
+              for (var index = 0; index < element.node.reactions.totalCount; index++){
+                let enc = false
+                let j = 0
+                while (!enc){
+                  if (self.participants[j] == element.node.reactions.edges[index].node.user.login){
+                    //este participante le reacciono al creador del PR
+                    enc = true
+                    //verificar si no reacciono antes
+                    let i = 0
+                    var yaReacciono = false
+                    while(i < reactionArray.length && !yaReacciono){
+                      if(self.participants[j] == reactionArray[i])
+                        yaReacciono = true
+                      else i++
+                    }
+                    if(!yaReacciono){
+                      console.log('  -Reacciona: ', element.node.reactions.edges[index].node.user.login)
+                      reactionArray.push(self.participants[j])
+                      self.countMatrix[j][c]++
+                    }
+                  } else if (j == cantPersonas)
+                    {enc = true}
+                  j++
+
+                }
+              }//reaccion comentarios
+            } else if (c == cantPersonas)
+              {encontrado = true}
+            c++
+          }
+          }
+        }) //contar comentarios
+console.log('----- REVIEWS -----')
+        //contar reviews
+        this.repository.pullRequest.reviewThreads.edges.forEach(function(element){
+          //este array va a mantener las personas que comentaron en el review
+          //para despues poder usarlas como receptor en el conteo de interacciones
+          var reviewArray = new Array()
+          console.log('---')
+          for (var comm = 0; comm < element.node.comments.totalCount; comm++){
+            //busco el index del comentarista
+            var encontrado = false
+            var c = 0
+            var posicion
+            while (!encontrado){
+              if (self.participants[c] == element.node.comments.edges[comm].node.author.login){
+                console.log('Comenta: ', self.participants[c])
+                encontrado = true
+                //este participante ha hecho un comentario
+                //se guarda su posicion
+                posicion = c
+              } else if (c == cantPersonas)
+                {encontrado = true}
+              c++
+            }
+
+            //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ABAJO
+            //me fijo si debo agregar el comentarista al reviewArray
+            let add = true
+            c=0
+            if(reviewArray.length != 0){
+              while(add && c < reviewArray.length){
+                if (posicion == reviewArray[c].pos)
+                  {add = false}
+                c++
+              }
+            }
+            if(add){
+              //Agrego el comentarista al array
+              var data = { name: element.node.comments.edges[comm].node.author.login,
+                          pos: posicion }
+              reviewArray.push(data)
+            }
+
+            //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ARRIBA
+            //si es el primer comentario del review
+            if (reviewArray.length == 0){
+              //Si es el que crea el PR el que comenta primero
+              if(posicion == 0){
+                for (i = 1; i < cantPersonas; i++){
+                  //el comentario va para todos los participantes
+                  self.countMatrix[0][i]++
+                }
+              } else {
+                //el comentario va para el creador del PR
+                self.countMatrix[posicion][0]++
+              }
+            } else {
+              //sumo comentario de <<posicion>> a las personas
+              //que ya comentaron en el mismo review
+              for (i = 0; i < reviewArray.length; i++){
+                if (posicion != reviewArray[i].pos){
+                  self.countMatrix[posicion][reviewArray[i].pos]++
+                }
+              }
+            }
+
+            //reacciones al comentarios
+            for (var index = 0; index < element.node.comments.edges[comm].node.reactions.totalCount; index++){
+              let enc = false
+              let j = 0
+              //busco la posicion en la matriz del que reacciona
+              while (!enc){
+                if (self.participants[j] == element.node.comments.edges[comm]
+                                        .node.reactions.edges[index].node.user.login){
+                  console.log(' -Reacciona: ', element.node.comments.edges[comm]
+                                          .node.reactions.edges[index].node.user.login)
+                  //este participante le reacciono al creador del PR
+                  self.countMatrix[j][posicion]++
+                  enc = true
+                } else if (j == cantPersonas)
+                  { enc = true }
+                j++
+              }
+            }
+
+          }
+        }) //contar reviews
+        console.log(x)
+        this.cohesionFormula();
+        this.show = true
+      })
+    }//refresh query
+  }
 }
 </script>
