@@ -20,7 +20,7 @@
       v-bind:login="repository.pullRequest.author.login"
       v-bind:createdAt="repository.pullRequest.createdAt"
       v-bind:reactCant="repository.pullRequest.reactions.totalCount"
-      v-bind:body="repository.pullRequest.body"
+      v-bind:body="repository.pullRequest.bodyHTML"
     ><v-divider></v-divider>
     </Comment>
     <Comment v-for="item in repository.pullRequest.comments.edges"
@@ -28,7 +28,7 @@
     v-bind:login="item.node.author.login"
     v-bind:createdAt="item.node.createdAt"
     v-bind:reactCant="item.node.reactions.totalCount"
-    v-bind:body="item.node.body"
+    v-bind:body="item.node.bodyHTML"
     v-bind:key="item.node.id">
     <v-divider></v-divider>
     </Comment>
@@ -40,7 +40,7 @@
       v-bind:login="com.node.author.login"
       v-bind:createdAt="com.node.createdAt"
       v-bind:reactCant="com.node.reactions.totalCount"
-      v-bind:body="com.node.body"
+      v-bind:body="com.node.bodyHTML"
       v-bind:key="com.node.id">
       <v-divider></v-divider>
       </Comment>

@@ -87,18 +87,13 @@ export default {
       var cantPersonas = this.participants.length
       var x = new Array(cantPersonas);
 
-      console.log('--- Cohesion Individual ---')
       for (var i = 0; i < cantPersonas; i++){
         var coInd = 0 
-        for(var j = 0; j < cantPersonas; j++){
-          coInd += this.cohesionMatrix[i][j]
-        }
-        x[i] = (coInd / (cantPersonas - 1))
-        console.log(this.participants[i], ':')
-        console.log('  -', x[i])
+        for(var j = 0; j < cantPersonas; j++)
+          { coInd += this.cohesionMatrix[i][j] }
+        x[i] = Math.round((coInd / (cantPersonas - 1)) * 100) / 100
       }
       this.cohesionInd = x
-      console.log(this.cohesionInd)
     },
     cohesionFormula() {
       var cantPersonas = this.participants.length
@@ -111,16 +106,16 @@ export default {
       for(let c = 0; c < cantPersonas; c++){
         for(let f = 0; f < cantPersonas; f++){
           //contar cohesion para [c][f]
-          if (c==f) 
+          if (c==f)
             this.cohesionMatrix[c][f] = 0
-          else{ 
+          else{
             var result
-            var dif = Math.abs(this.countMatrix[c][f] - this.countMatrix[f][c])
-            if(dif > 0){
-              result = 1 - (dif / (this.countMatrix[c][f] + this.countMatrix[f][c]))
+            var sum = this.countMatrix[c][f] + this.countMatrix[f][c]
+            if(sum > 0){
+              result = 1 - ((Math.abs(this.countMatrix[c][f] - this.countMatrix[f][c])) / sum)
             } else result = 0
-            this.cohesionMatrix[c][f] = result
-            this.cohesionMatrix[f][c] = result
+            this.cohesionMatrix[c][f] = Math.round(result * 100) / 100
+            this.cohesionMatrix[f][c] = Math.round(result * 100) / 100
           }
         }
       }
@@ -278,11 +273,12 @@ console.log('----- REVIEWS -----')
               var data = { name: element.node.comments.edges[comm].node.author.login,
                           pos: posicion }
               reviewArray.push(data)
+              console.log(' -1er coment')
             }
 
             //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ARRIBA
             //si es el primer comentario del review
-            if (reviewArray.length == 0){
+            if (reviewArray.length == 1){
               //Si es el que crea el PR el que comenta primero
               if(posicion == 0){
                 for (i = 1; i < cantPersonas; i++){

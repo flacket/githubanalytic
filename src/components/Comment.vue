@@ -12,11 +12,11 @@
       </v-flex>
       <v-flex xs4 sm2 md1>
         <div class="caption grey--text">Fecha Creación</div>
-        <div>{{ createdAt }}</div>
+        <div class="caption">{{ createdAt | moment }}</div>
       </v-flex>
 
       <v-flex xs12 sm7 md9>
-        <div>{{ body }}</div>
+        <div><span v-html="body"></span></div>
       </v-flex>
     </v-layout>
     <v-divider></v-divider>
@@ -24,7 +24,16 @@
 </template>
 
 <script>
+import moment from "moment";
+moment.locale("es-us");
+
 export default {
-  props: ['avatarUrl', 'login', 'reactCant', 'createdAt', 'body']
+  props: ['avatarUrl', 'login', 'reactCant', 'createdAt', 'body'],
+  filters: {
+    moment: function(date) {
+      //validar si es tipo fecha
+      return moment(date).calendar();
+    }
+  }
 }
 </script>

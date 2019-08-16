@@ -55,6 +55,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
         avatarUrl
       }
       body
+      bodyHTML
       createdAt
       closedAt
       number
@@ -87,6 +88,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
               edges {
                 node {
                   body
+                  bodyHTML
                   author {
                     login
                     avatarUrl
@@ -112,6 +114,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
         edges {
           node {
             body
+            bodyHTML
             createdAt
             author {
               login
