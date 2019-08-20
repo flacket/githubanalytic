@@ -273,28 +273,47 @@ console.log('----- REVIEWS -----')
               var data = { name: element.node.comments.edges[comm].node.author.login,
                           pos: posicion }
               reviewArray.push(data)
-              console.log(' -1er coment')
+              console.log(' -Array', data)
             }
 
             //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ARRIBA
+             //Busco si el comentario menciona (@) algun participante
+            var arrobaBandera = false
+            for (i = 0; i < cantPersonas; i++){
+              if(element.node.comments.edges[comm].node.body.search('@' + self.participants[i])>-1){
+                //el comentario menciona esta persona
+                //si no es el que comenta y no va a ser contado (en reviewArray)
+                if (c != i && !reviewArray.includes(self.participants[i])){  
+                  console.log(' -Hacia: @', self.participants[i])
+                  self.countMatrix[c][i]++
+                  arrobaBandera = true
+                }
+              }
+            }
+
             //si es el primer comentario del review
             if (reviewArray.length == 1){
               //Si es el que crea el PR el que comenta primero
               if(posicion == 0){
+                //el comentario va para todos los participantes
                 for (i = 1; i < cantPersonas; i++){
-                  //el comentario va para todos los participantes
                   self.countMatrix[0][i]++
+                  console.log(' -(1crea)Hacia: ', self.participants[i])
                 }
               } else {
                 //el comentario va para el creador del PR
                 self.countMatrix[posicion][0]++
+                console.log(' -(1otro)Hacia: ', self.participants[0])
               }
             } else {
               //sumo comentario de <<posicion>> a las personas
               //que ya comentaron en el mismo review
-              for (i = 0; i < reviewArray.length; i++){
-                if (posicion != reviewArray[i].pos){
-                  self.countMatrix[posicion][reviewArray[i].pos]++
+              if(!arrobaBandera){ //solo si no hay gente arrobada
+                for (i = 0; i < reviewArray.length; i++){
+                  if (posicion != reviewArray[i].pos){
+                    self.countMatrix[posicion][reviewArray[i].pos]++
+                    console.log(' -(no@)Hacia: ', self.participants[reviewArray[i].pos])
+                  }
                 }
               }
             }

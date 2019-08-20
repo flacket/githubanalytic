@@ -11,7 +11,7 @@
         <div class="caption grey--text">Reactions: {{ reactCant }}</div>
       </v-flex>
       <v-flex xs4 sm2 md1>
-        <div class="caption grey--text">Fecha Creación</div>
+        <div class="caption grey--text">Fecha</div>
         <div class="caption">{{ createdAt | moment }}</div>
       </v-flex>
 
@@ -32,7 +32,7 @@ export default {
   filters: {
     moment: function(date) {
       //validar si es tipo fecha
-      return moment(date).calendar();
+      return moment(date).format('DD/MM/YY, h:mm:ss a');
     }
   }
 }
