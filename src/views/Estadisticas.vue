@@ -91,39 +91,28 @@ export default {
     },
   },
   methods: {
-    cohesionIndividual() {
+    cohesionEstadisticas() {
       var cantPersonas = this.participants.length
-      var x = new Array(cantPersonas);
-
-      for (var e = 0; e < cantPersonas; e++){
-        var coInd = 0 
-        for(var f = 0; f < cantPersonas; f++)
-          { coInd += this.cohesionMatrix[e][f] }
-        x[e] = Math.round((coInd / (cantPersonas - 1)) * 100) / 100
-      }
-      this.cohesionInd = x
-      console.log('Calculo Estadisticas')
       var estadisticas = '['
-      for (var i = 0; i < this.participants.length; i++){
-        var coeInd = 0
-        var msjEnviados = 0
-        var msjRecibidos = 0
+      var coeInd, msjEnviados, msjRecibidos
+      for (var i = 0; i < cantPersonas; i++){
+        coeInd = 0
+        msjEnviados = 0
+        msjRecibidos = 0
         for(var j = 0; j < cantPersonas; j++){
           coeInd += this.cohesionMatrix[i][j]
           msjEnviados += this.countMatrix[i][j]
           msjRecibidos += this.countMatrix[j][i]
         }
         estadisticas += '{"nombre": "' + this.participants[i] +
-        '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
-        ', "msjEnviados": ' + msjEnviados +
-        ', "msjRecibidos": ' + msjRecibidos + '}'
-        if (i+1 < this.participants.length)
+          '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
+          ', "msjEnviados": ' + msjEnviados +
+          ', "msjRecibidos": ' + msjRecibidos + '}'
+        if (i+1 < cantPersonas)
           estadisticas += ','
       }
       estadisticas += ']'
-      console.log(estadisticas)
       this.estadisticas = JSON.parse(estadisticas)
-      console.log(this.estadisticas)
     },
     cohesionFormula() {
       var cantPersonas = this.participants.length
@@ -149,7 +138,7 @@ export default {
           }
         }
       }
-      this.cohesionIndividual()
+      this.cohesionEstadisticas()
     },
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
