@@ -2,6 +2,9 @@
   <div class="pullrequest">
 
   <h1 class="subheading-1 blue--text">Estadísticas</h1>
+  <a class="headline grey--text" target="_blank"
+  href="https://drive.google.com/open?id=1W8h82JV60Z-aL4g64GW67DpM28ghSDeGrFt2KFpqU8s">
+  Link Drive</a> 
   <v-form>
     <v-select
       v-model="number" :items="pulls" label="Pull Request" v-on:change='refreshQuery'
@@ -14,6 +17,12 @@
     </a> 
   </h1>
   <div v-if="show">
+    <v-data-table
+      :headers="encabezados"
+      :items="estadisticas"
+      :items-per-page="20"
+      class="elevation-1 mt-2"
+    ></v-data-table>
     <h1 class="headline blue--text mt-4 mb-1">Tabla de Conteo</h1>
     <v-simple-table>
       <thead>
@@ -40,19 +49,6 @@
         </tr>
       </tbody>
     </v-simple-table>
-    <h1 class="headline blue--text mt-4 mb-1">Promedio Cohesion Individual</h1>
-    <v-simple-table>
-      <thead>
-        <tr>
-          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr >
-          <td v-for="item in cohesionInd" :key="item.jota">{{item}}</td>
-        </tr>
-      </tbody>
-    </v-simple-table>
   </div>
 
   </div>
@@ -68,6 +64,18 @@ export default {
       countMatrix: '',
       cohesionMatrix: '',
       cohesionInd: '',
+      encabezados: [
+          {
+            text: 'Participante',
+            align: 'left',
+            sortable: false,
+            value: 'nombre',
+          },
+          { text: 'Cohesion Ind', value: 'coeInd' },
+          { text: 'Msj. Enviados', value: 'msjEnviados' },
+          { text: 'Msj. Recibidos', value: 'msjRecibidos' }
+        ],
+      estadisticas: '',
       participants: '',
       repository: '',
       number: '',
@@ -87,13 +95,35 @@ export default {
       var cantPersonas = this.participants.length
       var x = new Array(cantPersonas);
 
-      for (var i = 0; i < cantPersonas; i++){
+      for (var e = 0; e < cantPersonas; e++){
         var coInd = 0 
-        for(var j = 0; j < cantPersonas; j++)
-          { coInd += this.cohesionMatrix[i][j] }
-        x[i] = Math.round((coInd / (cantPersonas - 1)) * 100) / 100
+        for(var f = 0; f < cantPersonas; f++)
+          { coInd += this.cohesionMatrix[e][f] }
+        x[e] = Math.round((coInd / (cantPersonas - 1)) * 100) / 100
       }
       this.cohesionInd = x
+      console.log('Calculo Estadisticas')
+      var estadisticas = '['
+      for (var i = 0; i < this.participants.length; i++){
+        var coeInd = 0
+        var msjEnviados = 0
+        var msjRecibidos = 0
+        for(var j = 0; j < cantPersonas; j++){
+          coeInd += this.cohesionMatrix[i][j]
+          msjEnviados += this.countMatrix[i][j]
+          msjRecibidos += this.countMatrix[j][i]
+        }
+        estadisticas += '{"nombre": "' + this.participants[i] +
+        '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
+        ', "msjEnviados": ' + msjEnviados +
+        ', "msjRecibidos": ' + msjRecibidos + '}'
+        if (i+1 < this.participants.length)
+          estadisticas += ','
+      }
+      estadisticas += ']'
+      console.log(estadisticas)
+      this.estadisticas = JSON.parse(estadisticas)
+      console.log(this.estadisticas)
     },
     cohesionFormula() {
       var cantPersonas = this.participants.length
