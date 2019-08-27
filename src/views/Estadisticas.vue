@@ -113,6 +113,7 @@ export default {
       }
       estadisticas += ']'
       this.estadisticas = JSON.parse(estadisticas)
+      console.log(this.estadisticas)
     },
     cohesionFormula() {
       var cantPersonas = this.participants.length

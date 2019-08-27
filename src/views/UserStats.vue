@@ -17,7 +17,7 @@
   <div v-if="show">
     <v-data-table
       :headers="encabezados"
-      :items="todos"
+      :items="estadisticas"
       :items-per-page="20"
       class="elevation-1 mt-2"
     ></v-data-table>
@@ -50,8 +50,7 @@ export default {
       repositoryOwner: '',
       user: '',
       name: '',
-      todos: [],
-      users: ["flacket","nhooyr","frol","nol166","kylecarbs","sr229","code-asher","stevesloka","NGTmeaty","bhack",
+      users: ["nhooyr","frol","nol166","kylecarbs","sr229","code-asher","stevesloka","NGTmeaty","bhack",
               "PhilsLab","Zate","lucacasonato","webbertakken","andreimc","avelino","MichaelDesantis",
               "zerdos","aslafy-z","lsmoura","Omeryl","mko-x","sabrehagen","coadler","davefinster",
               "ammario","visualphoenix","TomFrost","foresthoffman","satlus","ibnesayeed","ptoulouse"]
@@ -69,9 +68,47 @@ export default {
   },
   methods: {
     listarTodos() {
-      this.todos.add(this.estadisticas)
-      console.log(this.todos)
-      
+      var estadisticas = ''
+      this.users.forEach((item) => {
+        var watch, star, fork, followers, following
+        this.$apollo.queries.repositoryOwner.refetch({ owner: item })
+        .then(() => {
+          watch = 0
+          star = 0
+          fork = 0
+          //cuenta las estadisticas de los repositorios
+          this.repositoryOwner.repositories.edges.forEach(function(element) {
+            watch += element.node.watchers.totalCount
+            star += element.node.stargazers.totalCount
+            fork += element.node.forkCount
+          })
+
+        this.$apollo.queries.user.refetch({ owner: item })
+          .then(() => {
+            followers = this.user.followers.totalCount
+            following = this.user.following.totalCount
+
+            //guardo las stats en un JSON
+            if (estadisticas == ''){
+              estadisticas = '['
+            } else {
+              estadisticas = estadisticas.slice(0, -1)
+              estadisticas += ','
+            } 
+            estadisticas += '{"nombre": "' + item +
+                                '", "watch": ' + watch +
+                                ', "star": ' + star +
+                                ', "fork": ' + fork + 
+                                ', "followers": ' + followers + 
+                                ', "following": ' + following + '}]'
+            var parser = estadisticas
+            this.estadisticas = JSON.parse(parser)
+            console.log(this.estadisticas)
+            this.show = true
+          })
+        })
+      })
+
       //for (var i=0; i< this.users.length; i++){  
         
       //}
