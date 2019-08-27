@@ -15,12 +15,12 @@
     "vue": "^2.6.10",
     "vue-apollo": "^3.0.0-beta.11",
     "vue-router": "^3.1.2",
-    "vuetify": "^2.0.10"
+    "vuetify": "^2.0.11"
   },
   "devDependencies": {
     "@mdi/font": "^4.2.95",
     "@vue/cli-plugin-babel": "^3.11.0",
-    "@vue/cli-plugin-eslint": "^3.9.0",
+    "@vue/cli-plugin-eslint": "^3.11.0",
     "@vue/cli-service": "^3.11.0",
     "babel-eslint": "^10.0.3",
     "eslint": "^5.16.0",

@@ -137,3 +137,38 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
   }
 }
 `;
+
+export const USER = gql`
+query userstats($owner: String!) {
+  user(login: $owner) {
+    login
+    url
+    avatarUrl
+    followers(first: 1){
+      totalCount
+    }
+    following(first: 1){
+      totalCount
+    }
+  }
+}`;
+
+export const USER_STATS = gql`
+query userstats($owner: String!) {
+  repositoryOwner(login: $owner) {
+    repositories(first: 100) {
+      totalCount
+      edges {
+        node {
+          watchers(first: 1) {
+            totalCount
+          }
+          forkCount
+          stargazers(first: 1) {
+            totalCount
+          }
+        }
+      }
+    }
+  }
+}`;

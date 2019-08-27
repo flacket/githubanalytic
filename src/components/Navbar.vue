@@ -49,7 +49,7 @@ export default {
       { icon: 'home', text: 'Inicio', route: '/' },
       { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
       { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
-      { icon: 'timeline', text: 'Informes', route: '/informes' },
+      { icon: 'timeline', text: 'User Stats', route: '/userstats' },
       { icon: 'settings', text: 'Configuración', route: '/configuracion' },
       { icon: 'help', text: 'Acerca de', route: '/acerca' }
     ]
