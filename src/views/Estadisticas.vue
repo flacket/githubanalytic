@@ -56,6 +56,8 @@
 
 <script>
 import {GET_REPO} from '../queries.js'
+import moment from "moment";
+moment.locale("es-us");
 
 export default {
   data() {
@@ -144,6 +146,8 @@ export default {
     refreshQuery() {
       this.$apollo.queries.repository.refetch({ number: this.number })
       .then(() => {
+        console.clear()
+        console.log('FCerrado: ', this.repository.pullRequest.closedAt)
         var cantPersonas = this.repository.pullRequest.participants.totalCount
         this.participants = new Array();
 
@@ -186,71 +190,104 @@ export default {
           }
         })
 console.log('----- COMMENTS -----')
+        //variables para revisar si repite comentario
+        var lastCommentBody
+        var lastCommentDate
+        var lastCommentAuthor = null
         //Contar Cometarios
         this.repository.pullRequest.comments.edges.forEach(function(element) {
           //verifico si el comentario esta antes de la fecha de cierre
           if(element.node.createdAt < self.repository.pullRequest.closedAt || !self.repository.pullRequest.closedAt){
+            console.log('--------------------')
+            console.log('FComentario: ', element.node.createdAt)
           let encontrado = false
           let c = 0
+
+          //reviso que el usuario no repita comentario
+          //ni escriba 2 mensajes seguidos
+          var commentNoValido = false
+          if ((lastCommentAuthor != null) && (lastCommentAuthor == element.node.author.login)){
+          // comenta el mismo del comentario anterior
+            let momentDate = moment(element.node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+            let ComentDate = momentDate.toDate();
+            let timeLapsed = (ComentDate.getTime() - lastCommentDate.getTime()) / 1000
+            console.log('Minutos:', timeLapsed/60)
+            console.log('lastCommentAuthor:', lastCommentAuthor)
+            console.log('Author:', element.node.author.login)
+            if ((lastCommentBody == element.node.body)||(timeLapsed < 900)){ 
+              //el comentario se repite o fecha es menor a 15 min
+              commentNoValido = true
+              console.log('no valido')
+            }
+          }
+          //registro el comentario para revisar despues si repite
+          let momDate = moment(element.node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+          lastCommentDate = momDate.toDate();
+          lastCommentBody = element.node.body
+          lastCommentAuthor = element.node.author.login
+
           while (!encontrado){
-            if (self.participants[c] == element.node.author.login){
-              console.log('Comenta: ', self.participants[c])
-              encontrado = true
-              //este participante ha hecho un comentario
-              //Busco si el comentario menciona (@) algun participante
-              var arrobaBandera = false
-              for (i = 0; i < cantPersonas; i++){
-                if(element.node.body.search('@' + self.participants[i])>-1){
-                  //el comentario menciona esta persona
-                  if (c != i){  //si no es el que comenta
-                    console.log(' -Hacia: @' + self.participants[i])
-                    self.countMatrix[c][i]++
-                    arrobaBandera = true
+              if (self.participants[c] == element.node.author.login){
+                encontrado = true
+                //este participante ha hecho un comentario
+                //Busco si el comentario menciona (@) algun participante
+                var arrobaBandera = false
+                for (i = 0; i < cantPersonas; i++){
+                  if(element.node.body.search('@' + self.participants[i])>-1){
+                    //el comentario menciona esta persona
+                    if (c != i){  //si no es el que comenta
+                      console.log('Comenta: ', self.participants[c])
+                      console.log(' -Hacia: @' + self.participants[i])
+                      self.countMatrix[c][i]++
+                      arrobaBandera = true
+                    }
                   }
                 }
-              }
-              if(!arrobaBandera){
-                console.log(' -Hacia: Todos')
-                //el comentario va para todos
-                for (i = 0; i < cantPersonas; i++){
-                  if (c != i) //si no es el que comenta
-                    self.countMatrix[c][i]++
-                }
-              }
-
-              //reacciones al comentarios
-              //crear array de reaccionadores
-              var reactionArray = new Array()
-              for (var index = 0; index < element.node.reactions.totalCount; index++){
-                let enc = false
-                let j = 0
-                while (!enc){
-                  if (self.participants[j] == element.node.reactions.edges[index].node.user.login){
-                    //este participante le reacciono al creador del PR
-                    enc = true
-                    //verificar si no reacciono antes
-                    let i = 0
-                    var yaReacciono = false
-                    while(i < reactionArray.length && !yaReacciono){
-                      if(self.participants[j] == reactionArray[i])
-                        yaReacciono = true
-                      else i++
+                if(!arrobaBandera){
+                  //el comentario va para todos
+                  if(!commentNoValido){
+                    //el comentario no esta repetido
+                    console.log('Comenta: ', self.participants[c])
+                    console.log(' -Hacia: Todos')
+                    for (i = 0; i < cantPersonas; i++){
+                      if (c != i) //si no es el que comenta
+                        self.countMatrix[c][i]++
                     }
-                    if(!yaReacciono){
-                      console.log('  -Reacciona: ', element.node.reactions.edges[index].node.user.login)
-                      reactionArray.push(self.participants[j])
-                      self.countMatrix[j][c]++
-                    }
-                  } else if (j == cantPersonas)
-                    {enc = true}
-                  j++
-
+                  }
                 }
-              }//reaccion comentarios
-            } else if (c == cantPersonas)
-              {encontrado = true}
-            c++
-          }
+                //reacciones al comentarios
+                //crear array de reaccionadores
+                var reactionArray = new Array()
+                for (var index = 0; index < element.node.reactions.totalCount; index++){
+                  let enc = false
+                  let j = 0
+                  while (!enc){
+                    if (self.participants[j] == element.node.reactions.edges[index].node.user.login){
+                      //este participante le reacciono al creador del PR
+                      enc = true
+                      //verificar si no reacciono antes
+                      let i = 0
+                      var yaReacciono = false
+                      while(i < reactionArray.length && !yaReacciono){
+                        if(self.participants[j] == reactionArray[i])
+                          yaReacciono = true
+                        else i++
+                      }
+                      if(!yaReacciono){
+                        console.log('  -Reacciona: ', element.node.reactions.edges[index].node.user.login)
+                        reactionArray.push(self.participants[j])
+                        self.countMatrix[j][c]++
+                      }
+                    } else if (j == cantPersonas)
+                      {enc = true}
+                    j++
+
+                  }
+                }//reaccion comentarios
+              } else if (c == cantPersonas)
+                {encontrado = true}
+              c++
+            }//while encontrado
           }
         }) //contar comentarios
 console.log('----- REVIEWS -----')
@@ -293,7 +330,6 @@ console.log('----- REVIEWS -----')
               var data = { name: element.node.comments.edges[comm].node.author.login,
                           pos: posicion }
               reviewArray.push(data)
-              console.log(' -Array', data)
             }
 
             //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ARRIBA
