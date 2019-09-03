@@ -6,6 +6,8 @@ import ApolloClient from 'apollo-boost'
 // Install the vue plugin
 Vue.use(VueApollo)
 
+var authToken = ''
+
 // Call this in the Vue app file
 export function createProvider () {
   //creating apollo client
@@ -14,7 +16,7 @@ export function createProvider () {
     request: operation => {
       operation.setContext({
         headers: {
-          authorization: 'Bearer '+'a939e8d7ddad933d9e5d86887e01a00f1545067a'
+          authorization: 'Bearer '+ authToken
         },
       });
     }
