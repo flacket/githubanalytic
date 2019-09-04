@@ -6,8 +6,8 @@ import ApolloClient from 'apollo-boost'
 // Install the vue plugin
 Vue.use(VueApollo)
 
-var authToken = ''
-
+var authToken = localStorage.getItem("token")
+console.log('Get AuthToken: ', authToken)
 // Call this in the Vue app file
 export function createProvider () {
   //creating apollo client
