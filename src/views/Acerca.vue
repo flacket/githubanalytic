@@ -15,14 +15,14 @@
           GITHUB <span class="font-weight-light">ANALYTIC</span>
         </h1>
         <p class="subheading font-weight-regular">
-          For help and collaboration with other Vuetify developers,
-          <br>please join our online
-          <a href="https://community.vuetifyjs.com" target="_blank">Discord Community</a>
+          Creado por Facundo Gallardo
+          <br>si estas interesado o tienes dudas puedes 
+          <a href="mailto:facundoggallardo@gmail.com" target="_blank">enviarme un correo</a>
         </p>
       </v-flex>
 
       <v-flex xs12 mb-5>
-        <h2 class="headline-1 font-weight-bold mb-3">Links Importantes</h2>
+        <h2 class="headline-1 font-weight-bold mb-3">Tambien Visita</h2>
         <v-layout justify-center>
           <a
             v-for="(link, i) in linksImportantes"
@@ -44,16 +44,16 @@
     data: () => ({
       linksImportantes: [
         {
-          text: 'Documentation',
-          href: 'https://vuetifyjs.com'
+          text: 'Mi Perfil Facebook',
+          href: 'https://www.facebook.com/facundogallardo'
         },
         {
-          text: 'Chat',
-          href: 'https://community.vuetifyjs.com'
+          text: 'Mi Perfil Github',
+          href: 'https://github.com/flacket'
         },
         {
-          text: 'Made with Vuetify',
-          href: 'https://madewithvuetifyjs.com'
+          text: 'Repositorio Github',
+          href: 'https://github.com/flacket/githubanalytic'
         }
       ]
     })

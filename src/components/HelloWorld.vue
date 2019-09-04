@@ -15,7 +15,7 @@
           GITHUB <span class="font-weight-light">ANALYTIC</span>
         </h1>
         <p class="subheading font-weight-regular">
-          For help and collaboration with other Vuetify developers
+          Webapp en desarrollo para analisis de sentimientos en equipos de trabajo distribuidos
         </p>
       </v-flex>
     </v-layout>
