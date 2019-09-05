@@ -147,7 +147,6 @@ export default {
       this.$apollo.queries.repository.refetch({ number: this.number })
       .then(() => {
         console.clear()
-        console.log('FCerrado: ', this.repository.pullRequest.closedAt)
         var cantPersonas = this.repository.pullRequest.participants.totalCount
         this.participants = new Array();
 
@@ -157,20 +156,16 @@ export default {
           self.participants.push(element.node.login)
         })
 
-        //crear matriz NxN
-        var x = new Array(cantPersonas);
-        for (var l = 0; l < cantPersonas; l++) {
-          x[l] = new Array(cantPersonas);
+        //crear matriz NxN (con ceros)
+        var x = new Array(cantPersonas)
+        for (var i = 0; i < cantPersonas; i++) {
+          x[i] = new Array(cantPersonas)
+          for (var j = 0; j < cantPersonas; j++) {
+            x[i][j] = 0
+          }
         }
         this.countMatrix = x
 
-        //cargar matriz (con ceros)
-        for (var i = 0; i < cantPersonas; i++) {
-          for (var j = 0; j < cantPersonas; j++) {
-            this.countMatrix[i][j] = 0
-          }
-        }
-        
         //Primer Cometario
         for (i = 1; i < cantPersonas; i++){
           this.countMatrix[0][i]++
