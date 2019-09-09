@@ -32,15 +32,19 @@
       <span class="font-weight-light">ANALYTIC</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
-    <Login />
+    <GithubLogin />
   </v-app-bar>
 </div>
 </template>
 
 <script>
-import Login from './Login'
+//import Login from './Login'
+import GithubLogin from './GithubLogin'
 export default {
-  components: { Login },
+  components: { 
+    //Login, 
+    GithubLogin 
+  },
   data(){
     return{
       dialog: false,
