@@ -1,9 +1,8 @@
 import * as firebase from "firebase/app"
 import 'firebase/auth'
 
-
 const firebaseConfig = {
-  //Your web app's Firebase configuration
+  //your config here
 }
 
 // Initialize Firebase
