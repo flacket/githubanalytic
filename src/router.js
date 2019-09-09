@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
+import firebaseApp from './FirebaseApp'
+
 import Estadisticas from './views/Estadisticas.vue'
 //import Informes from './views/Informes.vue'
 import UserStats from './views/UserStats.vue'
@@ -10,10 +12,14 @@ import Acerca from './views/Acerca.vue'
 
 Vue.use(Router)
 
-export default new Router({
+let router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
+    {
+      path: '*',
+      redirect: '/'
+    },
     {
       path: '/',
       name: 'home',
@@ -32,7 +38,10 @@ export default new Router({
     {
       path: '/userstats',
       name: 'userstats',
-      component: UserStats
+      component: UserStats,
+      meta:{
+        requiresAuth: true
+      }
     },
     {
       path: '/configuracion',
@@ -46,3 +55,33 @@ export default new Router({
     }
   ]
 })
+
+//Nav Royal Guards
+router.beforeEach((to, from, next) => {
+  //check for requireddAuth guard
+  if(to.matched.some(record => record.meta.requiresAuth)) {
+    //check if NOT logged in
+    if(!firebaseApp.auth().currentUser){
+      //Go to login 
+      next({
+        path: '/error',
+        query:{
+          redirect: to.fullPath
+        }
+      });
+    } else next();
+  } else if (to.matched.some(record => record.meta.requiresGuest)){
+      //check if logged in
+    if(firebaseApp.auth().currentUser){
+      //Go to login 
+      next({
+        path: '/',
+        query:{
+          redirect: to.fullPath
+        }
+      });
+    } else next();
+  } else next();
+});
+
+export default router;
