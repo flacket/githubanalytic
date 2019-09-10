@@ -26,13 +26,11 @@ created() {
   var user = firebaseApp.auth().currentUser
   if (user) this.isLoggedIn = true
   else this.isLoggedIn = false
-  console.log('current user: ', user)
   },
 methods: {
   async githubLogin() {
     var provider = new firebase.auth.GithubAuthProvider()
     provider.addScope('repo');
-    console.log("enviando APIKey:", process.env.VUE_APP_FIREBASE_API_KEY)
 
     await firebaseApp.auth().signInWithPopup(provider).then(function(result) {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
@@ -41,8 +39,6 @@ methods: {
       var user = result.user.displayName;
       localStorage.setItem("tokenId", token)
       localStorage.setItem("user", user)
-      console.log('Usuario Logueado: ', user)
-      console.log('TokenId: ', token)
     }).catch(function(error) {
       console.log('errorCode: ', error.code)
       console.log('errorMessage: ', error.message)
@@ -51,7 +47,7 @@ methods: {
       // The firebase.auth.AuthCredential type that was used.
       console.log('credential: ', error.credential)
     });
-    //this.$router.go({path: '/'});
+    this.$router.go({path: '/'});
   },
   githublogout(){
     var self = this
