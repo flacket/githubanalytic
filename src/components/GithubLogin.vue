@@ -32,6 +32,7 @@ methods: {
   async githubLogin() {
     var provider = new firebase.auth.GithubAuthProvider()
     provider.addScope('repo');
+    console.log("enviando APIKey:", process.env.VUE_APP_FIREBASE_API_KEY)
 
     await firebaseApp.auth().signInWithPopup(provider).then(function(result) {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
