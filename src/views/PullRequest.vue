@@ -13,7 +13,7 @@
     #{{repository.pullRequest.number}}
     </a> 
   </h1>
-
+  <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-container v-if="show">
     <Comment 
       v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"

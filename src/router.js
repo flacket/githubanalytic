@@ -28,12 +28,18 @@ let router = new Router({
     {
       path: '/estadisticas',
       name: 'estadisticas',
-      component: Estadisticas
+      component: Estadisticas,
+      meta:{
+        requiresAuth: true
+      }
     },
     {
       path: '/pullrequest',
       name: 'pullrequest',
-      component: PullRequest
+      component: PullRequest,
+      meta:{
+        requiresAuth: true
+      }
     },
     {
       path: '/userstats',
@@ -46,7 +52,10 @@ let router = new Router({
     {
       path: '/configuracion',
       name: 'configuracion',
-      component: Configuracion
+      component: Configuracion,
+      meta:{
+        requiresAuth: true
+      }
     },
     {
       path: '/acerca',

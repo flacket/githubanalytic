@@ -14,6 +14,7 @@
     {{user.url}}
     </a> 
   </h1>
+  <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <div v-if="show">
     <v-data-table
       :headers="encabezados"
@@ -67,7 +68,7 @@ export default {
     },
   },
   methods: {
-    listarTodos() {
+    async listarTodos() {
       var estadisticas = ''
       this.users.forEach((item) => {
         var watch, star, fork, followers, following

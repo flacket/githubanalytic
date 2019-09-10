@@ -30,8 +30,8 @@ created() {
 methods: {
   async githubLogin() {
     var provider = new firebase.auth.GithubAuthProvider()
-    provider.addScope('repo');
-
+    provider.addScope('repo')
+    var result = null
     await firebaseApp.auth().signInWithPopup(provider).then(function(result) {
       // This gives you a GitHub Access Token. You can use it to access the GitHub API.
       var token = result.credential.accessToken;
@@ -40,21 +40,26 @@ methods: {
       localStorage.setItem("tokenId", token)
       localStorage.setItem("user", user)
     }).catch(function(error) {
-      console.log('errorCode: ', error.code)
-      console.log('errorMessage: ', error.message)
+      result = error
+    })
+    if (!result)
+      this.$router.push({path: 'estadisticas' })
+    else {
+      console.log('errorCode: ', result.code)
+      console.log('errorMessage: ', result.message)
       // The email of the user's account used.
-      console.log('email: ', error.email)
+      console.log('email: ', result.email)
       // The firebase.auth.AuthCredential type that was used.
-      console.log('credential: ', error.credential)
-    });
-    this.$router.go({path: '/'});
+      console.log('credential: ', result.credential)
+    }
   },
   githublogout(){
     var self = this
     firebase.auth().signOut().then(function() {
       localStorage.setItem("tokenId", null)
       localStorage.setItem("user", null)
-      self.$router.go({path: '/'});
+      self.isLoggedIn = false
+      self.$router.go({ path: 'home' });
     }).catch(function(error) {
       console.log('errorCode: ', error.code)
       console.log('errorMessage: ', error.message)

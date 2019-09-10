@@ -1,6 +1,5 @@
 <template>
   <div class="pullrequest">
-
   <h1 class="subheading-1 blue--text">Estadísticas</h1>
   <a class="headline grey--text" target="_blank"
   href="https://drive.google.com/open?id=1W8h82JV60Z-aL4g64GW67DpM28ghSDeGrFt2KFpqU8s">
@@ -9,6 +8,7 @@
     <v-select
       v-model="number" :items="pulls" label="Pull Request" v-on:change='refreshQuery'
     ></v-select>
+    
   </v-form>
   <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
     <a class="subheading" target="_blank"
@@ -16,6 +16,7 @@
     #{{repository.pullRequest.number}}
     </a> 
   </h1>
+  <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <div v-if="show">
     <v-data-table
       :headers="encabezados"

@@ -1,6 +1,6 @@
 <template>
 <div id="inspire">
-  <v-navigation-drawer app
+  <v-navigation-drawer v-if="isLoggedIn" app
       :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer">
     <v-list dense>
@@ -26,38 +26,44 @@
   
   <v-app-bar app dark color="blue darken-3"
     :clipped-left="$vuetify.breakpoint.lgAndUp">
-    <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+    <v-app-bar-nav-icon v-if="isLoggedIn" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     <v-toolbar-title class="headline text-uppercase">
       <span class="font-weight-bold">GITHUB</span>
       <span class="font-weight-light">ANALYTIC</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
-    <GithubLogin />
+    <GithubLogin v-if="isLoggedIn"/>
   </v-app-bar>
 </div>
 </template>
 
 <script>
-//import Login from './Login'
+import firebaseApp from "../FirebaseApp"
 import GithubLogin from './GithubLogin'
+
 export default {
   components: { 
-    //Login, 
     GithubLogin 
   },
   data(){
     return{
       dialog: false,
-    drawer: null,
-    links: [
-      { icon: 'home', text: 'Inicio', route: '/' },
-      { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
-      { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
-      { icon: 'timeline', text: 'User Stats', route: '/userstats' },
-      { icon: 'settings', text: 'Configuración', route: '/configuracion' },
-      { icon: 'help', text: 'Acerca de', route: '/acerca' }
-    ]
+      drawer: null,
+      isLoggedIn: false,
+      links: [
+        //{ icon: 'home', text: 'Inicio', route: '/' },
+        { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
+        { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
+        { icon: 'timeline', text: 'User Stats', route: '/userstats' },
+        { icon: 'settings', text: 'Configuración', route: '/configuracion' },
+        { icon: 'help', text: 'Acerca de', route: '/acerca' }
+      ]
     }
+  },
+  created() {
+  var user = firebaseApp.auth().currentUser
+  if (user) this.isLoggedIn = true
+  else this.isLoggedIn = false
   },
   props: {
     source: String
