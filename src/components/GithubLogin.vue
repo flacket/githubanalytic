@@ -18,15 +18,15 @@ import { mdiGithubCircle } from "@mdi/js"
 export default {
 data() {
   return {
-    token: '',
     isLoggedIn: false,
     ghIcon: mdiGithubCircle
   }
 },
 created() {
-    var user = firebaseApp.auth().currentUser
-    if (user) this.isLoggedIn = true
-    else this.isLoggedIn = false
+  var user = firebaseApp.auth().currentUser
+  if (user) this.isLoggedIn = true
+  else this.isLoggedIn = false
+  console.log('current user: ', user)
   },
 methods: {
   async githubLogin() {
@@ -38,9 +38,10 @@ methods: {
       var token = result.credential.accessToken;
       // The signed-in user info.
       var user = result.user.displayName;
-      localStorage.setItem("token", token)
+      localStorage.setItem("tokenId", token)
       localStorage.setItem("user", user)
       console.log('Usuario Logueado: ', user)
+      console.log('TokenId: ', token)
     }).catch(function(error) {
       console.log('errorCode: ', error.code)
       console.log('errorMessage: ', error.message)
@@ -49,12 +50,12 @@ methods: {
       // The firebase.auth.AuthCredential type that was used.
       console.log('credential: ', error.credential)
     });
-    this.$router.go({path: '/'});
+    //this.$router.go({path: '/'});
   },
   githublogout(){
     var self = this
     firebase.auth().signOut().then(function() {
-      localStorage.setItem("token", null)
+      localStorage.setItem("tokenId", null)
       localStorage.setItem("user", null)
       self.$router.go({path: '/'});
     }).catch(function(error) {
