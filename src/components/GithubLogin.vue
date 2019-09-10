@@ -43,7 +43,7 @@ methods: {
       result = error
     })
     if (!result)
-      this.$router.push({path: 'estadisticas' })
+      this.$router.go({path: 'estadisticas' })
     else {
       console.log('errorCode: ', result.code)
       console.log('errorMessage: ', result.message)

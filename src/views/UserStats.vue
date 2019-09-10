@@ -68,7 +68,7 @@ export default {
     },
   },
   methods: {
-    async listarTodos() {
+    listarTodos() {
       var estadisticas = ''
       this.users.forEach((item) => {
         var watch, star, fork, followers, following
