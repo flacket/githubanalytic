@@ -296,12 +296,13 @@ console.log('----- REVIEWS -----')
           lastCommentAuthor = null
           console.log('---')
           for (var comm = 0; comm < element.node.comments.totalCount; comm++){
+            var reviewComment = element.node.comments.edges[comm].node
             //busco el index del comentarista
             var encontrado = false
             var c = 0
             var posicion
             while (!encontrado){
-              if (self.participants[c] == element.node.comments.edges[comm].node.author.login){
+              if (self.participants[c] == reviewComment.author.login){
                 encontrado = true
                 //este participante ha hecho un comentario, se guarda su posicion
                 posicion = c
@@ -323,7 +324,7 @@ console.log('----- REVIEWS -----')
             }
             if(add){
               //Agrego el comentarista al array
-              var data = { name: element.node.comments.edges[comm].node.author.login,
+              var data = { name: reviewComment.author.login,
                           pos: posicion }
               reviewArray.push(data)
             }
@@ -332,7 +333,7 @@ console.log('----- REVIEWS -----')
              //Busco si el comentario menciona (@) algun participante
             var arrobaBandera = false
             for (i = 0; i < cantPersonas; i++){
-              if(element.node.comments.edges[comm].node.body.search('@' + self.participants[i])>-1){
+              if(reviewComment.body.search('@' + self.participants[i])>-1){
                 //el comentario menciona esta persona
                 //si no es el que comenta y no va a ser contado (en reviewArray)
                 if (c != i && !reviewArray.includes(self.participants[i])){
@@ -347,32 +348,32 @@ console.log('----- REVIEWS -----')
             //reviso que el usuario no repita comentario
             //ni escriba 2 mensajes seguidos
             var commentNoValido = false
-            if ((lastCommentAuthor != null) && (lastCommentAuthor == element.node.comments.edges[comm].node.author.login)){
+            if ((lastCommentAuthor != null) && (lastCommentAuthor == reviewComment.author.login)){
             // comenta el mismo del comentario anterior
-              let momentDate = moment(element.node.comments.edges[comm].node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+              let momentDate = moment(reviewComment.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
               let ComentDate = momentDate.toDate();
               let timeLapsed = (ComentDate.getTime() - lastCommentDate.getTime()) / 1000
               console.log('Minutos:', timeLapsed/60)
               console.log('lastCommentAuthor:', lastCommentAuthor)
-              console.log('Author:', element.node.comments.edges[comm].node.author.login)
-              if ((lastCommentBody == element.node.comments.edges[comm].node.body)||(timeLapsed < 900)){ 
+              console.log('Author:', reviewComment.author.login)
+              if ((lastCommentBody == reviewComment.body)||(timeLapsed < 900)){ 
                 //el comentario se repite o fecha es menor a 15 min
                 commentNoValido = true
                 console.log('no valido')
               }
             }
             //registro el comentario para revisar despues si repite
-            let momDate = moment(element.node.comments.edges[comm].node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+            let momDate = moment(reviewComment.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
             lastCommentDate = momDate.toDate();
-            lastCommentBody = element.node.comments.edges[comm].node.body
-            lastCommentAuthor = element.node.comments.edges[comm].node.author.login
+            lastCommentBody = reviewComment.body
+            lastCommentAuthor = reviewComment.author.login
 
             //si es el primer comentario del review
             if (reviewArray.length == 1){
               //el comentario va para el creador del PR
               self.countMatrix[posicion][0]++
               console.log('Comenta: ', self.participants[posicion])
-              console.log(' -(1otro)Hacia: ', self.participants[0])
+              console.log(' -(1comm)Hacia: ', self.participants[0])
             } else {
               //sumo comentario de <<posicion>> a las personas
               //que ya comentaron en el mismo review
@@ -390,7 +391,7 @@ console.log('----- REVIEWS -----')
             }
 
             //reacciones al comentarios
-            for (var index = 0; index < element.node.comments.edges[comm].node.reactions.totalCount; index++){
+            for (var index = 0; index < reviewComment.reactions.totalCount; index++){
               let enc = false
               let j = 0
               //busco la posicion en la matriz del que reacciona
