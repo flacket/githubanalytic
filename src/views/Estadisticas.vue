@@ -193,7 +193,8 @@ console.log('----- COMMENTS -----')
         //Contar Cometarios
         this.repository.pullRequest.comments.edges.forEach(function(element) {
           //verifico si el comentario esta antes de la fecha de cierre
-          if(element.node.createdAt < self.repository.pullRequest.closedAt || !self.repository.pullRequest.closedAt){
+          if(element.node.createdAt < self.repository.pullRequest.closedAt 
+            || !self.repository.pullRequest.closedAt){
             console.log('--------------------')
             console.log('FComentario: ', element.node.createdAt)
           let encontrado = false
@@ -270,7 +271,7 @@ console.log('----- COMMENTS -----')
                         else i++
                       }
                       if(!yaReacciono){
-                        console.log('  -Reacciona: ', element.node.reactions.edges[index].node.user.login)
+                        console.log('  -Reacciona: ', self.participants[j])
                         reactionArray.push(self.participants[j])
                         self.countMatrix[j][c]++
                       }
@@ -396,10 +397,8 @@ console.log('----- REVIEWS -----')
               let j = 0
               //busco la posicion en la matriz del que reacciona
               while (!enc){
-                if (self.participants[j] == element.node.comments.edges[comm]
-                                        .node.reactions.edges[index].node.user.login){
-                  console.log(' -Reacciona: ', element.node.comments.edges[comm]
-                                          .node.reactions.edges[index].node.user.login)
+                if (self.participants[j] == reviewComment.reactions.edges[index].node.user.login){
+                  console.log(' -Reacciona: ', reviewComment.reactions.edges[index].node.user.login)
                   //este participante le reacciono al creador del PR
                   self.countMatrix[j][posicion]++
                   enc = true
