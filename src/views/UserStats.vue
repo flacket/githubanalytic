@@ -6,7 +6,7 @@
     <v-select
       v-model="name" :items="users" label="Usuario" v-on:change='refreshQuery'
     ></v-select>
-    <v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>
+    <!--<v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>-->
   </v-form>
   <h1 v-if="show" class="headline grey--text">
     <a class="subheading" target="_blank"
