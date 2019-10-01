@@ -4,42 +4,10 @@
   <a class="headline grey--text" target="_blank"
   href="https://drive.google.com/open?id=1W8h82JV60Z-aL4g64GW67DpM28ghSDeGrFt2KFpqU8s">
   Link Drive</a> 
-  <v-form>
-    <v-container>
-      <v-row>
-        <v-col cols="12" md="3">
-          <v-text-field
-            v-model="search.owner"
-            :rules="emptyRules"
-            label="Compañia"
-            required
-          ></v-text-field>
-        </v-col>
-
-        <v-col cols="12" md="4">
-          <v-text-field
-            v-model="search.name"
-            :rules="emptyRules"
-            label="Repositorio"
-            required
-          ></v-text-field>
-        </v-col>
-
-        <v-col cols="12" md="3">
-          <v-text-field
-            v-model="search.number"
-            :rules="emptyRules"
-            label="Pull Request #"
-            required
-          ></v-text-field>
-        </v-col>
-
-        <v-col cols="12" md="2">
-          <v-btn color="primary" @click="refreshQuery">Buscar</v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
-  </v-form>
+  <PRSelector
+    v-on:searchPR="refreshQuery"
+  ><v-divider></v-divider>
+  </PRSelector>
   <v-divider></v-divider>
   <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
     <a class="subheading" target="_blank"
@@ -87,11 +55,13 @@
 </template>
 
 <script>
+import PRSelector from '../components/PRSelector'
 import {GET_REPO} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
 
 export default {
+  components: { PRSelector },
   data() {
     return {
       show: false,
@@ -107,16 +77,6 @@ export default {
       estadisticas: '',
       participants: '',
       repository: '',
-      number: '',
-      search: {
-        owner: '',
-        name: '',
-        number: ''
-      },
-      emptyRules: [
-        v => !!v || 'Ingrese algun valor',
-      ],
-      owner: 'cdr', name: 'code-server',
       pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640,
       917, 625, 221, 441, 679, 480, 130, 113, 475, 344, 450,
       915, 379, 471, 201, 225, 72, 433, 701, 781, 362, 640, 
@@ -182,11 +142,11 @@ export default {
       }
       this.cohesionEstadisticas()
     },
-    refreshQuery() {
+    refreshQuery(search) {
       this.$apollo.queries.repository.refetch({ 
-        owner: this.search.owner, 
-        name: this.search.name, 
-        number: parseInt(this.search.number)
+        owner: search.owner, 
+        name: search.name, 
+        number: parseInt(search.number)
       }).then(() => {
         console.clear()
         var cantPersonas = this.repository.pullRequest.participants.totalCount
