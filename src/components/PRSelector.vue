@@ -40,7 +40,6 @@
 
 <script>
 export default {
-  props: ['owner', 'name', 'number'],
   data() {
     return {
       search: {

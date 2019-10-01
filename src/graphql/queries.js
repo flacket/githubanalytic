@@ -4,7 +4,8 @@ export const GET_USER = gql`
 query ($login: String!){
   user(login: $login) {
     repositories(first: 100) {
-      node {
+      nodes {
+        id
         name
         nameWithOwner
         createdAt

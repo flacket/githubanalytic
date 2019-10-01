@@ -4,7 +4,7 @@ import Home from './views/Home.vue'
 import firebaseApp from './FirebaseApp'
 
 import Estadisticas from './views/Estadisticas.vue'
-//import Informes from './views/Informes.vue'
+import Informes from './views/Informes.vue'
 import UserStats from './views/UserStats.vue'
 import PullRequest from './views/PullRequest.vue'
 import Configuracion from './views/Configuracion.vue'
@@ -40,6 +40,11 @@ let router = new Router({
       meta:{
         requiresAuth: true
       }
+    },
+    {
+      path: '/informes',
+      name: 'informes',
+      component: Informes
     },
     {
       path: '/userstats',

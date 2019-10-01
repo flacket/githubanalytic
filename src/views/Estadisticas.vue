@@ -63,14 +63,13 @@ export default {
       show: false,
       countMatrix: '',
       cohesionMatrix: '',
-      cohesionInd: '',
+      estadisticas: '',
       encabezados: [
         { text: 'Participante', sortable: false, value: 'nombre' },
         { text: 'Cohesion Ind', value: 'coeInd' },
         { text: 'Msj. Enviados', value: 'msjEnviados' },
         { text: 'Msj. Recibidos', value: 'msjRecibidos' }
       ],
-      estadisticas: '',
       participants: '',
       repository: ''
     }
