@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import {GET_REPO} from '../queries.js'
+import {GET_REPO} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
 
@@ -99,16 +99,11 @@ export default {
       cohesionMatrix: '',
       cohesionInd: '',
       encabezados: [
-          {
-            text: 'Participante',
-            align: 'left',
-            sortable: false,
-            value: 'nombre',
-          },
-          { text: 'Cohesion Ind', value: 'coeInd' },
-          { text: 'Msj. Enviados', value: 'msjEnviados' },
-          { text: 'Msj. Recibidos', value: 'msjRecibidos' }
-        ],
+        { text: 'Participante', sortable: false, value: 'nombre' },
+        { text: 'Cohesion Ind', value: 'coeInd' },
+        { text: 'Msj. Enviados', value: 'msjEnviados' },
+        { text: 'Msj. Recibidos', value: 'msjRecibidos' }
+      ],
       estadisticas: '',
       participants: '',
       repository: '',
@@ -199,8 +194,8 @@ export default {
 
         //cargar lista personas
         var self = this
-        this.repository.pullRequest.participants.edges.forEach(function(element) {
-          self.participants.push(element.node.login)
+        this.repository.pullRequest.participants.nodes.forEach(function(element) {
+          self.participants.push(element.login)
         })
 
         //crear matriz NxN (con ceros)
@@ -217,11 +212,11 @@ export default {
         for (i = 1; i < cantPersonas; i++){
           this.countMatrix[0][i]++
         }
-        this.repository.pullRequest.reactions.edges.forEach(function(element) {
+        this.repository.pullRequest.reactions.nodes.forEach(function(element) {
           let encontrado = false
           let e = 1 //salteo el participante de la pos[0], no se va a autorreaccionar
           while (!encontrado){
-            if (self.participants[e] == element.node.user.login){
+            if (self.participants[e] == element.user.login){
               console.log('Reacciona 1er comment: ', self.participants[e])
               //este participante le reacciono al creador del PR
               self.countMatrix[e][0]++
@@ -231,52 +226,52 @@ export default {
             e++
           }
         })
-console.log('----- COMMENTS -----')
+        console.log('----- COMMENTS -----')
         //variables para revisar si repite comentario
         var lastCommentBody
         var lastCommentDate
         var lastCommentAuthor = null
         //Contar Cometarios
-        this.repository.pullRequest.comments.edges.forEach(function(element) {
+        this.repository.pullRequest.comments.nodes.forEach(function(element) {
           //verifico si el comentario esta antes de la fecha de cierre
-          if(element.node.createdAt < self.repository.pullRequest.closedAt 
+          if(element.createdAt < self.repository.pullRequest.closedAt 
             || !self.repository.pullRequest.closedAt){
             console.log('--------------------')
-            console.log('FComentario: ', element.node.createdAt)
+            console.log('FComentario: ', element.createdAt)
           let encontrado = false
           let c = 0
 
           //reviso que el usuario no repita comentario
           //ni escriba 2 mensajes seguidos
           var commentNoValido = false
-          if ((lastCommentAuthor != null) && (lastCommentAuthor == element.node.author.login)){
+          if ((lastCommentAuthor != null) && (lastCommentAuthor == element.author.login)){
           // comenta el mismo del comentario anterior
-            let momentDate = moment(element.node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+            let momentDate = moment(element.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
             let ComentDate = momentDate.toDate();
             let timeLapsed = (ComentDate.getTime() - lastCommentDate.getTime()) / 1000
             console.log('Minutos:', timeLapsed/60)
             console.log('lastCommentAuthor:', lastCommentAuthor)
-            console.log('Author:', element.node.author.login)
-            if ((lastCommentBody == element.node.body)||(timeLapsed < 900)){ 
+            console.log('Author:', element.author.login)
+            if ((lastCommentBody == element.body)||(timeLapsed < 900)){ 
               //el comentario se repite o fecha es menor a 15 min
               commentNoValido = true
               console.log('no valido')
             }
           }
           //registro el comentario para revisar despues si repite
-          let momDate = moment(element.node.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
+          let momDate = moment(element.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
           lastCommentDate = momDate.toDate();
-          lastCommentBody = element.node.body
-          lastCommentAuthor = element.node.author.login
+          lastCommentBody = element.body
+          lastCommentAuthor = element.author.login
 
           while (!encontrado){
-              if (self.participants[c] == element.node.author.login){
+            if (self.participants[c] == element.author.login){
                 encontrado = true
                 //este participante ha hecho un comentario
                 //Busco si el comentario menciona (@) algun participante
                 var arrobaBandera = false
                 for (i = 0; i < cantPersonas; i++){
-                  if(element.node.body.search('@' + self.participants[i])>-1){
+                  if(element.body.search('@' + self.participants[i])>-1){
                     //el comentario menciona esta persona
                     if (c != i){  //si no es el que comenta
                       console.log('Comenta: ', self.participants[c])
@@ -301,11 +296,11 @@ console.log('----- COMMENTS -----')
                 //reacciones al comentarios
                 //crear array de reaccionadores
                 var reactionArray = new Array()
-                for (var index = 0; index < element.node.reactions.totalCount; index++){
+                for (var index = 0; index < element.reactions.totalCount; index++){
                   let enc = false
                   let j = 0
                   while (!enc){
-                    if (self.participants[j] == element.node.reactions.edges[index].node.user.login){
+                    if (self.participants[j] == element.reactions.nodes[index].user.login){
                       //este participante le reacciono al creador del PR
                       enc = true
                       //verificar si no reacciono antes
@@ -333,17 +328,17 @@ console.log('----- COMMENTS -----')
             }//while encontrado
           }
         }) //contar comentarios
-console.log('----- REVIEWS -----')
+        console.log('----- REVIEWS -----')
         //contar reviews
-        this.repository.pullRequest.reviewThreads.edges.forEach(function(element){
+        this.repository.pullRequest.reviewThreads.nodes.forEach(function(element){
           //este array va a mantener las personas que comentaron en el review
           //para despues poder usarlas como receptor en el conteo de interacciones
           var reviewArray = new Array()        
           //reinicio la variable para revisar si repite reviews
           lastCommentAuthor = null
           console.log('---')
-          for (var comm = 0; comm < element.node.comments.totalCount; comm++){
-            var reviewComment = element.node.comments.edges[comm].node
+          for (var comm = 0; comm < element.comments.totalCount; comm++){
+            var reviewComment = element.comments.nodes[comm]
             //busco el index del comentarista
             var encontrado = false
             var c = 0
@@ -373,8 +368,7 @@ console.log('----- REVIEWS -----')
             }
             if(add){
               //Agrego el comentarista al array
-              var data = { name: reviewComment.author.login,
-                          pos: posicion }
+              var data = { name: reviewComment.author.login, pos: posicion }
               reviewArray.push(data)
             }
 
@@ -445,8 +439,8 @@ console.log('----- REVIEWS -----')
               let j = 0
               //busco la posicion en la matriz del que reacciona
               while (!enc){
-                if (self.participants[j] == reviewComment.reactions.edges[index].node.user.login){
-                  console.log(' -Reacciona: ', reviewComment.reactions.edges[index].node.user.login)
+                if (self.participants[j] == reviewComment.reactions.nodes[index].user.login){
+                  console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.login)
                   //este participante le reacciono al creador del PR
                   self.countMatrix[j][posicion]++
                   enc = true

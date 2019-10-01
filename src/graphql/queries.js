@@ -4,14 +4,12 @@ export const GET_USER = gql`
 query ($login: String!){
   user(login: $login) {
     repositories(first: 100) {
-      edges{
-        node {
-          name
-          nameWithOwner
-          createdAt
-          isPrivate
-          description
-        }
+      node {
+        name
+        nameWithOwner
+        createdAt
+        isPrivate
+        description
       }
     }
   }
@@ -22,7 +20,6 @@ query getCommitComments($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
     commitComments(first:50){
       totalCount
-      edges{
         node{
           url
           author{
@@ -32,16 +29,13 @@ query getCommitComments($owner: String!, $name: String!) {
           createdAt
           body
           reactions(first:100){
-            edges{
-              node{
-                user{
-                  login
-                }
+            node{
+              user{
+                login
               }
             }
           }          
         }
-      }
     }
   }
 }`;
@@ -64,45 +58,35 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
       url
       reactions(first: 100){
         totalCount
-        edges{
-          node{
-            user{
-              login
-            }
+        nodes{
+          user{
+            login
           }
         }
       }
       participants(first: 100) {
         totalCount
-        edges{
-          node{
-          	login
-          }
+        nodes{
+          login
         }
       }
       reviewThreads(first: 50) {
-        edges {
-          node {
-            comments(first: 50) {
-              totalCount
-              edges {
-                node {
-                  body
-                  bodyHTML
-                  author {
+        nodes {
+          comments(first: 50) {
+            totalCount
+            nodes {
+              body
+              bodyHTML
+              author {
+                login
+                avatarUrl
+              }
+              createdAt
+              reactions(first:50) {
+                totalCount
+                nodes{
+                  user{
                     login
-                    avatarUrl
-                  }
-                  createdAt
-                  reactions(first:50) {
-                    totalCount
-                    edges{
-                      node{
-                        user{
-                          login
-                        }
-                      }
-                    }
                   }
                 }
               }
@@ -111,23 +95,19 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
         }
       }
       comments(first: 100) {
-        edges {
-          node {
-            body
-            bodyHTML
-            createdAt
-            author {
-              login
-              avatarUrl
-            }
-            reactions(first: 80) {
-              totalCount
-              edges {
-                node {
-                  user {
-                    login
-                  }
-                }
+        nodes {
+          body
+          bodyHTML
+          createdAt
+          author {
+            login
+            avatarUrl
+          }
+          reactions(first: 80) {
+            totalCount
+            nodes {
+              user {
+                login
               }
             }
           }
@@ -158,15 +138,13 @@ query userstats($owner: String!) {
   repositoryOwner(login: $owner) {
     repositories(first: 100) {
       totalCount
-      edges {
-        node {
-          watchers(first: 1) {
-            totalCount
-          }
-          forkCount
-          stargazers(first: 1) {
-            totalCount
-          }
+      nodes {
+        watchers(first: 1) {
+          totalCount
+        }
+        forkCount
+        stargazers(first: 1) {
+          totalCount
         }
       }
     }

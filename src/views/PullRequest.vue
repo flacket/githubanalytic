@@ -23,25 +23,25 @@
       v-bind:body="repository.pullRequest.bodyHTML"
     ><v-divider></v-divider>
     </Comment>
-    <Comment v-for="item in repository.pullRequest.comments.edges"
-    v-bind:avatarUrl="item.node.author.avatarUrl"
-    v-bind:login="item.node.author.login"
-    v-bind:createdAt="item.node.createdAt"
-    v-bind:reactCant="item.node.reactions.totalCount"
-    v-bind:body="item.node.bodyHTML"
-    v-bind:key="item.node.id">
+    <Comment v-for="item in repository.pullRequest.comments.nodes"
+    v-bind:avatarUrl="item.author.avatarUrl"
+    v-bind:login="item.author.login"
+    v-bind:createdAt="item.createdAt"
+    v-bind:reactCant="item.reactions.totalCount"
+    v-bind:body="item.bodyHTML"
+    v-bind:key="item.id">
     <v-divider></v-divider>
     </Comment>
       <h1 class="subheading grey--text mt-3">Reviews:</h1>
-    <div v-for="item in repository.pullRequest.reviewThreads.edges"
-    v-bind:key="item.node.id" class="my-2 ml-4">
-      <Comment v-for="com in item.node.comments.edges"
-      v-bind:avatarUrl="com.node.author.avatarUrl"
-      v-bind:login="com.node.author.login"
-      v-bind:createdAt="com.node.createdAt"
-      v-bind:reactCant="com.node.reactions.totalCount"
-      v-bind:body="com.node.bodyHTML"
-      v-bind:key="com.node.id">
+    <div v-for="item in repository.pullRequest.reviewThreads.nodes"
+    v-bind:key="item.id" class="my-2 ml-4">
+      <Comment v-for="com in item.comments.nodes"
+      v-bind:avatarUrl="com.author.avatarUrl"
+      v-bind:login="com.author.login"
+      v-bind:createdAt="com.createdAt"
+      v-bind:reactCant="com.reactions.totalCount"
+      v-bind:body="com.bodyHTML"
+      v-bind:key="com.id">
       <v-divider></v-divider>
       </Comment>
     </div>
@@ -51,7 +51,7 @@
 
 <script>
 import Comment from '../components/Comment'
-import {GET_REPO} from '../queries.js'
+import {GET_REPO} from '../graphql/queries.js'
 
 export default {
   components: {

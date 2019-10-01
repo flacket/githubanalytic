@@ -38,8 +38,8 @@
     </v-btn-toggle>
   </v-layout>
 
-  <CardProyecto v-for="item in user.repositories.edges" 
-  v-bind:project="item.node" v-bind:key="item.node.id">
+  <CardProyecto v-for="item in user.repositories.nodes" 
+  v-bind:project="item" v-bind:key="item.id">
             <v-divider></v-divider>
   </CardProyecto>
 
@@ -61,7 +61,7 @@
 
 <script>
 import CardProyecto from '../components/CardProyecto'
-import {GET_USER} from '../queries.js'
+import {GET_USER} from '../graphql/queries.js'
 
 export default {
   components: {
@@ -72,14 +72,12 @@ export default {
       btn_toggle: 0,
       user: {
         repositories: {
-          edges: [{
-            node: {
-              name: '',
-              nameWithOwner: '',
-              createdAt: '',
-              isPrivate: '',
-              description: ''
-            }
+          nodes: [{
+            name: '',
+            nameWithOwner: '',
+            createdAt: '',
+            isPrivate: '',
+            description: ''
           }]
         }
       }

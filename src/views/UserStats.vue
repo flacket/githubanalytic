@@ -1,52 +1,45 @@
 <template>
-  <div class="Estadísticas de Usuario">
-
-  <h1 class="subheading-1 blue--text">Estadísticas de Usuario</h1>
-  <v-form>
-    <v-select
-      v-model="name" :items="users" label="Usuario" v-on:change='refreshQuery'
-    ></v-select>
-    <!--<v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>-->
-  </v-form>
-  <h1 v-if="show" class="headline grey--text">
-    <a class="subheading" target="_blank"
-    :href="user.url">
-    {{user.url}}
-    </a> 
-  </h1>
-  <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
-  <div v-if="show">
-    <v-data-table
-      :headers="encabezados"
-      :items="estadisticas"
-      :items-per-page="20"
-      class="elevation-1 mt-2"
-    ></v-data-table>
-  </div>
-
+  <div>
+    <h1 class="subheading-1 blue--text">Estadísticas de Usuario</h1>
+    <v-form>
+      <v-select
+        v-model="name" :items="users" label="Usuario" v-on:change='refreshQuery'
+      ></v-select>
+      <!--<v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>-->
+    </v-form>
+    <h1 v-if="show" class="headline grey--text">
+      <a class="subheading" target="_blank"
+      :href="user.url">
+      {{user.url}}
+      </a> 
+    </h1>
+    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
+    <div v-if="show">
+      <v-data-table
+        :headers="encabezados"
+        :items="estadisticas"
+        :items-per-page="20"
+        class="elevation-1 mt-2"
+      ></v-data-table>
+    </div>
   </div>
 </template>
 
 <script>
-import {USER_STATS, USER} from '../queries.js'
+import {USER_STATS, USER} from '../graphql/queries.js'
 
 export default {
   data() {
     return {
       show: false,
       encabezados: [
-          {
-            text: 'usuario',
-            align: 'left',
-            sortable: false,
-            value: 'nombre',
-          },
-          { text: 'Watchers', value: 'watch' },
-          { text: 'Stars', value: 'star' },
-          { text: 'Forks', value: 'fork' },
-          { text: 'Seguidores', value: 'followers' },
-          { text: 'Siguiendo', value: 'following' }
-        ],
+        { text: 'usuario', sortable: false, value: 'nombre' },
+        { text: 'Watchers', value: 'watch' },
+        { text: 'Stars', value: 'star' },
+        { text: 'Forks', value: 'fork' },
+        { text: 'Seguidores', value: 'followers' },
+        { text: 'Siguiendo', value: 'following' }
+      ],
       estadisticas: '',
       repositoryOwner: '',
       user: '',
@@ -78,10 +71,10 @@ export default {
           star = 0
           fork = 0
           //cuenta las estadisticas de los repositorios
-          this.repositoryOwner.repositories.edges.forEach(function(element) {
-            watch += element.node.watchers.totalCount
-            star += element.node.stargazers.totalCount
-            fork += element.node.forkCount
+          this.repositoryOwner.repositories.nodes.forEach(function(element) {
+            watch += element.watchers.totalCount
+            star += element.stargazers.totalCount
+            fork += element.forkCount
           })
 
         this.$apollo.queries.user.refetch({ owner: item })
@@ -110,10 +103,6 @@ export default {
         })
       })
 
-      //for (var i=0; i< this.users.length; i++){  
-        
-      //}
-
     },
     refreshQuery() {
       this.$apollo.queries.repositoryOwner.refetch({ owner: this.name })
@@ -122,18 +111,18 @@ export default {
         watch = 0
         star = 0
         fork = 0
+
         //cuenta las estadisticas de los repositorios
-        this.repositoryOwner.repositories.edges.forEach(function(element) {
-          watch += element.node.watchers.totalCount
-          star += element.node.stargazers.totalCount
-          fork += element.node.forkCount
+        this.repositoryOwner.repositories.nodes.forEach(function(element) {
+          watch += element.watchers.totalCount
+          star += element.stargazers.totalCount
+          fork += element.forkCount
         })
 
         this.$apollo.queries.user.refetch({ owner: this.name })
         .then(() => {
           followers = this.user.followers.totalCount
           following = this.user.following.totalCount
-
           //guardo las stats en un JSON
           var estadisticas = '[{"nombre": "' + this.name +
                               '", "watch": ' + watch +
@@ -144,7 +133,6 @@ export default {
           this.estadisticas = JSON.parse(estadisticas)
           this.show = true
         })
-
       })
     }//refresh query
   }
