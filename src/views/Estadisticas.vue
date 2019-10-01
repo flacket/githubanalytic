@@ -1,56 +1,52 @@
 <template>
-  <div class="pullrequest">
-  <h1 class="subheading-1 blue--text">Estadísticas</h1>
-  <a class="headline grey--text" target="_blank"
-  href="https://drive.google.com/open?id=1W8h82JV60Z-aL4g64GW67DpM28ghSDeGrFt2KFpqU8s">
-  Link Drive</a> 
-  <PRSelector
-    v-on:searchPR="refreshQuery"
-  ><v-divider></v-divider>
-  </PRSelector>
-  <v-divider></v-divider>
-  <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
-    <a class="subheading" target="_blank"
-    :href="repository.pullRequest.url">
-    #{{repository.pullRequest.number}}
-    </a> 
-  </h1>
-  <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
-  <div v-if="show">
-    <v-data-table
-      :headers="encabezados"
-      :items="estadisticas"
-      :items-per-page="20"
-      class="elevation-1 mt-2"
-    ></v-data-table>
-    <h1 class="headline blue--text mt-4 mb-1">Tabla de Conteo</h1>
-    <v-simple-table>
-      <thead>
-        <tr>
-          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in countMatrix" :key="item.jota">
-          <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-        </tr>
-      </tbody>
-    </v-simple-table>
-    <h1 class="headline blue--text mt-4 mb-1">Matriz de Cohesion Individual</h1>
-    <v-simple-table>
-      <thead>
-        <tr>
-          <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in cohesionMatrix" :key="item.jota">
-          <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-        </tr>
-      </tbody>
-    </v-simple-table>
-  </div>
-
+  <div>
+    <h1 class="subheading-1 blue--text">Estadísticas</h1>
+    <a class="headline grey--text" target="_blank"
+    href="https://drive.google.com/open?id=1W8h82JV60Z-aL4g64GW67DpM28ghSDeGrFt2KFpqU8s">
+    Link Drive</a> 
+    <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
+    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
+    <v-divider class="mb-2"></v-divider>
+    <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
+      <a class="subheading" target="_blank"
+      :href="repository.pullRequest.url">
+      #{{repository.pullRequest.number}}
+      </a>
+    </h1>
+    <div v-if="show">
+      <v-data-table
+        :headers="encabezados"
+        :items="estadisticas"
+        :items-per-page="20"
+        class="elevation-1 mt-2"
+      ></v-data-table>
+      <h1 class="headline blue--text mt-4 mb-1">Tabla de Conteo</h1>
+      <v-simple-table>
+        <thead>
+          <tr>
+            <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in countMatrix" :key="item.jota">
+            <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+          </tr>
+        </tbody>
+      </v-simple-table>
+      <h1 class="headline blue--text mt-4 mb-1">Matriz de Cohesion Individual</h1>
+      <v-simple-table>
+        <thead>
+          <tr>
+            <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in cohesionMatrix" :key="item.jota">
+            <td v-for="jota in item" :key="jota.x">{{jota}}</td>
+          </tr>
+        </tbody>
+      </v-simple-table>
+    </div>
   </div>
 </template>
 
@@ -76,12 +72,7 @@ export default {
       ],
       estadisticas: '',
       participants: '',
-      repository: '',
-      pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640,
-      917, 625, 221, 441, 679, 480, 130, 113, 475, 344, 450,
-      915, 379, 471, 201, 225, 72, 433, 701, 781, 362, 640, 
-      28, 167, 120, 269, 303, 311, 285, 422, 722, 255, 307, 
-      246, 416, 730, 916, 794, 998, 857]
+      repository: ''
     }
   },
   apollo:{

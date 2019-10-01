@@ -1,17 +1,15 @@
 <template>
   <div class="pullrequest">
-    <h1 class="subheading-1 blue--text">Pull Request:</h1>
-    <PRSelector
-      v-on:searchPR="refreshQuery"
-    ><v-divider></v-divider>
-    </PRSelector>
+    <h1 class="subheading-1 blue--text">Pull Request</h1>
+    <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
+    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
+    <v-divider class="mb-2"></v-divider>
     <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
       <a class="subheading" target="_blank"
       :href="repository.pullRequest.url">
       #{{repository.pullRequest.number}}
       </a> 
     </h1>
-    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
     <v-container v-if="show">
       <Comment 
         v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"
@@ -60,19 +58,13 @@ export default {
   data() {
     return {
       show: false,
-      repository: '',
-      pulls: [154, 146, 57, 104, 192, 365, 362, 472, 517, 640,
-      917, 625, 221, 441, 679, 480, 130, 113, 475, 344, 450,
-      915, 379, 471, 201, 225, 72, 433, 701, 781, 362, 640, 
-      28, 167, 120, 269, 303, 311, 285, 422, 722, 255, 307, 
-      246, 416, 730, 916, 794, 998, 857]
+      repository: ''
     }
   },
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 154},
-      //{"owner": "cdr", "name": "code-server", "number": 517}
+      variables: {owner: "cdr", name: "code-server", number: 154}
     },
   },
   methods: {

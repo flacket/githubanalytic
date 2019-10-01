@@ -7,13 +7,14 @@
       ></v-select>
       <!--<v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>-->
     </v-form>
+    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
+    <v-divider class="mb-2"></v-divider>
     <h1 v-if="show" class="headline grey--text">
       <a class="subheading" target="_blank"
       :href="user.url">
       {{user.url}}
       </a> 
     </h1>
-    <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
     <div v-if="show">
       <v-data-table
         :headers="encabezados"
