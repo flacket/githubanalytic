@@ -42,7 +42,7 @@ query getCommitComments($owner: String!, $name: String!) {
 }`;
 
 export const GET_REPO = gql`
-query getrepos($owner: String!, $name: String!, $number: Int!) {
+query getRepo($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       author{
@@ -73,7 +73,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
       }
       reviewThreads(first: 50) {
         nodes {
-          comments(first: 50) {
+          comments(first: 20) {
             totalCount
             nodes {
               body
@@ -83,7 +83,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
                 avatarUrl
               }
               createdAt
-              reactions(first:50) {
+              reactions(first:15) {
                 totalCount
                 nodes{
                   user{
@@ -104,7 +104,7 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
             login
             avatarUrl
           }
-          reactions(first: 80) {
+          reactions(first: 50) {
             totalCount
             nodes {
               user {
@@ -116,8 +116,94 @@ query getrepos($owner: String!, $name: String!, $number: Int!) {
       }
     }
   }
-}
-`;
+}`;
+
+export const GET_REPOS = gql`
+query getRepos($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(
+      first: 50
+      after: $cursor
+      orderBy: { field: CREATED_AT, direction: DESC }
+    ){
+      nodes {
+        author{
+          login
+          avatarUrl
+        }
+        body
+        bodyHTML
+        createdAt
+        closedAt
+        number
+        state
+        title
+        url
+        reactions(first: 100){
+          totalCount
+          nodes{
+            user{
+              login
+            }
+          }
+        }
+        participants(first: 100) {
+          totalCount
+          nodes{
+            login
+          }
+        }
+        reviewThreads(first: 100) {
+          nodes {
+            comments(first: 20) {
+              totalCount
+              nodes {
+                body
+                bodyHTML
+                author {
+                  login
+                  avatarUrl
+                }
+                createdAt
+                reactions(first:15) {
+                  totalCount
+                  nodes{
+                    user{
+                      login
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        comments(first: 100) {
+          nodes {
+            body
+            bodyHTML
+            createdAt
+            author {
+              login
+              avatarUrl
+            }
+            reactions(first: 50) {
+              totalCount
+              nodes {
+                user {
+                  login
+                }
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}`;
 
 export const USER = gql`
 query userstats($owner: String!) {
