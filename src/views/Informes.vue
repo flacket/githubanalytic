@@ -39,7 +39,7 @@
 
 <script>
 import PRSelector from '../components/PRSelector'
-import {GET_REPO} from '../graphql/queries.js'
+import {GET_COUNT_PR} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
 
@@ -49,6 +49,7 @@ export default {
     return {
       show: true,
       repository: '',
+      countPR: [],
       pullRequests: [],
       countMatrix: '',
       cohesionMatrix: '',
@@ -63,8 +64,8 @@ export default {
   },
   apollo:{
     repository: {
-      query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 154}
+      query: GET_COUNT_PR,
+      variables: {owner: "cdr", name: "code-server"}
     }
   },
   methods: {
@@ -124,7 +125,59 @@ export default {
       }
       this.cohesionEstadisticas()
     },
-    refreshQuery(search) {
+    refreshQuery(search){
+      this.$apollo.queries.repository.refetch({ 
+        owner: search.owner, 
+        name: search.name
+      }).then(() => {
+        console.log(this.repository)
+        let maxComments=0
+        let maxreviewThreads=0
+        let maxreactions=0
+        let maxparticipants=0
+
+        this.repository.pullRequests.nodes.forEach(function(item){
+          if (item.comments.totalCount > maxComments)
+            maxComments = item.comments.totalCount
+          if (item.reviewThreads.totalCount > maxreviewThreads)
+            maxreviewThreads = item.reviewThreads.totalCount
+          if (item.reactions.totalCount > maxreactions)
+            maxreactions = item.reactions.totalCount
+          if (item.participants.totalCount > maxparticipants)
+            maxparticipants = item.participants.totalCount
+        })
+        this.countPR.comments = maxComments
+        this.countPR.reviewThreads = maxreviewThreads
+        this.countPR.reactions = maxreactions
+        this.countPR.participants = maxparticipants
+        console.log(this.countPR)
+
+        this.$apollo.queries.repository.refetch({ 
+          owner: search.owner, 
+          name: search.name
+
+        }).then(() => {
+          let maxRevThreadComments=0
+          let maxCommReactions=0
+          this.repository.pullRequests.nodes.forEach(function(item){
+            item.reviewThreads.nodes.forEach(function(revThread){
+              if (revThread.comments.totalCount > maxRevThreadComments)
+                maxRevThreadComments = revThread.comments.totalCount
+            })
+            item.comments.nodes.forEach(function(comm){
+              if (comm.reactions.totalCount > maxCommReactions)
+                maxCommReactions = comm.reactions.totalCount
+            })
+            this.countPR.reviewThreads.comments = maxRevThreadComments
+            this.countPR.comments.reactions = maxCommReactions
+            console.log(this.countPR)
+
+          })
+        })
+        //console.log(this.countPR.repository.pullRequests.nodes[0].comments.totalCount)
+      })
+    }
+    /*refreshQuery(search) {
       this.$apollo.queries.repository.refetch({ 
         owner: search.owner, 
         name: search.name, 
@@ -398,7 +451,7 @@ export default {
         this.cohesionFormula()
         this.show = true
       })
-    }
+    }*/
   }
 }
 </script>
