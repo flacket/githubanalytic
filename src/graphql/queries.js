@@ -205,6 +205,50 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
   }
 }`;
 
+export const GET_COUNT_PR = gql`
+query getCountPR($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(
+      first: 100
+      after: $cursor
+    ){
+      nodes {
+        reactions(first: 1){
+          totalCount
+        }
+        participants(first: 1) {
+          totalCount
+        }
+        reviewThreads(first: 1) {
+          totalCount
+          nodes {
+            comments(first: 1) {
+              totalCount
+              nodes{
+                reactions(first:1) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+        comments(first: 1) {
+          totalCount
+          nodes {
+            reactions(first: 1) {
+              totalCount
+            }
+          }
+        }
+    }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}`;
+
 export const USER = gql`
 query userstats($owner: String!) {
   user(login: $owner) {
