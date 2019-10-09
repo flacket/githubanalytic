@@ -206,7 +206,7 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
 }`;
 
 export const GET_COUNT_PR = gql`
-query getCountPR($owner: String!, $name: String!, $endCursor: String) {
+query getCountPR($owner: String!, $name: String!, $endCursor: String, $rvThreads: Int, $comments: Int) {
   repository(owner: $owner, name: $name) {
     pullRequests(
       first: 100
@@ -220,7 +220,7 @@ query getCountPR($owner: String!, $name: String!, $endCursor: String) {
         participants(first: 1) {
           totalCount
         }
-        reviewThreads(first: 1) {
+        reviewThreads(first: $rvThreads) {
           totalCount
           nodes {
             comments(first: 1) {
@@ -233,7 +233,7 @@ query getCountPR($owner: String!, $name: String!, $endCursor: String) {
             }
           }
         }
-        comments(first: 1) {
+        comments(first: $comments) {
           totalCount
           nodes {
             reactions(first: 1) {
