@@ -49,7 +49,14 @@ export default {
     return {
       show: true,
       repository: '',
-      countPR: [],
+      countPR: {
+        comments: '', 
+        reviewThreads: '', 
+        reactions: '', 
+        participants: '',
+        reviewThreadsComments: '',
+        commentsReactions: ''
+      },
       pullRequests: [],
       countMatrix: '',
       cohesionMatrix: '',
@@ -65,7 +72,7 @@ export default {
   apollo:{
     repository: {
       query: GET_COUNT_PR,
-      variables: {owner: "cdr", name: "code-server"}
+      variables: {owner: "cdr", name: "code-server", rvThreads: 1, comments:1}
     }
   },
   methods: {
@@ -126,56 +133,48 @@ export default {
       this.cohesionEstadisticas()
     },
     refreshQuery(search){
+      var self = this
       this.$apollo.queries.repository.refetch({ 
         owner: search.owner, 
-        name: search.name
+        name: search.name,
+        rvThreads: 1,
+        comments: 1
       }).then(() => {
-        console.log(this.repository)
-        let maxComments=0
-        let maxreviewThreads=0
-        let maxreactions=0
-        let maxparticipants=0
-
-        this.repository.pullRequests.nodes.forEach(function(item){
-          if (item.comments.totalCount > maxComments)
-            maxComments = item.comments.totalCount
-          if (item.reviewThreads.totalCount > maxreviewThreads)
-            maxreviewThreads = item.reviewThreads.totalCount
-          if (item.reactions.totalCount > maxreactions)
-            maxreactions = item.reactions.totalCount
-          if (item.participants.totalCount > maxparticipants)
-            maxparticipants = item.participants.totalCount
+        console.log('entro')
+        self.repository.pullRequests.nodes.forEach(function(item){
+          if (item.comments.totalCount > self.countPR.comments)
+            self.countPR.comments = item.comments.totalCount
+          if (item.reviewThreads.totalCount > self.countPR.reviewThreads)
+            self.countPR.reviewThreads = item.reviewThreads.totalCount
+          if (item.reactions.totalCount > self.countPR.reactions)
+            self.countPR.reactions = item.reactions.totalCount
+          if (item.participants.totalCount > self.countPR.participants)
+            self.countPR.participants = item.participants.totalCount
         })
-        this.countPR.comments = maxComments
-        this.countPR.reviewThreads = maxreviewThreads
-        this.countPR.reactions = maxreactions
-        this.countPR.participants = maxparticipants
-        console.log(this.countPR)
-
-        this.$apollo.queries.repository.refetch({ 
+        
+        console.log('cantidad de comments: ', self.countPR.comments)
+        console.log('cantidad de rvThreads: ', self.countPR.reviewThreads)
+        self.$apollo.queries.repository.refetch({ 
           owner: search.owner, 
-          name: search.name
-
+          name: search.name,
+          rvThreads: self.countPR.reviewThreads,
+          comments:self.countPR.comments
         }).then(() => {
-          let maxRevThreadComments=0
-          let maxCommReactions=0
-          this.repository.pullRequests.nodes.forEach(function(item){
+          console.log("intento entrar al this")
+          self.repository.pullRequests.nodes.forEach(function(item){
             item.reviewThreads.nodes.forEach(function(revThread){
-              if (revThread.comments.totalCount > maxRevThreadComments)
-                maxRevThreadComments = revThread.comments.totalCount
+              if (revThread.comments.totalCount > self.countPR.reviewThreadsComments)
+                self.countPR.reviewThreadsComments = revThread.comments.totalCount
             })
             item.comments.nodes.forEach(function(comm){
-              if (comm.reactions.totalCount > maxCommReactions)
-                maxCommReactions = comm.reactions.totalCount
+              if (comm.reactions.totalCount > self.countPR.commentsReactions)
+                self.countPR.commentsReactions = comm.reactions.totalCount
             })
-            this.countPR.reviewThreads.comments = maxRevThreadComments
-            this.countPR.comments.reactions = maxCommReactions
-            console.log(this.countPR)
-
           })
-        })
-        //console.log(this.countPR.repository.pullRequests.nodes[0].comments.totalCount)
-      })
+          console.log(self.countPR)
+        })//repository.refetch2*/
+      })//repository.refetch
+      
     }
     /*refreshQuery(search) {
       this.$apollo.queries.repository.refetch({ 
