@@ -2,10 +2,14 @@
   <div>
     <h1 class="subheading-1 blue--text">Estadísticas de Usuario</h1>
     <v-form>
-      <v-select
+      <!--<v-select
         v-model="name" :items="users" label="Usuario" v-on:change='refreshQuery'
-      ></v-select>
-      <!--<v-btn v-on:click='listarTodos' color="primary">Listar Todos</v-btn>-->
+      ></v-select>-->
+          <v-text-field
+            v-model="name"
+            label="Usuario"
+          ></v-text-field>
+      <v-btn v-on:click='refreshQuery' color="primary" class="mb-4">Buscar</v-btn>
     </v-form>
     <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
     <v-divider class="mb-2"></v-divider>
