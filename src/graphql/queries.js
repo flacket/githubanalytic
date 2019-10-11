@@ -119,11 +119,19 @@ query getRepo($owner: String!, $name: String!, $number: Int!) {
 }`;
 
 export const GET_REPOS = gql`
-query getRepos($owner: String!, $name: String!, $cursor: String) {
+query getRepos(
+  $owner: String!, 
+  $name: String!, 
+  $endCursor: String, 
+  $rvThreads: Int, 
+  $comments: Int,
+  $rvThreadsComments: Int,
+  $commentsReactions: Int,
+) {
   repository(owner: $owner, name: $name) {
     pullRequests(
       first: 50
-      after: $cursor
+      after: $endCursor
       orderBy: { field: CREATED_AT, direction: DESC }
     ){
       nodes {
@@ -153,9 +161,9 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
             login
           }
         }
-        reviewThreads(first: 100) {
+        reviewThreads(first: $rvThreads) {
           nodes {
-            comments(first: 20) {
+            comments(first: $rvThreadsComments) {
               totalCount
               nodes {
                 body
@@ -165,7 +173,7 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
                   avatarUrl
                 }
                 createdAt
-                reactions(first:15) {
+                reactions(first:20) {
                   totalCount
                   nodes{
                     user{
@@ -177,7 +185,7 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
             }
           }
         }
-        comments(first: 100) {
+        comments(first: $comments) {
           nodes {
             body
             bodyHTML
@@ -186,7 +194,7 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
               login
               avatarUrl
             }
-            reactions(first: 50) {
+            reactions(first: $commentsReactions) {
               totalCount
               nodes {
                 user {
@@ -203,15 +211,28 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
       }
     }
   }
+  rateLimit {
+    limit
+    cost
+    remaining
+    resetAt
+  }
 }`;
 
 export const GET_COUNT_PR = gql`
-query getCountPR($owner: String!, $name: String!, $endCursor: String, $rvThreads: Int, $comments: Int) {
+query getCountPR(
+  $owner: String!, 
+  $name: String!, 
+  $endCursor: String, 
+  $rvThreads: Int, 
+  $comments: Int,
+  $rvThreadsComments: Int,
+  $commentsReactions: Int,
+  ) {
   repository(owner: $owner, name: $name) {
     pullRequests(
       first: 100
       after: $endCursor
-      orderBy: { field: CREATED_AT, direction: DESC }
     ){
       nodes {
         reactions(first: 1){
@@ -223,7 +244,7 @@ query getCountPR($owner: String!, $name: String!, $endCursor: String, $rvThreads
         reviewThreads(first: $rvThreads) {
           totalCount
           nodes {
-            comments(first: 1) {
+            comments(first: $rvThreadsComments) {
               totalCount
               nodes{
                 reactions(first:1) {
@@ -236,7 +257,7 @@ query getCountPR($owner: String!, $name: String!, $endCursor: String, $rvThreads
         comments(first: $comments) {
           totalCount
           nodes {
-            reactions(first: 1) {
+            reactions(first: $commentsReactions) {
               totalCount
             }
           }
@@ -250,6 +271,13 @@ query getCountPR($owner: String!, $name: String!, $endCursor: String, $rvThreads
     }
   }
 }`;
+/*{"owner": "cdr", 
+"name": "code-server", 
+"endCursor": null, 
+"rvThreads": 1, 
+"comments": 1,
+"rvThreadsComments": 1,
+"commentsReactions": 1 }*/
 
 export const USER = gql`
 query userstats($owner: String!) {
