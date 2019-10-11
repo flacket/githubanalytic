@@ -2,22 +2,21 @@
   <div>
   <h1 class="subheading-1 blue--text">Informes</h1>
 
-  <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
+  <PRSelector v-on:searchPR="countQuery"></PRSelector>
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
 
-  <v-expansion-panels accordion v-if="show">
+  <v-expansion-panels accordion >
     <v-expansion-panel
-      v-for="item in pullRequests"
-      :key="item.number"
+      v-for="item in countPRs"
+      :key="item.iteration"
     >
-      <v-expansion-panel-header>{{item.title}}</v-expansion-panel-header>
+      <v-expansion-panel-header>{{item.iteration}}</v-expansion-panel-header>
       <v-expansion-panel-content>
-        <v-data-table
-          :headers="encabezados"
-          :items="item.estadisticas"
-          :items-per-page="20"
-        ></v-data-table>
+        <p>Max Comments: {{item.comments}}</p>
+        <p>Max commentsReactions: {{item.commentsReactions}}</p>
+        <p>Max reviewThreads: {{item.reviewThreads}}</p>
+        <p>Max reviewThreadsComments: {{item.reviewThreadsComments}}</p>
         <!--<v-simple-table>
           <thead>
             <tr>
@@ -39,7 +38,7 @@
 
 <script>
 import PRSelector from '../components/PRSelector'
-import {GET_COUNT_PR} from '../graphql/queries.js'
+import {GET_REPOS, GET_COUNT_PR} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
 
@@ -49,30 +48,56 @@ export default {
     return {
       show: true,
       repository: '',
+      getCountPR: '',
+      iteration: 0,
+      endCursor: null,
+      countPRs: [],
       countPR: {
-        comments: '', 
-        reviewThreads: '', 
-        reactions: '', 
-        participants: '',
-        reviewThreadsComments: '',
-        commentsReactions: ''
+        iteration: 0,
+        comments: 0, 
+        reviewThreads: 0, 
+        reactions: 0, 
+        participants: 0,
+        reviewThreadsComments: 0,
+        commentsReactions: 0
       },
       pullRequests: [],
       countMatrix: '',
       cohesionMatrix: '',
       estadisticas: '',
       encabezados: [
-        { text: 'Participante', sortable: false, value: 'nombre' },
-        { text: 'Cohesion Ind', value: 'coeInd' },
-        { text: 'Msj. Enviados', value: 'msjEnviados' },
-        { text: 'Msj. Recibidos', value: 'msjRecibidos' }
+        { text: 'comments', value: 'comments' },
+        { text: 'commentsReactions', value: 'commentsReactions' },
+        { text: 'reviewThreads', value: 'reviewThreads' },
+        { text: 'reviewThreadsComments', value: 'reviewThreadsComments' }
       ],
     }
   },
   apollo:{
     repository: {
+      query: GET_REPOS,
+      variables: {
+        owner: "cdr", 
+        name: "code-server", 
+        number: 57,
+        rvThreads: 1, 
+        comments:1,
+        rvThreadsComments: 1,
+        commentsReactions: 1
+      }
+    },
+    getCountPR: {
       query: GET_COUNT_PR,
-      variables: {owner: "cdr", name: "code-server", rvThreads: 1, comments:1}
+      variables: {
+        owner: "cdr", 
+        name: "code-server",
+        rvThreads: 1, 
+        comments: 1,
+        rvThreadsComments: 1,
+        commentsReactions: 1
+      },
+      //TODO:
+      update: data => data.repository
     }
   },
   methods: {
@@ -132,16 +157,19 @@ export default {
       }
       this.cohesionEstadisticas()
     },
-    refreshQuery(search){
+    countQuery(search){
       var self = this
-      this.$apollo.queries.repository.refetch({ 
+      this.$apollo.queries.getCountPR.refetch({ 
         owner: search.owner, 
         name: search.name,
+        endCursor: this.endCursor,
         rvThreads: 1,
-        comments: 1
+        comments: 1,
+        rvThreadsComments: 1,
+        commentsReactions: 1
       }).then(() => {
-        console.log('entro')
-        self.repository.pullRequests.nodes.forEach(function(item){
+        console.log('index:', self.iteration, ' | endcursor:', self.endCursor)
+        self.getCountPR.pullRequests.nodes.forEach(function(item){
           if (item.comments.totalCount > self.countPR.comments)
             self.countPR.comments = item.comments.totalCount
           if (item.reviewThreads.totalCount > self.countPR.reviewThreads)
@@ -154,14 +182,17 @@ export default {
         
         console.log('cantidad de comments: ', self.countPR.comments)
         console.log('cantidad de rvThreads: ', self.countPR.reviewThreads)
-        self.$apollo.queries.repository.refetch({ 
+        self.$apollo.queries.getCountPR.refetch({ 
           owner: search.owner, 
           name: search.name,
+          endCursor: self.endCursor,
           rvThreads: self.countPR.reviewThreads,
-          comments:self.countPR.comments
+          comments:self.countPR.comments,
+          rvThreadsComments: 1,
+          commentsReactions: 1
         }).then(() => {
           console.log("intento entrar al this")
-          self.repository.pullRequests.nodes.forEach(function(item){
+          self.getCountPR.pullRequests.nodes.forEach(function(item){
             item.reviewThreads.nodes.forEach(function(revThread){
               if (revThread.comments.totalCount > self.countPR.reviewThreadsComments)
                 self.countPR.reviewThreadsComments = revThread.comments.totalCount
@@ -171,16 +202,39 @@ export default {
                 self.countPR.commentsReactions = comm.reactions.totalCount
             })
           })
+          self.countPRs.push(self.countPR)
+          self.iteration++
+          self.countPR = {
+            iteration: self.iteration,
+            comments: 0, 
+            reviewThreads: 0, 
+            reactions: 0, 
+            participants: 0,
+            reviewThreadsComments: 0,
+            commentsReactions: 0
+          }
           console.log(self.countPR)
+          console.log(self.countPRs)
+          self.endCursor = self.getCountPR.pullRequests.pageInfo.endCursor
+          if (self.getCountPR.pullRequests.pageInfo.hasNextPage)
+            self.countQuery(search)
+            else console.log("fin de la busqueda")
         })//repository.refetch2*/
       })//repository.refetch
+      //this.refreshQuery(search)
       
-    }
+    },//refreshQuery
+
     /*refreshQuery(search) {
       this.$apollo.queries.repository.refetch({ 
         owner: search.owner, 
         name: search.name, 
-        number: parseInt(search.number)
+        number: parseInt(search.number),
+
+        rvThreads: this.countPR.reviewThreads,
+        comments:this.countPR.comments,
+        rvThreadsComments: this.countPR.reviewThreadsComments,
+        commentsReactions: this.countPR.commentsReactions
       }).then(() => {
         console.log(this.repository.pullRequest)
 
