@@ -6,13 +6,15 @@
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
 
-  <v-expansion-panels accordion >
+  <v-expansion-panels accordion>
     <v-expansion-panel
       v-for="item in countPRs"
       :key="item.iteration"
     >
       <v-expansion-panel-header>{{item.iteration}}</v-expansion-panel-header>
       <v-expansion-panel-content>
+        <p>Max Reactions: {{item.reactions}}</p>
+        <p>Max Participants: {{item.participants}}</p>
         <p>Max Comments: {{item.comments}}</p>
         <p>Max commentsReactions: {{item.commentsReactions}}</p>
         <p>Max reviewThreads: {{item.reviewThreads}}</p>
@@ -38,7 +40,7 @@
 
 <script>
 import PRSelector from '../components/PRSelector'
-import {GET_REPOS, GET_COUNT_PR} from '../graphql/queries.js'
+import {GET_REPOS} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
 
@@ -46,11 +48,9 @@ export default {
   components: { PRSelector },
   data() {
     return {
-      show: true,
-      repository: '',
-      getCountPR: '',
       iteration: 0,
       endCursor: null,
+      getPR: '',
       countPRs: [],
       countPR: {
         iteration: 0,
@@ -59,42 +59,27 @@ export default {
         reactions: 0, 
         participants: 0,
         reviewThreadsComments: 0,
-        commentsReactions: 0
+        commentsReactions: 0,
+        startCursor: null
       },
       pullRequests: [],
       countMatrix: '',
       cohesionMatrix: '',
       estadisticas: '',
-      encabezados: [
-        { text: 'comments', value: 'comments' },
-        { text: 'commentsReactions', value: 'commentsReactions' },
-        { text: 'reviewThreads', value: 'reviewThreads' },
-        { text: 'reviewThreadsComments', value: 'reviewThreadsComments' }
-      ],
     }
   },
   apollo:{
-    repository: {
+    getPR: {
       query: GET_REPOS,
       variables: {
         owner: "cdr", 
-        name: "code-server", 
-        number: 57,
-        rvThreads: 1, 
-        comments:1,
-        rvThreadsComments: 1,
-        commentsReactions: 1
-      }
-    },
-    getCountPR: {
-      query: GET_COUNT_PR,
-      variables: {
-        owner: "cdr", 
         name: "code-server",
-        rvThreads: 1, 
+        reactions: 1,
+        participants: 1,
         comments: 1,
-        rvThreadsComments: 1,
-        commentsReactions: 1
+        commentsReactions: 1,
+        rvThreads: 1, 
+        rvThreadsComments: 1
       },
       //TODO:
       update: data => data.repository
@@ -159,7 +144,7 @@ export default {
     },
     countQuery(search){
       var self = this
-      this.$apollo.queries.getCountPR.refetch({ 
+      this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
         endCursor: this.endCursor,
@@ -169,7 +154,7 @@ export default {
         commentsReactions: 1
       }).then(() => {
         console.log('index:', self.iteration, ' | endcursor:', self.endCursor)
-        self.getCountPR.pullRequests.nodes.forEach(function(item){
+        self.getPR.pullRequests.nodes.forEach(function(item){
           if (item.comments.totalCount > self.countPR.comments)
             self.countPR.comments = item.comments.totalCount
           if (item.reviewThreads.totalCount > self.countPR.reviewThreads)
@@ -179,10 +164,8 @@ export default {
           if (item.participants.totalCount > self.countPR.participants)
             self.countPR.participants = item.participants.totalCount
         })
-        
-        console.log('cantidad de comments: ', self.countPR.comments)
-        console.log('cantidad de rvThreads: ', self.countPR.reviewThreads)
-        self.$apollo.queries.getCountPR.refetch({ 
+
+        self.$apollo.queries.getPR.refetch({ 
           owner: search.owner, 
           name: search.name,
           endCursor: self.endCursor,
@@ -191,8 +174,7 @@ export default {
           rvThreadsComments: 1,
           commentsReactions: 1
         }).then(() => {
-          console.log("intento entrar al this")
-          self.getCountPR.pullRequests.nodes.forEach(function(item){
+          self.getPR.pullRequests.nodes.forEach(function(item){
             item.reviewThreads.nodes.forEach(function(revThread){
               if (revThread.comments.totalCount > self.countPR.reviewThreadsComments)
                 self.countPR.reviewThreadsComments = revThread.comments.totalCount
@@ -202,6 +184,7 @@ export default {
                 self.countPR.commentsReactions = comm.reactions.totalCount
             })
           })
+          self.countPR.startCursor = self.getPR.pageInfo.startCursor
           self.countPRs.push(self.countPR)
           self.iteration++
           self.countPR = {
@@ -211,12 +194,12 @@ export default {
             reactions: 0, 
             participants: 0,
             reviewThreadsComments: 0,
-            commentsReactions: 0
+            commentsReactions: 0,
+            startCursor: null
           }
-          console.log(self.countPR)
-          console.log(self.countPRs)
-          self.endCursor = self.getCountPR.pullRequests.pageInfo.endCursor
-          if (self.getCountPR.pullRequests.pageInfo.hasNextPage)
+          self.endCursor = self.getPR.pullRequests.pageInfo.endCursor
+          
+          if (self.getPR.pullRequests.pageInfo.hasNextPage)
             self.countQuery(search)
             else console.log("fin de la busqueda")
         })//repository.refetch2*/
