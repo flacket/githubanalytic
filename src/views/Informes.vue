@@ -7,7 +7,7 @@
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
 
-  <!--<v-expansion-panels accordion>
+  <v-expansion-panels accordion>
     <v-expansion-panel
       v-for="item in countPRs"
       :key="item.startCursor"
@@ -20,7 +20,7 @@
         <p>Max CommentsReactions: {{item.commentsReactions}}</p>
         <p>Max ReviewThreads: {{item.reviewThreads}}</p>
         <p>Max ReviewThreadsComments: {{item.reviewThreadsComments}}</p>
-        <v-simple-table>
+        <!--<v-simple-table>
           <thead>
             <tr>
               <th v-for="index in item.participants.nodes" :key="index.login" class="text-left">{{index.login}}</th>
@@ -31,10 +31,10 @@
               <td v-for="jota in i" :key="jota.x">{{jota}}</td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-simple-table>-->
       </v-expansion-panel-content>
     </v-expansion-panel>
-  </v-expansion-panels>-->
+  </v-expansion-panels>
 
   </div>
 </template>
@@ -53,16 +53,6 @@ export default {
       cancel: true,
       getPR: '',
       countPRs: [],
-      countPR: {
-        comments: 0, 
-        reviewThreads: 0, 
-        reactions: 0, 
-        participants: 0,
-        reviewThreadsComments: 0,
-        commentsReactions: 0,
-        endCursor: null,
-        startCursor: null
-      },
       pullRequests: [],
       countMatrix: '',
       cohesionMatrix: '',
@@ -151,64 +141,75 @@ export default {
     },
     countQuery(search){
       var self = this
-      var countPR = this.countPR
+      let cursor
+
+      //reviso si el arrray esta vacio
+      //sino tomo el cursor de la ultima vuelta
+      if (this.countPRs.length == 0)
+        cursor = null
+      else  
+        cursor = this.countPRs[this.countPRs.length-1].endCursor
       
+      this.countPRs.push({
+        comments: 0, 
+        reviewThreads: 0, 
+        reactions: 0, 
+        participants: 0,
+        reviewThreadsComments: 0,
+        commentsReactions: 0,
+        endCursor: null,
+        startCursor: null
+      })
+      console.log(this.countPRs.length)
+      console.log(this.countPRs)
       this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
-        cursor: this.countPR.endCursor,
+        cursor: cursor,
         rvThreads: 1,
         comments: 1,
         rvThreadsComments: 1,
         commentsReactions: 1
       }).then(() => {
-        countPR.startCursor = self.getPR.pullRequests.pageInfo.startCursor
-        countPR.endCursor = self.getPR.pullRequests.pageInfo.endCursor
-        console.log('startCursor:', countPR.startCursor)
-        console.log('endCursor:', countPR.endCursor)
+        let i = self.countPRs.length -1
+        //cargo los primeros valores del contador PR
+        self.countPRs[i].startCursor = self.getPR.pullRequests.pageInfo.startCursor
+        self.countPRs[i].endCursor = self.getPR.pullRequests.pageInfo.endCursor
         self.getPR.pullRequests.nodes.forEach(function(item){
-          if (item.comments.totalCount > countPR.comments)
-            countPR.comments = item.comments.totalCount
-          if (item.reviewThreads.totalCount > countPR.reviewThreads)
-            countPR.reviewThreads = item.reviewThreads.totalCount
-          if (item.reactions.totalCount > countPR.reactions)
-            countPR.reactions = item.reactions.totalCount
-          if (item.participants.totalCount > countPR.participants)
-            countPR.participants = item.participants.totalCount
+          if (item.comments.totalCount > self.countPRs[i].comments)
+            self.countPRs[i].comments = item.comments.totalCount
+          if (item.reviewThreads.totalCount > self.countPRs[i].reviewThreads)
+            self.countPRs[i].reviewThreads = item.reviewThreads.totalCount
+          if (item.reactions.totalCount > self.countPRs[i].reactions)
+            self.countPRs[i].reactions = item.reactions.totalCount
+          if (item.participants.totalCount > self.countPRs[i].participants)
+            self.countPRs[i].participants = item.participants.totalCount
         })
-        console.log(countPR)
-
         self.$apollo.queries.getPR.refetch({ 
           owner: search.owner, 
           name: search.name,
-          cursor: countPR.startCursor,
-          rvThreads: countPR.reviewThreads,
-          comments: countPR.comments,
+          cursor: self.countPRs[i].startCursor,
+          rvThreads: self.countPRs[i].reviewThreads,
+          comments: self.countPRs[i].comments,
           rvThreadsComments: 1,
           commentsReactions: 1
         }).then(() => {
+          //caargo los ultimos valores del contador PR
           self.getPR.pullRequests.nodes.forEach(function(item){
             item.reviewThreads.nodes.forEach(function(revThread){
-              if (revThread.comments.totalCount > countPR.reviewThreadsComments)
-                countPR.reviewThreadsComments = revThread.comments.totalCount
+              if (revThread.comments.totalCount > self.countPRs[i].reviewThreadsComments)
+                self.countPRs[i].reviewThreadsComments = revThread.comments.totalCount
             })
             item.comments.nodes.forEach(function(comm){
-              if (comm.reactions.totalCount > countPR.commentsReactions)
-                countPR.commentsReactions = comm.reactions.totalCount
+              if (comm.reactions.totalCount > self.countPRs[i].commentsReactions)
+                self.countPRs[i].commentsReactions = comm.reactions.totalCount
             })
           })
-          console.log('startCursor:', countPR.startCursor)
-          console.log('endCursor:', countPR.endCursor)
-          console.log('comments:', countPR.comments)
-          console.log('commentsReactions:', countPR.commentsReactions)
-          self.countPRs.push(countPR)
-          console.log(JSON.stringify(self.countPRs))
-          if (self.getPR.pullRequests.pageInfo.hasNextPage && self.cancel){
-            console.log('--------------------------')
+
+          if (self.getPR.pullRequests.pageInfo.hasNextPage && self.cancel)
             self.countQuery(search)
-          } else {
+          else {
             console.log("fin de la busqueda")
-            //self.countPR.iteration = 0
             //self.getFullPR(search)
           }
         })//repository.refetch2*/
