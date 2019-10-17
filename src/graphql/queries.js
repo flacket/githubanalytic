@@ -257,3 +257,12 @@ query userstats($owner: String!) {
     }
   }
 }`;
+
+export const RATE_LIMIT = gql`
+query rateLimit{
+  rateLimit {
+    limit
+    remaining
+    resetAt
+  }
+}`;

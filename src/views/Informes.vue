@@ -53,7 +53,7 @@ export default {
       cancel: true,
       getPR: '',
       countPRs: [],
-      pullRequests: [],
+      pullRequests: '[',
       countMatrix: '',
       cohesionMatrix: '',
       estadisticas: '',
@@ -145,10 +145,8 @@ export default {
 
       //reviso si el arrray esta vacio
       //sino tomo el cursor de la ultima vuelta
-      if (this.countPRs.length == 0)
-        cursor = null
-      else  
-        cursor = this.countPRs[this.countPRs.length-1].endCursor
+      if (this.countPRs.length == 0) cursor = null
+      else cursor = this.countPRs[this.countPRs.length-1].endCursor
       
       this.countPRs.push({
         comments: 0, 
@@ -160,8 +158,6 @@ export default {
         endCursor: null,
         startCursor: null
       })
-      console.log(this.countPRs.length)
-      console.log(this.countPRs)
       this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
@@ -210,52 +206,56 @@ export default {
             self.countQuery(search)
           else {
             console.log("fin de la busqueda")
-            //self.getFullPR(search)
+            self.getFullPR(search, 0)
           }
         })//repository.refetch2*/
       })//repository.refetch
       //this.refreshQuery(search)
       
     },//refreshQuery
-    /*getFullPR(search){
+    getFullPR(search, index){
       console.log('Entro getFullPR:')
-      console.log(search)
+      var self = this
         this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
-        startCursor: this.countPRs[this.iteration].startCursor,
-        reactions: this.countPRs[this.iteration].reactions, 
-        participants: this.countPRs[this.iteration].participants,
-        comments: this.countPRs[this.iteration].comments,
-        rvThreads: this.countPRs[this.iteration].reviewThreads,
-        rvThreadsComments: this.countPRs[this.iteration].reviewThreadsComments,
-        commentsReactions: this.countPRs[this.iteration].commentsReactions
+        startCursor: this.countPRs[index].startCursor,
+        reactions: this.countPRs[index].reactions, 
+        participants: this.countPRs[index].participants,
+        comments: this.countPRs[index].comments,
+        rvThreads: this.countPRs[index].reviewThreads,
+        rvThreadsComments: this.countPRs[index].reviewThreadsComments,
+        commentsReactions: this.countPRs[index].commentsReactions
       }).then(() => {
-        console.log('Resultado:')
-        console.log(this.getPRs)
-        this.pullRequests.push(this.getPRs.repository.pullRequests)
-        console.log('pullRequests:')
-        console.log(this.pullRequests)
+        console.log('Resultado ', index)
+        /*console.log(self.getPR)
+        self.pullRequests.push(self.getPR.pullRequests.nodes)
+
+        self.pullRequests.forEach(function(item){
+          console.log('pullRequest:', item.length)
+          console.log(item)
+        })*/
+        let parser = JSON.stringify(self.getPR.pullRequests.nodes)
+        self.pullRequests += parser
+        self.pullRequests = self.pullRequests.substring(1, self.pullRequests.length - 1)
+        console.log(self.pullRequests)
+        console.log('index: ', index, ' | countPR.length: ', self.countPRs.length-1)
+        if (index < self.countPRs.length-1){
+          console.log("busca siguiente iteración:")
+          self.pullRequests += ','
+          self.getFullPR(search, index + 1)
+        }
+        else {
+          self.pullRequests = '[' + self.pullRequests + ']'
+          //console.log(self.pullRequests)
+          self.pullRequests = JSON.parse(self.pullRequests)
+          console.log(self.pullRequests)
+          console.log("Terminó la carga")
+        }
       })
+      },
 
-      }
-
-    
-
-
-    /*refreshQuery(search) {
-      this.$apollo.queries.repository.refetch({ 
-        owner: search.owner, 
-        name: search.name, 
-        number: parseInt(search.number),
-
-        rvThreads: this.countPR.reviewThreads,
-        comments:this.countPR.comments,
-        rvThreadsComments: this.countPR.reviewThreadsComments,
-        commentsReactions: this.countPR.commentsReactions
-      }).then(() => {
-        console.log(this.repository.pullRequest)
-
+      /*refreshQuery(index, pr) {
         var cantPersonas = this.repository.pullRequest.participants.totalCount
         this.participants = new Array();
 
@@ -386,7 +386,6 @@ export default {
                     } else if (j == cantPersonas)
                       {enc = true}
                     j++
-
                   }
                 }//reaccion comentarios
               } else if (c == cantPersonas)
@@ -521,8 +520,7 @@ export default {
         }) //contar reviews
         this.cohesionFormula()
         this.show = true
-      })
-    }*/
+    })*/
   }
 }
 </script>
