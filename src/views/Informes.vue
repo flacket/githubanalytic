@@ -53,7 +53,7 @@ export default {
       cancel: true,
       getPR: '',
       countPRs: [],
-      pullRequests: '[',
+      pullRequests: '',
       countMatrix: '',
       cohesionMatrix: '',
       estadisticas: '',
@@ -111,9 +111,10 @@ export default {
       this.repository.pullRequest.estadisticas = this.estadisticas
       this.pullRequests.push(this.repository.pullRequest)
       this.countMatrix = ''
-      
     },
     cohesionFormula() {
+      //Esta funcion crea una matriz de cohesion interpersonal
+      //entre los usuarios participantes de un Pull Request
       var cantPersonas = this.participants.length
       //crear matriz NxN
       var x = new Array(cantPersonas);
@@ -140,14 +141,19 @@ export default {
       this.cohesionEstadisticas()
     },
     countQuery(search){
+      //Esta funcion crea una lista con la cantidad de datos que se necesitan 
+      //extraer para cada Pull Request (comentarios, reacciones, etc.) 
+      //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
+      //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
       var self = this
       let cursor
-
-      //reviso si el arrray esta vacio
-      //sino tomo el cursor de la ultima vuelta
-      if (this.countPRs.length == 0) cursor = null
-      else cursor = this.countPRs[this.countPRs.length-1].endCursor
-      
+      //reviso si el array esta vacio (Primer Consulta)
+      //sino tomo el cursor de la ultima consluta
+      if (this.countPRs.length == 0) 
+        cursor = null
+      else 
+        cursor = this.countPRs[this.countPRs.length-1].endCursor
+      //Creo un nuevo item en el arreglo de countPRs donde guardar el resultado de la consulta
       this.countPRs.push({
         comments: 0, 
         reviewThreads: 0, 
@@ -181,6 +187,7 @@ export default {
           if (item.participants.totalCount > self.countPRs[i].participants)
             self.countPRs[i].participants = item.participants.totalCount
         })
+        //Busco los valores que faltan que estan anidados dentro de lo recien consultado
         self.$apollo.queries.getPR.refetch({ 
           owner: search.owner, 
           name: search.name,
@@ -202,55 +209,50 @@ export default {
             })
           })
 
+          //Reviso si faltan cargar más Pull Requests desde la paginación de la API
+          //Si estan todos los datos, Llamo a la funcion getFullPR.
           if (self.getPR.pullRequests.pageInfo.hasNextPage && self.cancel)
             self.countQuery(search)
           else {
-            console.log("fin de la busqueda")
+            console.log("Fin de contar PullRequest")
             self.getFullPR(search, 0)
           }
         })//repository.refetch2*/
       })//repository.refetch
       //this.refreshQuery(search)
-      
     },//refreshQuery
     getFullPR(search, index){
-      console.log('Entro getFullPR:')
+      //Esta funcion busca los datos de los Pull Request
+      //analizando la lista de this.countPRs y pidiendo 
+      //solo la cantidad necesaria de datos a la API
       var self = this
-        this.$apollo.queries.getPR.refetch({ 
-        owner: search.owner, 
+        this.$apollo.queries.getPR.refetch({
+        owner: search.owner,
         name: search.name,
         startCursor: this.countPRs[index].startCursor,
-        reactions: this.countPRs[index].reactions, 
+        reactions: this.countPRs[index].reactions,
         participants: this.countPRs[index].participants,
         comments: this.countPRs[index].comments,
         rvThreads: this.countPRs[index].reviewThreads,
         rvThreadsComments: this.countPRs[index].reviewThreadsComments,
         commentsReactions: this.countPRs[index].commentsReactions
       }).then(() => {
-        console.log('Resultado ', index)
-        /*console.log(self.getPR)
-        self.pullRequests.push(self.getPR.pullRequests.nodes)
-
-        self.pullRequests.forEach(function(item){
-          console.log('pullRequest:', item.length)
-          console.log(item)
-        })*/
+        //Transformo el resultado a cadena
+        //para poder almacenarlo por valor en la lista self.pullRequests
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
-        self.pullRequests += parser
-        self.pullRequests = self.pullRequests.substring(1, self.pullRequests.length - 1)
-        console.log(self.pullRequests)
+        self.pullRequests += parser.substring(1, parser.length - 1)
         console.log('index: ', index, ' | countPR.length: ', self.countPRs.length-1)
+        //Reviso si faltan PRs por agregar a la lista
         if (index < self.countPRs.length-1){
-          console.log("busca siguiente iteración:")
           self.pullRequests += ','
           self.getFullPR(search, index + 1)
         }
         else {
-          self.pullRequests = '[' + self.pullRequests + ']'
-          //console.log(self.pullRequests)
-          self.pullRequests = JSON.parse(self.pullRequests)
+          //Transformo a Objeto la lista de self.pullRequests
+          let aux = "[" + self.pullRequests + "]"
+          self.pullRequests = JSON.parse(aux)
           console.log(self.pullRequests)
-          console.log("Terminó la carga")
+          console.log("Fin de Extraer Pull Requests")
         }
       })
       },
