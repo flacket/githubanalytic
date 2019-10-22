@@ -100,7 +100,7 @@ export default {
           '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
           ', "msjEnviados": ' + msjEnviados +
           ', "msjRecibidos": ' + msjRecibidos + '}'
-        if (i+1 < cantPersonas)
+        if (i + 1 < cantPersonas)
           estadisticas += ','
       }
       estadisticas += ']'
@@ -152,7 +152,7 @@ export default {
       if (this.countPRs.length == 0) 
         cursor = null
       else 
-        cursor = this.countPRs[this.countPRs.length-1].endCursor
+        cursor = this.countPRs[this.countPRs.length - 1].endCursor
       //Creo un nuevo item en el arreglo de countPRs donde guardar el resultado de la consulta
       this.countPRs.push({
         comments: 0, 
@@ -173,7 +173,7 @@ export default {
         rvThreadsComments: 1,
         commentsReactions: 1
       }).then(() => {
-        let i = self.countPRs.length -1
+        let i = self.countPRs.length - 1
         //cargo los primeros valores del contador PR
         self.countPRs[i].startCursor = self.getPR.pullRequests.pageInfo.startCursor
         self.countPRs[i].endCursor = self.getPR.pullRequests.pageInfo.endCursor
@@ -240,10 +240,11 @@ export default {
         //Transformo el resultado a cadena
         //para poder almacenarlo por valor en la lista self.pullRequests
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
-        self.pullRequests += parser.substring(1, parser.length - 1)
-        console.log('index: ', index, ' | countPR.length: ', self.countPRs.length-1)
+        parser = parser.substring(1 , parser.length - 1)
+        self.pullRequests += parser
+        console.log('index: ', index, ' | countPR.length: ', self.countPRs.length - 1)
         //Reviso si faltan PRs por agregar a la lista
-        if (index < self.countPRs.length-1){
+        if (index < self.countPRs.length - 1){
           self.pullRequests += ','
           self.getFullPR(search, index + 1)
         }
