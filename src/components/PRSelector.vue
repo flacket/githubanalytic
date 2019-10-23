@@ -7,7 +7,7 @@
           <v-text-field
             v-model="search.owner"
             :rules="emptyRules"
-            label="Compañia"
+            label="Organización"
             required
           ></v-text-field>
         </v-col>
