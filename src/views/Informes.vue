@@ -215,6 +215,7 @@ export default {
             self.countQuery(search)
           else {
             console.log("Fin de contar PullRequest")
+            console.log('countPRs.length: ', self.countPRs.length - 1)
             self.getFullPR(search, 0)
           }
         })//repository.refetch2*/
@@ -226,7 +227,9 @@ export default {
       //analizando la lista de this.countPRs y pidiendo 
       //solo la cantidad necesaria de datos a la API
       var self = this
-        this.$apollo.queries.getPR.refetch({
+      console.log('index: ', index)
+      console.log(this.countPRs[index].startCursor)
+      this.$apollo.queries.getPR.refetch({
         owner: search.owner,
         name: search.name,
         startCursor: this.countPRs[index].startCursor,
@@ -241,8 +244,8 @@ export default {
         //para poder almacenarlo por valor en la lista self.pullRequests
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
         parser = parser.substring(1 , parser.length - 1)
+        console.log(parser)
         self.pullRequests += parser
-        console.log('index: ', index, ' | countPR.length: ', self.countPRs.length - 1)
         //Reviso si faltan PRs por agregar a la lista
         if (index < self.countPRs.length - 1){
           self.pullRequests += ','
@@ -260,7 +263,9 @@ export default {
       getInteractionCount(){
         var self = this
         console.log('Comienzo get interaction count')
+        var contando = 0
         this.pullRequests.forEach(function(pullRequest){
+          contando++
           //busco cantidad de participantes
           var cantPersonas = pullRequest.participants.totalCount
           var participants = new Array()
@@ -534,9 +539,9 @@ export default {
           })  //comentario de cada review
         }) //contar reviews
         //this.cohesionFormula()
-        //this.show = true
-        console.log('PR #:', pullRequest.number)
-        console.log(self.countMatrix)
+        //this.show = truec
+        console.log('count: ', contando,' - #:', pullRequest.number)
+        //console.log(self.countMatrix)
       })//foreach PullRequest
     }/////////////////////////////////////////////////////////////////////////
   }
