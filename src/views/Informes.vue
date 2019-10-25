@@ -253,21 +253,21 @@ export default {
           let aux = "[" + self.pullRequests + "]"
           self.pullRequests = JSON.parse(aux)
           console.log(self.pullRequests)
-          console.log("Fin de Extraer Pull Requests")
           this.getInteractionCount()
         }
       })
       },
       getInteractionCount(){
         var self = this
-        console.log('Comienzo get interaction conunt')
+        console.log('Comienzo get interaction count')
         this.pullRequests.forEach(function(pullRequest){
           //busco cantidad de participantes
           var cantPersonas = pullRequest.participants.totalCount
-          var participants = new Array();
+          var participants = new Array()
           //y almaceno el nombre de cada participante
           pullRequest.participants.nodes.forEach(function(element) {
             participants.push(element.login)
+          })
 
           //crear matriz NxN (con ceros)
           var x = new Array(cantPersonas)
@@ -277,21 +277,19 @@ export default {
               x[i][j] = 0
             }
           }
-          
           self.countMatrix = x
-          console.log('primer countMatrix pasado')
           //Primer Cometario
           for (i = 1; i < cantPersonas; i++){
-            this.countMatrix[0][i]++
+            self.countMatrix[0][i]++
           }
           pullRequest.reactions.nodes.forEach(function(element) {
             let encontrado = false
             let e = 1 //salteo el participante de la pos[0], no se va a autorreaccionar
             while (!encontrado){
               if (participants[e] == element.user.login){
-                console.log('Reacciona 1er comment: ', participants[e])
+                //console.log('Reacciona 1er comment: ', participants[e])
                 //este participante le reacciono al creador del PR
-                this.countMatrix[e][0]++
+                self.countMatrix[e][0]++
                 encontrado = true
               } else if (e == cantPersonas) 
                 {encontrado = true}
@@ -299,7 +297,7 @@ export default {
             }
           })
 
-          console.log('----- COMMENTS -----')
+          //console.log('----- COMMENTS -----')
           //variables para revisar si repite comentario
           var lastCommentBody
           var lastCommentDate
@@ -308,8 +306,8 @@ export default {
           pullRequest.comments.nodes.forEach(function(element) {
             //verifico si el comentario esta antes de la fecha de cierre
             if(element.createdAt < pullRequest.closedAtn || !pullRequest.closedAt){
-              console.log('--------------------')
-              console.log('FComentario: ', element.createdAt)
+              //console.log('------------------')
+              //console.log('FComentario: ', element.createdAt)
             let encontrado = false
             let c = 0
 
@@ -321,13 +319,13 @@ export default {
               let momentDate = moment(element.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
               let ComentDate = momentDate.toDate();
               let timeLapsed = (ComentDate.getTime() - lastCommentDate.getTime()) / 1000
-              console.log('Minutos:', timeLapsed/60)
-              console.log('lastCommentAuthor:', lastCommentAuthor)
-              console.log('Author:', element.author.login)
+              //console.log('Minutos:', timeLapsed/60)
+              //console.log('lastCommentAuthor:', lastCommentAuthor)
+              //console.log('Author:', element.author.login)
               if ((lastCommentBody == element.body)||(timeLapsed < 900)){ 
                 //el comentario se repite o fecha es menor a 15 min
                 commentNoValido = true
-                console.log('no valido')
+                //console.log('no valido')
               }
             }
             //registro el comentario para revisar despues si repite
@@ -346,9 +344,9 @@ export default {
                   if(element.body.search('@' + participants[i])>-1){
                     //el comentario menciona esta persona
                     if (c != i){  //si no es el que comenta
-                      console.log('Comenta: ', participants[c])
-                      console.log(' -Hacia: @' + participants[i])
-                      this.countMatrix[c][i]++
+                      //console.log('Comenta: ', participants[c])
+                      //console.log(' -Hacia: @' + participants[i])
+                      self.countMatrix[c][i]++
                       arrobaBandera = true
                     }
                   }
@@ -357,11 +355,11 @@ export default {
                   //el comentario va para todos (no @ a nadie)
                   if(!commentNoValido){
                     //el comentario no esta repetido
-                    console.log('Comenta: ', participants[c])
-                    console.log(' -Hacia: Todos')
+                    //console.log('Comenta: ', participants[c])
+                    //console.log(' -Hacia: Todos')
                     for (i = 0; i < cantPersonas; i++){
                       if (c != i) //si no es el que comenta
-                        this.countMatrix[c][i]++
+                        self.countMatrix[c][i]++
                     }
                   }
                 }
@@ -384,9 +382,9 @@ export default {
                         else i++
                       }
                       if(!yaReacciono){
-                        console.log('  -Reacciona: ', participants[j])
+                        //console.log('  -Reacciona: ', participants[j])
                         reactionArray.push(participants[j])
-                        this.countMatrix[j][c]++
+                        self.countMatrix[j][c]++
                       }
                     } else if (j == cantPersonas){
                       enc = true
@@ -401,8 +399,7 @@ export default {
             }//while encontrado
           }
         })//forEach Comments
-
-        console.log('----- REVIEWS -----')
+        //console.log('----- REVIEWS -----')
         //contar reviews
         pullRequest.reviewThreads.nodes.forEach(function(element){
           //este array va a mantener las personas que comentaron en el review
@@ -410,23 +407,26 @@ export default {
           var reviewArray = new Array()        
           //reinicio la variable para revisar si repite reviews
           lastCommentAuthor = null
-          console.log('---')
-          for (var comm = 0; comm < element.comments.totalCount; comm++){
-            var reviewComment = element.comments.nodes[comm]
+
+          element.comments.nodes.forEach(function(reviewComment){
+
+          //for (var comm = 0; comm < element.comments.totalCount; comm++){
+            //var reviewComment = element.comments.nodes[comm]
             //busco el index del comentarista
             var encontrado = false
             var c = 0
             var posicion
+            //console.log('-----')
+            try{
             while (!encontrado){
               if (participants[c] == reviewComment.author.login){
                 encontrado = true
                 //este participante ha hecho un comentario, se guarda su posicion
                 posicion = c
-              } else if (c == cantPersonas)
-                {encontrado = true}
-              c++
+              } else c++
+              if (c == cantPersonas){
+                encontrado = true}
             }
-
             //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ABAJO
             //me fijo si debo agregar el comentarista al reviewArray
             //el reviewArray va a mantener los usuarios que han
@@ -447,21 +447,20 @@ export default {
             }
 
             //TODO: ESTA PARTE SE PUEDE MEZCLAR CON EL "TODO" DE ARRIBA
-             //Busco si el comentario menciona (@) algun participante
+            //Busco si el comentario menciona (@) algun participante
             var arrobaBandera = false
             for (i = 0; i < cantPersonas; i++){
               if(reviewComment.body.search('@' + participants[i])>-1){
                 //el comentario menciona esta persona
                 //si no es el que comenta y no va a ser contado (en reviewArray)
                 if (c != i && !reviewArray.includes(participants[i])){
-                  console.log('Comenta: ', participants[posicion])
-                  console.log(' -Hacia: @', participants[i])
-                  this.countMatrix[c][i]++
+                  //console.log('Comenta: ', participants[posicion])
+                  //console.log(' -Hacia: @', participants[i])
+                  self.countMatrix[c][i]++
                   arrobaBandera = true
                 }
               }
             }
-
             //reviso que el usuario no repita comentario
             //ni escriba 2 mensajes seguidos
             var commentNoValido = false
@@ -470,13 +469,13 @@ export default {
               let momentDate = moment(reviewComment.createdAt, 'YYYY-MM-DDTHH:mm:ssZ');
               let ComentDate = momentDate.toDate();
               let timeLapsed = (ComentDate.getTime() - lastCommentDate.getTime()) / 1000
-              console.log('Minutos:', timeLapsed/60)
-              console.log('lastCommentAuthor:', lastCommentAuthor)
-              console.log('Author:', reviewComment.author.login)
+              //console.log('Minutos:', timeLapsed/60)
+              //console.log('lastCommentAuthor:', lastCommentAuthor)
+              //console.log('Author:', reviewComment.author.login)
               if ((lastCommentBody == reviewComment.body)||(timeLapsed < 900)){ 
                 //el comentario se repite o fecha es menor a 15 min
                 commentNoValido = true
-                console.log('no valido')
+                //console.log('comment no valido')
               }
             }
             //registro el comentario para revisar despues si repite
@@ -487,10 +486,11 @@ export default {
 
             //si es el primer comentario del review
             if (reviewArray.length == 1){
+              //console.log('Comenta: ', participants[posicion])
+              //console.log(' -(1comm)Hacia: ', participants[0])
               //el comentario va para el creador del PR
-              this.countMatrix[posicion][0]++
-              console.log('Comenta: ', participants[posicion])
-              console.log(' -(1comm)Hacia: ', participants[0])
+              self.countMatrix[posicion][0]++
+              
             } else {
               //sumo comentario de <<posicion>> a las personas
               //que ya comentaron en el mismo review
@@ -499,39 +499,45 @@ export default {
                 //y el comentario no esta repetido
                 for (i = 0; i < reviewArray.length; i++){
                   if (posicion != reviewArray[i].pos){
-                    this.countMatrix[posicion][reviewArray[i].pos]++
-                    console.log('Comenta: ', participants[posicion])
-                    console.log(' -(no@)Hacia: ', participants[reviewArray[i].pos])
+                    //console.log('Comenta: ', participants[posicion])
+                    //console.log(' -(no@)Hacia: ', participants[reviewArray[i].pos])
+                    self.countMatrix[posicion][reviewArray[i].pos]++
+                    
                   }
                 }
               }
             }
 
+            //console.log('Review Comments - Reactions:')
             //reacciones al comentarios
             for (var index = 0; index < reviewComment.reactions.totalCount; index++){
               let enc = false
               let j = 0
               //busco la posicion en la matriz del que reacciona
               while (!enc){
+                //console.log('participants[j]:',participants[j])
                 if (participants[j] == reviewComment.reactions.nodes[index].user.login){
-                  console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.login)
+                  //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.login)
                   //este participante le reacciono al creador del PR
-                  this.countMatrix[j][posicion]++
+                  self.countMatrix[j][posicion]++
                   enc = true
-                } else if (j == cantPersonas)
+                } else j++
+                if (j == cantPersonas)
                   { enc = true }
-                j++
               }
             } //reacciones
-          }  //comentario de cada review
+            }
+            catch(err) {
+              console.log('Error en Review Comments:',err.message)
+              console.log('Error PR #:', pullRequest.number)
+            }
+          })  //comentario de cada review
         }) //contar reviews
         //this.cohesionFormula()
         //this.show = true
-        console.log(this.countMatrix)
-      })
-
-    })//foreach PullRequest
-
+        console.log('PR #:', pullRequest.number)
+        console.log(self.countMatrix)
+      })//foreach PullRequest
     }/////////////////////////////////////////////////////////////////////////
   }
 }
