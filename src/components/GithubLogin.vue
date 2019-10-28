@@ -45,12 +45,7 @@ methods: {
     if (!result)
       this.$router.go({path: 'estadisticas' })
     else {
-      console.log('errorCode: ', result.code)
-      console.log('errorMessage: ', result.message)
-      // The email of the user's account used.
-      console.log('email: ', result.email)
-      // The firebase.auth.AuthCredential type that was used.
-      console.log('credential: ', result.credential)
+      console.log('error: ', result)
     }
   },
   githublogout(){
