@@ -146,13 +146,16 @@ export default {
       //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
       var self = this
-      let cursor
+      let afterCursor
+      let beforeCursor
+      let hasNextPage = false
       //reviso si el array esta vacio (Primer Consulta)
       //sino tomo el cursor de la ultima consluta
-      if (this.countPRs.length == 0) 
-        cursor = null
-      else 
-        cursor = this.countPRs[this.countPRs.length - 1].endCursor
+      beforeCursor = null
+      if (this.countPRs.length == 0)
+        afterCursor = null
+      else afterCursor = this.countPRs[this.countPRs.length - 1].endCursor
+
       //Creo un nuevo item en el arreglo de countPRs donde guardar el resultado de la consulta
       this.countPRs.push({
         comments: 0, 
@@ -164,10 +167,13 @@ export default {
         endCursor: null,
         startCursor: null
       })
+
+      //Hago la consulta
       this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
-        cursor: cursor,
+        afterCursor: afterCursor,
+        beforeCursor: beforeCursor,
         rvThreads: 1,
         comments: 1,
         rvThreadsComments: 1,
@@ -177,6 +183,7 @@ export default {
         //cargo los primeros valores del contador PR
         self.countPRs[i].startCursor = self.getPR.pullRequests.pageInfo.startCursor
         self.countPRs[i].endCursor = self.getPR.pullRequests.pageInfo.endCursor
+        hasNextPage = self.getPR.pullRequests.pageInfo.hasNextPage
         self.getPR.pullRequests.nodes.forEach(function(item){
           if (item.comments.totalCount > self.countPRs[i].comments)
             self.countPRs[i].comments = item.comments.totalCount
@@ -187,11 +194,20 @@ export default {
           if (item.participants.totalCount > self.countPRs[i].participants)
             self.countPRs[i].participants = item.participants.totalCount
         })
+        //si es el primer conjunto buscado
+        if (i == 0){
+          afterCursor = null
+          beforeCursor = self.countPRs[i].endCursor
+        } else {
+          afterCursor = self.countPRs[i-1].endCursor
+          beforeCursor = null
+        }
         //Busco los valores que faltan que estan anidados dentro de lo recien consultado
         self.$apollo.queries.getPR.refetch({ 
           owner: search.owner, 
           name: search.name,
-          cursor: self.countPRs[i].startCursor,
+          afterCursor: afterCursor,
+          beforeCursor: beforeCursor,
           rvThreads: self.countPRs[i].reviewThreads,
           comments: self.countPRs[i].comments,
           rvThreadsComments: 1,
@@ -208,14 +224,13 @@ export default {
                 self.countPRs[i].commentsReactions = comm.reactions.totalCount
             })
           })
-
           //Reviso si faltan cargar más Pull Requests desde la paginación de la API
           //Si estan todos los datos, Llamo a la funcion getFullPR.
-          if (self.getPR.pullRequests.pageInfo.hasNextPage && self.cancel)
+          if (hasNextPage && self.cancel)
             self.countQuery(search)
           else {
             console.log("Fin de contar PullRequest")
-            console.log('countPRs.length: ', self.countPRs.length - 1)
+            console.log('Paginas PR: ', self.countPRs.length)
             self.getFullPR(search, 0)
           }
         })//repository.refetch2*/
@@ -228,11 +243,21 @@ export default {
       //solo la cantidad necesaria de datos a la API
       var self = this
       console.log('index: ', index)
-      console.log(this.countPRs[index].startCursor)
+      let afterCursor
+      let beforeCursor
+      //si es el primer conjunto buscado
+      if (index == 0){
+        afterCursor = null
+        beforeCursor = self.countPRs[index].endCursor
+      } else {
+        afterCursor = self.countPRs[index-1].endCursor
+        beforeCursor = null
+      }
       this.$apollo.queries.getPR.refetch({
         owner: search.owner,
         name: search.name,
-        startCursor: this.countPRs[index].startCursor,
+        afterCursor: afterCursor,
+        beforeCursor: beforeCursor,
         reactions: this.countPRs[index].reactions,
         participants: this.countPRs[index].participants,
         comments: this.countPRs[index].comments,
@@ -244,7 +269,6 @@ export default {
         //para poder almacenarlo por valor en la lista self.pullRequests
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
         parser = parser.substring(1 , parser.length - 1)
-        console.log(parser)
         self.pullRequests += parser
         //Reviso si faltan PRs por agregar a la lista
         if (index < self.countPRs.length - 1){

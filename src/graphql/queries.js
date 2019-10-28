@@ -122,7 +122,8 @@ export const GET_REPOS = gql`
 query getRepos(
   $owner: String!, 
   $name: String!,
-  $cursor: String,
+  $beforeCursor: String,
+  $afterCursor: String,
   $reactions: Int,
   $participants: Int
   $comments: Int,
@@ -133,7 +134,8 @@ query getRepos(
   repository(owner: $owner, name: $name) {
     pullRequests(
       first: 50
-      after: $cursor
+      before: $beforeCursor
+      after: $afterCursor
     ){
       nodes {
         author{
