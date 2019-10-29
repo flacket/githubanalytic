@@ -7,7 +7,40 @@
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
 
+
   <v-expansion-panels accordion>
+    <v-expansion-panel
+      v-for="pullR in estadisticas"
+      :key="pullR.id"
+    >
+      <v-expansion-panel-header>#{{pullR.PR}}</v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-simple-table fixed-header height="300px">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">nombre</th>
+                <th class="text-left">coeInd</th>
+                <th class="text-left">msjEnviados</th>
+                <th class="text-left">msjRecibidos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in pullR.tabla" :key="item.nombre">
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.coeInd }}</td>
+                <td>{{ item.msjEnviados }}</td>
+                <td>{{ item.msjRecibidos }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+  </v-expansion-panels>
+  
+
+  <!--<v-expansion-panels accordion>
     <v-expansion-panel
       v-for="item in countPRs"
       :key="item.startCursor"
@@ -20,21 +53,9 @@
         <p>Max CommentsReactions: {{item.commentsReactions}}</p>
         <p>Max ReviewThreads: {{item.reviewThreads}}</p>
         <p>Max ReviewThreadsComments: {{item.reviewThreadsComments}}</p>
-        <!--<v-simple-table>
-          <thead>
-            <tr>
-              <th v-for="index in item.participants.nodes" :key="index.login" class="text-left">{{index.login}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="i in item.countMatrix" :key="i.jota">
-              <td v-for="jota in i" :key="jota.x">{{jota}}</td>
-            </tr>
-          </tbody>
-        </v-simple-table>-->
       </v-expansion-panel-content>
     </v-expansion-panel>
-  </v-expansion-panels>
+  </v-expansion-panels>-->
 
   </div>
 </template>
@@ -56,7 +77,7 @@ export default {
       pullRequests: '',
       countMatrix: '',
       cohesionMatrix: '',
-      estadisticas: '',
+      estadisticas: [],
     }
   },
   apollo:{
@@ -83,10 +104,10 @@ export default {
       this.colorCancel = "error"
       else this.colorCancel = "warning"
     },
-    cohesionEstadisticas() {
-      var cantPersonas = this.participants.length
-      var estadisticas = '['
-      var coeInd, msjEnviados, msjRecibidos
+    cohesionEstadisticas(index) {
+      let cantPersonas = this.pullRequests[index].participants.totalCount
+      let tabla = '['
+      let coeInd, msjEnviados, msjRecibidos
       for (var i = 0; i < cantPersonas; i++){
         coeInd = 0
         msjEnviados = 0
@@ -96,28 +117,39 @@ export default {
           msjEnviados += this.countMatrix[i][j]
           msjRecibidos += this.countMatrix[j][i]
         }
-        estadisticas += '{"nombre": "' + this.participants[i] +
-          '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
+        //Me aseguro que hayan mas de 2 personas para calcular la cohesion
+        if (cantPersonas > 1)
+          coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
+        else coeInd = 0
+        //creo la tabla con los datos estaditicos
+        tabla += '{"nombre": "' + this.pullRequests[index].participants.nodes[i].login +
+          '", "coeInd": ' + coeInd +
           ', "msjEnviados": ' + msjEnviados +
           ', "msjRecibidos": ' + msjRecibidos + '}'
         if (i + 1 < cantPersonas)
-          estadisticas += ','
+          tabla += ','
       }
-      estadisticas += ']'
-      this.estadisticas = JSON.parse(estadisticas)
-
+      tabla += ']'
       //Adjunto las estadisticas a los datos del Pull Request
-      this.repository.pullRequest.countMatrix = this.countMatrix
-      this.repository.pullRequest.estadisticas = this.estadisticas
-      this.pullRequests.push(this.repository.pullRequest)
-      this.countMatrix = ''
+      let estadisticaPR = {
+        id: index,
+        PR: this.pullRequests[index].number,
+        tabla: JSON.parse(tabla),
+        cohesionMatrix: this.cohesionMatrix
+      }
+      console.log(estadisticaPR)
+      //estadisticaPR.tabla = JSON.parse(tabla)
+      //estadisticaPR.cohesionMatrix = this.cohesionMatrix
+
+      this.estadisticas.push(estadisticaPR)
     },
-    cohesionFormula() {
+    cohesionFormula(index) {
       //Esta funcion crea una matriz de cohesion interpersonal
       //entre los usuarios participantes de un Pull Request
-      var cantPersonas = this.participants.length
+      let cantPersonas = this.pullRequests[index].participants.totalCount
+      console.log('cantPersonas: ', cantPersonas)
       //crear matriz NxN
-      var x = new Array(cantPersonas);
+      let x = new Array(cantPersonas);
       for (let n = 0; n < cantPersonas; n++)
         { x[n] = new Array(cantPersonas) }
       this.cohesionMatrix = x
@@ -138,7 +170,8 @@ export default {
           }
         }
       }
-      this.cohesionEstadisticas()
+      console.log('cohesionMatrix: ', this.cohesionMatrix)
+      this.cohesionEstadisticas(index)
     },
     countQuery(search){
       //Esta funcion crea una lista con la cantidad de datos que se necesitan 
@@ -334,7 +367,7 @@ export default {
           //Contar Cometarios
           pullRequest.comments.nodes.forEach(function(element) {
             //verifico si el comentario esta antes de la fecha de cierre
-            if(element.createdAt < pullRequest.closedAtn || !pullRequest.closedAt){
+            if(element.createdAt < pullRequest.closedAt || !pullRequest.closedAt){
               //console.log('------------------')
               //console.log('FComentario: ', element.createdAt)
             let encontrado = false
@@ -562,11 +595,13 @@ export default {
             }
           })  //comentario de cada review
         }) //contar reviews
-        //this.cohesionFormula()
         //this.show = truec
         console.log('count: ', contando,' - #:', pullRequest.number)
-        //console.log(self.countMatrix)
+        console.log('countMatrix: ', self.countMatrix)
+        self.cohesionFormula(contando-1)
       })//foreach PullRequest
+      console.log('estadisticas: ', this.estadisticas)
+      
     }/////////////////////////////////////////////////////////////////////////
   }
 }

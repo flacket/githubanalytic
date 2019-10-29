@@ -138,12 +138,12 @@ export default {
         name: search.name, 
         number: parseInt(search.number)
       }).then(() => {
-        console.clear()
-        var cantPersonas = this.repository.pullRequest.participants.totalCount
-        this.participants = new Array();
-
-        //cargar lista personas
         var self = this
+        console.clear()
+        //busco cantidad de participantes
+        var cantPersonas = this.repository.pullRequest.participants.totalCount
+        this.participants = new Array()
+        //y almaceno el nombre de cada participante
         this.repository.pullRequest.participants.nodes.forEach(function(element) {
           self.participants.push(element.login)
         })
@@ -157,7 +157,6 @@ export default {
           }
         }
         this.countMatrix = x
-
         //Primer Cometario
         for (i = 1; i < cantPersonas; i++){
           this.countMatrix[0][i]++
