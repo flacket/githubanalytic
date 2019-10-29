@@ -45,12 +45,12 @@ methods: {
     if (!result)
       this.$router.go({path: 'estadisticas' })
     else {
-      console.error('errorCode: ', result.code)
-      console.error('errorMessage: ', result.message)
+      //console.log('errorCode: ', result.code)
+      //console.log('errorMessage: ', result.message)
       // The email of the user's account used.
-      console.error('email: ', result.email)
+      //console.log('email: ', result.email)
       // The firebase.auth.AuthCredential type that was used.
-      console.error('credential: ', result.credential)
+      //console.log('credential: ', result.credential)
     }
   },
   githublogout(){
@@ -59,10 +59,11 @@ methods: {
       localStorage.setItem("tokenId", null)
       localStorage.setItem("user", null)
       self.isLoggedIn = false
-      self.$router.go({ path: 'home' });
-    }).catch(function(error) {
-      console.error('errorCode: ', error.code)
-      console.error('errorMessage: ', error.message)
+      self.$router.go({ path: 'home' })
+    }).catch(function() {
+      self.$router.go({ path: 'home' })
+      //console.log('errorCode: ', error.code)
+      //console.log('errorMessage: ', error.message)
     });
   }
 }
