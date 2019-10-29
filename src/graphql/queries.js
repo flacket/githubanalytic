@@ -119,27 +119,38 @@ query getRepo($owner: String!, $name: String!, $number: Int!) {
 }`;
 
 export const GET_REPOS = gql`
-query getRepos($owner: String!, $name: String!, $cursor: String) {
+query getRepos(
+  $owner: String!, 
+  $name: String!,
+  $beforeCursor: String,
+  $afterCursor: String,
+  $reactions: Int,
+  $participants: Int
+  $comments: Int,
+  $commentsReactions: Int,
+  $rvThreads: Int, 
+  $rvThreadsComments: Int
+) {
   repository(owner: $owner, name: $name) {
     pullRequests(
       first: 50
-      after: $cursor
-      orderBy: { field: CREATED_AT, direction: DESC }
+      before: $beforeCursor
+      after: $afterCursor
     ){
       nodes {
         author{
           login
           avatarUrl
         }
-        body
-        bodyHTML
         createdAt
         closedAt
         number
         state
         title
         url
-        reactions(first: 100){
+        body
+        bodyHTML
+        reactions(first: $reactions){
           totalCount
           nodes{
             user{
@@ -147,15 +158,36 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
             }
           }
         }
-        participants(first: 100) {
+        participants(first: $participants) {
           totalCount
           nodes{
             login
           }
         }
-        reviewThreads(first: 100) {
+        comments(first: $comments) {
+          totalCount
           nodes {
-            comments(first: 20) {
+            body
+            bodyHTML
+            createdAt
+            author {
+              login
+              avatarUrl
+            }
+            reactions(first: $commentsReactions) {
+              totalCount
+              nodes {
+                user {
+                  login
+                }
+              }
+            }
+          }
+        }
+        reviewThreads(first: $rvThreads) {
+          totalCount
+          nodes {
+            comments(first: $rvThreadsComments) {
               totalCount
               nodes {
                 body
@@ -165,7 +197,7 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
                   avatarUrl
                 }
                 createdAt
-                reactions(first:15) {
+                reactions(first:20) {
                   totalCount
                   nodes{
                     user{
@@ -177,77 +209,23 @@ query getRepos($owner: String!, $name: String!, $cursor: String) {
             }
           }
         }
-        comments(first: 100) {
-          nodes {
-            body
-            bodyHTML
-            createdAt
-            author {
-              login
-              avatarUrl
-            }
-            reactions(first: 50) {
-              totalCount
-              nodes {
-                user {
-                  login
-                }
-              }
-            }
-          }
-        }
       }
       pageInfo {
+        startCursor
         hasNextPage
         endCursor
       }
     }
   }
 }`;
-
-export const GET_COUNT_PR = gql`
-query getCountPR($owner: String!, $name: String!, $cursor: String) {
-  repository(owner: $owner, name: $name) {
-    pullRequests(
-      first: 100
-      after: $cursor
-    ){
-      nodes {
-        reactions(first: 1){
-          totalCount
-        }
-        participants(first: 1) {
-          totalCount
-        }
-        reviewThreads(first: 1) {
-          totalCount
-          nodes {
-            comments(first: 1) {
-              totalCount
-              nodes{
-                reactions(first:1) {
-                  totalCount
-                }
-              }
-            }
-          }
-        }
-        comments(first: 1) {
-          totalCount
-          nodes {
-            reactions(first: 1) {
-              totalCount
-            }
-          }
-        }
-    }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-}`;
+/*{"owner": "cdr", 
+"name": "code-server", 
+"endCursor": null,
+"comments": 1,
+"commentsReactions": 1,
+"rvThreads": 1, 
+"rvThreadsComments": 1
+}*/
 
 export const USER = gql`
 query userstats($owner: String!) {
@@ -279,5 +257,14 @@ query userstats($owner: String!) {
         }
       }
     }
+  }
+}`;
+
+export const RATE_LIMIT = gql`
+query rateLimit{
+  rateLimit {
+    limit
+    remaining
+    resetAt
   }
 }`;
