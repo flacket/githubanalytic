@@ -137,7 +137,6 @@ export default {
         tabla: JSON.parse(tabla),
         cohesionMatrix: this.cohesionMatrix
       }
-      console.log(estadisticaPR)
       //estadisticaPR.tabla = JSON.parse(tabla)
       //estadisticaPR.cohesionMatrix = this.cohesionMatrix
 
@@ -147,7 +146,6 @@ export default {
       //Esta funcion crea una matriz de cohesion interpersonal
       //entre los usuarios participantes de un Pull Request
       let cantPersonas = this.pullRequests[index].participants.totalCount
-      console.log('cantPersonas: ', cantPersonas)
       //crear matriz NxN
       let x = new Array(cantPersonas);
       for (let n = 0; n < cantPersonas; n++)
@@ -170,7 +168,7 @@ export default {
           }
         }
       }
-      console.log('cohesionMatrix: ', this.cohesionMatrix)
+      //console.log('cohesionMatrix: ', this.cohesionMatrix)
       this.cohesionEstadisticas(index)
     },
     countQuery(search){
@@ -181,6 +179,7 @@ export default {
       var self = this
       let afterCursor
       let beforeCursor
+      let overflowAlet = false  //indica si se superan las 100 consultas de la API
       let hasNextPage = false
       //reviso si el array esta vacio (Primer Consulta)
       //sino tomo el cursor de la ultima consluta
@@ -218,14 +217,38 @@ export default {
         self.countPRs[i].endCursor = self.getPR.pullRequests.pageInfo.endCursor
         hasNextPage = self.getPR.pullRequests.pageInfo.hasNextPage
         self.getPR.pullRequests.nodes.forEach(function(item){
-          if (item.comments.totalCount > self.countPRs[i].comments)
-            self.countPRs[i].comments = item.comments.totalCount
-          if (item.reviewThreads.totalCount > self.countPRs[i].reviewThreads)
+          if (item.comments.totalCount > self.countPRs[i].comments){
+            if (item.comments.totalCount > 100){
+              self.countPRs[i].comments = 100
+              overflowAlet = true
+            }
+            else
+              self.countPRs[i].comments = item.comments.totalCount
+          }
+          if (item.reviewThreads.totalCount > self.countPRs[i].reviewThreads){
+            if (item.reviewThreads.totalCount > 100){
+              self.countPRs[i].reviewThreads = 100
+              overflowAlet = true
+            }
+            else
             self.countPRs[i].reviewThreads = item.reviewThreads.totalCount
-          if (item.reactions.totalCount > self.countPRs[i].reactions)
-            self.countPRs[i].reactions = item.reactions.totalCount
-          if (item.participants.totalCount > self.countPRs[i].participants)
-            self.countPRs[i].participants = item.participants.totalCount
+          }
+          if (item.reactions.totalCount > self.countPRs[i].reactions){
+            if (item.reactions.totalCount > 100){
+              self.countPRs[i].reactions = 100
+              overflowAlet = true
+            }
+            else
+              self.countPRs[i].reactions = item.reactions.totalCount
+          }
+          if (item.participants.totalCount > self.countPRs[i].participants){
+            if (item.participants.totalCount > 100){
+              self.countPRs[i].participants = 100
+              overflowAlet = true
+            }
+            else
+              self.countPRs[i].participants = item.participants.totalCount
+          }
         })
         //si es el primer conjunto buscado
         if (i == 0){
@@ -249,21 +272,35 @@ export default {
           //caargo los ultimos valores del contador PR
           self.getPR.pullRequests.nodes.forEach(function(item){
             item.reviewThreads.nodes.forEach(function(revThread){
-              if (revThread.comments.totalCount > self.countPRs[i].reviewThreadsComments)
-                self.countPRs[i].reviewThreadsComments = revThread.comments.totalCount
+              if (revThread.comments.totalCount > self.countPRs[i].reviewThreadsComments){
+                if (revThread.comments.totalCount > 100){
+                  self.countPRs[i].reviewThreadsComments = 100
+                  overflowAlet = true
+                }
+                else
+                  self.countPRs[i].reviewThreadsComments = revThread.comments.totalCount
+              }
             })
             item.comments.nodes.forEach(function(comm){
-              if (comm.reactions.totalCount > self.countPRs[i].commentsReactions)
-                self.countPRs[i].commentsReactions = comm.reactions.totalCount
+              if (comm.reactions.totalCount > self.countPRs[i].commentsReactions){
+                if (comm.reactions.totalCount > 100){
+                  self.countPRs[i].commentsReactions = 100
+                  overflowAlet = true
+                }
+                else
+                  self.countPRs[i].commentsReactions = comm.reactions.totalCount
+              }
             })
           })
+          if (overflowAlet)
+            console.log('SE SUPERO EL LIMITE DE LA API - Limitado a 100')
           //Reviso si faltan cargar más Pull Requests desde la paginación de la API
           //Si estan todos los datos, Llamo a la funcion getFullPR.
+          console.log('Pagina: ', self.countPRs.length, ' | PRs: ', 50 * self.countPRs.length)
           if (hasNextPage && self.cancel)
             self.countQuery(search)
           else {
             console.log("Fin de contar PullRequest")
-            console.log('Paginas PR: ', self.countPRs.length)
             self.getFullPR(search, 0)
           }
         })//repository.refetch2*/
@@ -596,11 +633,10 @@ export default {
           })  //comentario de cada review
         }) //contar reviews
         //this.show = truec
-        console.log('count: ', contando,' - #:', pullRequest.number)
-        console.log('countMatrix: ', self.countMatrix)
+        //console.log('count: ', contando,' - #:', pullRequest.number)
         self.cohesionFormula(contando-1)
       })//foreach PullRequest
-      console.log('estadisticas: ', this.estadisticas)
+      console.log('Busqueda finalizada | Cant PR: ', contando)
       
     }/////////////////////////////////////////////////////////////////////////
   }

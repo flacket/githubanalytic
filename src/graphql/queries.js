@@ -140,7 +140,6 @@ query getRepos(
       nodes {
         author{
           login
-          avatarUrl
         }
         createdAt
         closedAt
@@ -149,7 +148,6 @@ query getRepos(
         title
         url
         body
-        bodyHTML
         reactions(first: $reactions){
           totalCount
           nodes{
@@ -168,11 +166,9 @@ query getRepos(
           totalCount
           nodes {
             body
-            bodyHTML
             createdAt
             author {
               login
-              avatarUrl
             }
             reactions(first: $commentsReactions) {
               totalCount
@@ -191,10 +187,8 @@ query getRepos(
               totalCount
               nodes {
                 body
-                bodyHTML
                 author {
                   login
-                  avatarUrl
                 }
                 createdAt
                 reactions(first:20) {
