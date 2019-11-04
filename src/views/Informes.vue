@@ -3,10 +3,12 @@
   <h1 class="subheading-1 blue--text">Informes</h1>
 
   <PRSelector v-on:searchPR="countQuery"></PRSelector>
-  <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar()">Cancelar Busqueda</v-btn>
+  <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar">Cancelar Busqueda</v-btn>
+  <v-btn class="mb-2 mx-2" color="primary" @click.native="btnLoadFile">Cargar Informe</v-btn>
+  <v-btn class="mb-2" color="secodary" v-on:click="saveFile()">Guardar Informe</v-btn>
+  <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
-
 
   <v-expansion-panels accordion>
     <v-expansion-panel
@@ -77,7 +79,7 @@ export default {
       pullRequests: '',
       countMatrix: '',
       cohesionMatrix: '',
-      estadisticas: [],
+      estadisticas: []
     }
   },
   apollo:{
@@ -98,6 +100,34 @@ export default {
     }
   },
   methods: {
+    btnLoadFile() {
+      document.getElementById('file-upload').click()
+    },
+    loadFile() {
+      let file = this.$refs.myFile.files[0];
+      if(!file) return
+      // Credit: https://stackoverflow.com/a/754398/52160
+      let reader = new FileReader();
+      reader.readAsText(file, "UTF-8");
+      reader.onload =  evt => {
+        this.estadisticas = JSON.parse(evt.target.result)
+      }
+      reader.onerror = evt => {
+        console.error(evt);
+      }
+    },
+    saveFile () {
+      const data = JSON.stringify(this.estadisticas)
+      const blob = new Blob([data], {type: 'text/plain'})
+      const e = document.createEvent('MouseEvents'),
+            a = document.createElement('a')
+      a.download = "informe.json"
+      a.href = window.URL.createObjectURL(blob)
+      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
+      e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+      a.dispatchEvent(e)
+      console.log('Archivo Guardado')
+    },
     toggleCancelar() {
       this.cancel = !this.cancel
       if(this.cancel)
