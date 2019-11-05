@@ -1,11 +1,15 @@
 <template>
   <div>
-  <h1 class="subheading-1 blue--text">Informes</h1>
+  <h1 class="subheading-1 blue--text">Repositorio</h1>
 
   <PRSelector v-on:searchPR="countQuery"></PRSelector>
-  <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar">Cancelar Busqueda</v-btn>
-  <v-btn class="mb-2 mx-2" color="primary" @click.native="btnLoadFile">Cargar Informe</v-btn>
-  <v-btn class="mb-2" color="secodary" v-on:click="saveFile()">Guardar Informe</v-btn>
+  <v-btn class="mb-2" :color="colorCancel" 
+  v-on:click="toggleCancelar" v-if="$apollo.loading">
+    <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn>
+  <v-btn class="mb-2 mx-2" color="primary" @click.native="btnLoadFile">
+    <v-icon left>mdi-download</v-icon>Cargar Informe</v-btn>
+  <v-btn class="mb-2" color="primary" v-on:click="saveFile()">
+    <v-icon left>mdi-upload</v-icon>Guardar Informe</v-btn>
   <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
@@ -110,14 +114,17 @@ export default {
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
       reader.onload =  evt => {
-        this.estadisticas = JSON.parse(evt.target.result)
+        this.pullRequests = JSON.parse(evt.target.result)
+        //LLamo a realizar el analisis y conteo
+        this.estadisticas = []
+        this.getInteractionCount()
       }
       reader.onerror = evt => {
         console.error(evt);
       }
     },
     saveFile () {
-      const data = JSON.stringify(this.estadisticas)
+      const data = JSON.stringify(this.pullRequests)
       const blob = new Blob([data], {type: 'text/plain'})
       const e = document.createEvent('MouseEvents'),
             a = document.createElement('a')
@@ -167,9 +174,6 @@ export default {
         tabla: JSON.parse(tabla),
         cohesionMatrix: this.cohesionMatrix
       }
-      //estadisticaPR.tabla = JSON.parse(tabla)
-      //estadisticaPR.cohesionMatrix = this.cohesionMatrix
-
       this.estadisticas.push(estadisticaPR)
     },
     cohesionFormula(index) {
@@ -177,7 +181,7 @@ export default {
       //entre los usuarios participantes de un Pull Request
       let cantPersonas = this.pullRequests[index].participants.totalCount
       //crear matriz NxN
-      let x = new Array(cantPersonas);
+      let x = new Array(cantPersonas)
       for (let n = 0; n < cantPersonas; n++)
         { x[n] = new Array(cantPersonas) }
       this.cohesionMatrix = x
@@ -198,7 +202,6 @@ export default {
           }
         }
       }
-      //console.log('cohesionMatrix: ', this.cohesionMatrix)
       this.cohesionEstadisticas(index)
     },
     countQuery(search){
@@ -206,6 +209,7 @@ export default {
       //extraer para cada Pull Request (comentarios, reacciones, etc.) 
       //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
+      this.estadisticas = []
       var self = this
       let afterCursor
       let beforeCursor
@@ -370,6 +374,7 @@ export default {
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
         parser = parser.substring(1 , parser.length - 1)
         self.pullRequests += parser
+        
         //Reviso si faltan PRs por agregar a la lista
         if (index < self.countPRs.length - 1){
           self.pullRequests += ','
@@ -664,10 +669,11 @@ export default {
         }) //contar reviews
         //this.show = truec
         //console.log('count: ', contando,' - #:', pullRequest.number)
-        self.cohesionFormula(contando-1)
+        self.cohesionFormula(contando - 1)
       })//foreach PullRequest
       console.log('Busqueda finalizada | Cant PR: ', contando)
-      
+      this.countPRs = []
+      this.pullRequests = ''
     }/////////////////////////////////////////////////////////////////////////
   }
 }

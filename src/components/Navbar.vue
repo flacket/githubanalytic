@@ -28,8 +28,9 @@
     :clipped-left="$vuetify.breakpoint.lgAndUp">
     <v-app-bar-nav-icon v-if="isLoggedIn" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
     <v-toolbar-title class="headline text-uppercase">
-      <span class="font-weight-bold">GITHUB</span>
-      <span class="font-weight-light">ANALYTIC</span>
+      <span class="font-weight-bold">GIT</span>
+      <span class="font-weight-light">ANA</span>
+      <span class="body-2 font-weight-light"> Github Analytics</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
     <GithubLogin v-if="isLoggedIn"/>
@@ -52,9 +53,8 @@ export default {
       isLoggedIn: false,
       links: [
         //{ icon: 'home', text: 'Inicio', route: '/' },
-        { icon: 'pie_chart', text: 'Estadísticas', route: '/estadisticas' },
         { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
-        { icon: 'timeline', text: 'Informes', route: '/informes' },
+        { icon: 'timeline', text: 'Repositorio', route: '/repositorio' },
         { icon: 'person', text: 'Participantes', route: '/userstats' },
         { icon: 'settings', text: 'Configuración', route: '/configuracion' },
         { icon: 'help', text: 'Acerca de', route: '/acerca' }

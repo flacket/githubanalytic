@@ -3,8 +3,7 @@ import Router from 'vue-router'
 import Home from './views/Home.vue'
 import firebaseApp from './FirebaseApp'
 
-import Estadisticas from './views/Estadisticas.vue'
-import Informes from './views/Informes.vue'
+import Repositorio from './views/Repositorio.vue'
 import UserStats from './views/UserStats.vue'
 import PullRequest from './views/PullRequest.vue'
 import Configuracion from './views/Configuracion.vue'
@@ -26,14 +25,6 @@ let router = new Router({
       component: Home
     },
     {
-      path: '/estadisticas',
-      name: 'estadisticas',
-      component: Estadisticas,
-      meta:{
-        requiresAuth: true
-      }
-    },
-    {
       path: '/pullrequest',
       name: 'pullrequest',
       component: PullRequest,
@@ -42,9 +33,9 @@ let router = new Router({
       }
     },
     {
-      path: '/informes',
-      name: 'informes',
-      component: Informes
+      path: '/repositorio',
+      name: 'repositorio',
+      component: Repositorio
     },
     {
       path: '/userstats',
