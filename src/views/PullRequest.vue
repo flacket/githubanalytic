@@ -12,39 +12,29 @@
     </h1>
     <!--/////////////////////////////////////////////////////-->
     <div v-if="show">
-      <BarChart width="400" height="150" :chartData='chartCohe'/>
-      <v-data-table
-        :headers="encabezados"
-        :items="estadisticas"
-        :items-per-page="20"
-        class="elevation-1 mt-2"
-      ></v-data-table>
-      <!--<h1 class="headline blue--text mt-4 mb-1">Tabla de Conteo</h1>
-      <v-simple-table>
-        <thead>
-          <tr>
-            <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in countMatrix" :key="item.jota">
-            <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-          </tr>
-        </tbody>
-      </v-simple-table>
-      <h1 class="headline blue--text mt-4 mb-1">Matriz de Cohesion Individual</h1>
-      <v-simple-table>
-        <thead>
-          <tr>
-            <th v-for="item in participants" :key="item" class="text-left">{{item}}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in cohesionMatrix" :key="item.jota">
-            <td v-for="jota in item" :key="jota.x">{{jota}}</td>
-          </tr>
-        </tbody>
-      </v-simple-table>-->
+      <v-container>
+        <v-row>
+          <v-col md="5">
+            <h4>Cohesión Individual:</h4>
+            <BarChart :chartData='chartCohe'/>
+          </v-col>
+          <v-col md="2" sm="5"> 
+            <h4>Cohesión Grupal:</h4>
+            <Doughnut :chartData='chartCoheGrupal'/>
+          </v-col>
+          <v-col md="4" sm="7">
+            <h4>Cantidad de Mensajes:</h4>
+            <v-data-table
+              :headers="encabezados"
+              :items="estadisticas"
+              :items-per-page="20"
+              class="elevation-1 mt-2"
+            ></v-data-table>
+          </v-col>
+        </v-row>
+      </v-container>
+
+
     </div>
   </div>
 </template>
@@ -52,6 +42,7 @@
 <script>
 import PRSelector from '../components/PRSelector'
 import BarChart from "../components/chartjs/BarChart.vue"
+import Doughnut from "../components/chartjs/Doughnut.vue"
 import {GET_REPO} from '../graphql/queries.js'
 import moment from "moment";
 moment.locale("es-us");
@@ -59,32 +50,41 @@ moment.locale("es-us");
 export default {
   components: { 
     PRSelector,
-    BarChart
+    BarChart,
+    Doughnut
   },
   data() {
     return {
       show: false,
       countMatrix: '',
       cohesionMatrix: '',
-      estadisticas: '',
-      encabezados: [
-        { text: 'Participante', sortable: false, value: 'nombre' },
-        { text: 'Cohesion Ind', value: 'coeInd' },
-        { text: 'Msj. Enviados', value: 'msjEnviados' },
-        { text: 'Msj. Recibidos', value: 'msjRecibidos' }
-      ],
       participants: '',
       repository: '',
       chartCohe: {
         labels: [],
         datasets: [
           {
-            label: "Cohesión Individual",
             data: [],
             backgroundColor: "rgba(0, 71, 255, 1)"
           }
         ]
-      }
+      },
+      chartCoheGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
+          }
+        ]
+      },
+      estadisticas: '',
+      encabezados: [
+        { text: 'Participante', sortable: false, value: 'nombre' },
+        { text: 'Msj. Enviados', value: 'msjEnviados' },
+        { text: 'Msj. Recibidos', value: 'msjRecibidos' }
+      ],
+      cohesionGrupal: ''
     }
   },
   apollo:{
@@ -124,11 +124,11 @@ export default {
       var cantPersonas = this.participants.length
       var estadisticas = '['
       var coeInd, msjEnviados, msjRecibidos
-      for (var i = 0; i < cantPersonas; i++){
+      for (let i = 0; i < cantPersonas; i++){
         coeInd = 0
         msjEnviados = 0
         msjRecibidos = 0
-        for(var j = 0; j < cantPersonas; j++){
+        for(let j = 0; j < cantPersonas; j++){
           coeInd += this.cohesionMatrix[i][j]
           msjEnviados += this.countMatrix[i][j]
           msjRecibidos += this.countMatrix[j][i]
@@ -143,6 +143,16 @@ export default {
       estadisticas += ']'
       this.estadisticas = JSON.parse(estadisticas)
       this.chartDataFormat()
+      //Obtengo la cohesión grupal
+      var cohesionGrupal = 0
+      for (let k = 0; k < cantPersonas; k++){
+        cohesionGrupal += this.estadisticas[k].coeInd
+      }
+      cohesionGrupal = (cohesionGrupal / cantPersonas) * 100
+      console.log('Cohesión Grupal: ', cohesionGrupal)
+      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
+      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
+      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
     },
     chartDataFormat() {
       //Genera el dataset para armar el grafico de cohesion individual
@@ -151,7 +161,7 @@ export default {
       this.chartCohe.datasets[0].data = []
       for(let i = 0; i < cantPersonas; i++){
         this.chartCohe.labels.push(this.estadisticas[i].nombre)
-        this.chartCohe.datasets[0].data.push(this.estadisticas[i].coeInd)
+        this.chartCohe.datasets[0].data.push((this.estadisticas[i].coeInd * 100).toFixed(2))
       }
       console.log(this.chartCohe)
       this.show = true
