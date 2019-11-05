@@ -56,7 +56,6 @@ export default {
         { icon: 'list_alt', text: 'Pull Request', route: '/pullrequest' },
         { icon: 'timeline', text: 'Repositorio', route: '/repositorio' },
         { icon: 'person', text: 'Participantes', route: '/userstats' },
-        { icon: 'settings', text: 'Configuración', route: '/configuracion' },
         { icon: 'help', text: 'Acerca de', route: '/acerca' }
       ]
     }

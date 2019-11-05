@@ -391,7 +391,7 @@ export default {
       },
       getInteractionCount(){
         var self = this
-        console.log('Comienzo get interaction count')
+        console.log('Comienzo Análisis')
         var contando = 0
         this.pullRequests.forEach(function(pullRequest){
           contando++
@@ -671,7 +671,7 @@ export default {
         //console.log('count: ', contando,' - #:', pullRequest.number)
         self.cohesionFormula(contando - 1)
       })//foreach PullRequest
-      console.log('Busqueda finalizada | Cant PR: ', contando)
+      console.log('Análisis finalizado | Cant PR: ', contando)
       this.countPRs = []
       this.pullRequests = ''
     }/////////////////////////////////////////////////////////////////////////

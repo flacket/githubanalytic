@@ -6,7 +6,6 @@ import firebaseApp from './FirebaseApp'
 import Repositorio from './views/Repositorio.vue'
 import UserStats from './views/UserStats.vue'
 import PullRequest from './views/PullRequest.vue'
-import Configuracion from './views/Configuracion.vue'
 import Acerca from './views/Acerca.vue'
 
 Vue.use(Router)
@@ -41,14 +40,6 @@ let router = new Router({
       path: '/userstats',
       name: 'userstats',
       component: UserStats,
-      meta:{
-        requiresAuth: true
-      }
-    },
-    {
-      path: '/configuracion',
-      name: 'configuracion',
-      component: Configuracion,
       meta:{
         requiresAuth: true
       }

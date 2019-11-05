@@ -11,9 +11,10 @@
       </v-flex>
 
       <v-flex mb-4>
-        <h1 class="display-1 font-weight-bold mb-3">
-          GITHUB <span class="font-weight-light">ANALYTIC</span>
+        <h1 class="display-2 font-weight-bold ">
+          GIT<span class="font-weight-light">ANA</span>
         </h1>
+        <p class="mb-5 title font-weight-light">Github Analytics</p>
         <p class="subheading font-weight-regular">
           Creado por Facundo Gallardo
           <br>si estas interesado o tienes dudas puedes 
@@ -44,16 +45,12 @@
     data: () => ({
       linksImportantes: [
         {
-          text: 'Mi Perfil Facebook',
-          href: 'https://www.facebook.com/facundogallardo'
+          text: 'Repositorio Github',
+          href: 'https://github.com/flacket/githubanalytic'
         },
         {
           text: 'Mi Perfil Github',
           href: 'https://github.com/flacket'
-        },
-        {
-          text: 'Repositorio Github',
-          href: 'https://github.com/flacket/githubanalytic'
         }
       ]
     })
