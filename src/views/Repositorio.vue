@@ -14,7 +14,14 @@
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
 
-  <v-expansion-panels accordion>
+  <v-data-table
+    :headers="encabezados"
+    :items="estadisticas"
+    :items-per-page="20"
+    class="elevation-1 mt-2"
+  ></v-data-table>
+
+  <!--<v-expansion-panels accordion>
     <v-expansion-panel
       v-for="pullR in estadisticas"
       :key="pullR.id"
@@ -43,7 +50,7 @@
         </v-simple-table>
       </v-expansion-panel-content>
     </v-expansion-panel>
-  </v-expansion-panels>
+  </v-expansion-panels>-->
   </div>
 </template>
 
@@ -61,9 +68,22 @@ export default {
       cancel: true,
       getPR: '',
       countPRs: [],
-      pullRequests: '',
       countMatrix: '',
       cohesionMatrix: '',
+      encabezados: [
+        { text: 'PR#', sortable: false, value: 'PR' },
+        { text: 'Cohesión Grupal', value: 'cohesionGrupal' },
+        { text: 'CG Varianza', value: 'cohesionGrupalVarianza' },
+        { text: 'Participantes', value: 'participantes' },
+        { text: 'Fecha Inicio', value: 'fechaInicio' },
+        { text: 'Fecha Cierre', value: 'fechaCierre' },
+        { text: 'Duración Dias', value: 'duraccionDias' },
+        { text: 'Código Agregado', value: 'codigoAdd' },
+        { text: 'Código Quitado', value: 'codigoRem' },
+        { text: 'Total Cambios', value: 'sizePR' },
+        { text: 'Estado', value: 'estado' },
+      ],
+      pullRequests: '',
       estadisticas: []
     }
   },
@@ -130,15 +150,15 @@ export default {
         coeInd = 0
         msjEnviados = 0
         msjRecibidos = 0
+        //Cuento los mensajes enviados y recibidos para la persona "i"
         for(var j = 0; j < cantPersonas; j++){
           coeInd += this.cohesionMatrix[i][j]
           msjEnviados += this.countMatrix[i][j]
           msjRecibidos += this.countMatrix[j][i]
         }
-        //Me aseguro que hayan mas de 2 personas para calcular la cohesion
+        //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
         if (cantPersonas > 1)
-          coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
-        else coeInd = 0
+          coeInd = (Math.round ((coeInd / (cantPersonas - 1)) * 100) / 100)
         //creo la tabla con los datos estaditicos
         tabla += '{"nombre": "' + this.pullRequests[index].participants.nodes[i].login +
           '", "coeInd": ' + coeInd +
@@ -148,12 +168,55 @@ export default {
           tabla += ','
       }
       tabla += ']'
+      tabla = JSON.parse(tabla)
+
+      //Obtengo la cohesión grupal y varianza
+      var total = 0
+      tabla.forEach(function(item){
+        total += item.coeInd
+      })
+      let coheGrupal = total / tabla.length
+      let coheGrupalVarianza = 0
+      tabla.forEach(function(item){
+        coheGrupalVarianza += ((item.coeInd - coheGrupal) * (item.coeInd - coheGrupal))
+      })
+      coheGrupalVarianza = coheGrupalVarianza / tabla.length
+
+      //Obtengo la duracion del PR en días
+      let createdAt = moment(this.pullRequests[index].createdAt);
+      let closedAt = moment(this.pullRequests[index].closedAt);
+      // get the difference between the moments
+      let diff = closedAt.diff(createdAt)
+      //express as a duration
+      let diffDuration = moment.duration(diff)
+      diff = diffDuration.days()
+      if (diff == 0)
+        diff = 1
+
+      //Calculo el estado del PR
+      let estado
+      switch(this.pullRequests[index].state){
+        case 'MERGED': estado = 1; break
+        case 'CLOSED':estado = 0; break
+        case 'OPEN': estado = 0.5; break
+      }
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         id: index,
         PR: this.pullRequests[index].number,
-        tabla: JSON.parse(tabla),
-        cohesionMatrix: this.cohesionMatrix
+        tabla: tabla,
+        cohesionGrupal: coheGrupal.toFixed(3),
+        cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
+        fechaInicio: createdAt.format("DD/MM/YY"),
+        fechaCierre: closedAt.format("DD/MM/YY"),
+        duraccionDias: diff,
+        codigoAdd: this.pullRequests[index].additions,
+        codigoRem: this.pullRequests[index].deletions,
+        sizePR: this.pullRequests[index].additions + this.pullRequests[index].deletions,
+        estado: estado,
+        cohesionMatrix: this.cohesionMatrix,
+        participantes: this.pullRequests[index].participants.totalCount
       }
       this.estadisticas.push(estadisticaPR)
     },
@@ -161,7 +224,7 @@ export default {
       //Esta funcion crea una matriz de cohesion interpersonal
       //entre los usuarios participantes de un Pull Request
       let cantPersonas = this.pullRequests[index].participants.totalCount
-      //crear matriz NxN
+      //crear matriz NxN 
       let x = new Array(cantPersonas)
       for (let n = 0; n < cantPersonas; n++)
         { x[n] = new Array(cantPersonas) }

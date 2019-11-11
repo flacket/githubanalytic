@@ -49,6 +49,8 @@ query getRepo($owner: String!, $name: String!, $number: Int!) {
         login
         avatarUrl
       }
+      additions
+      deletions
       body
       bodyHTML
       createdAt
@@ -141,6 +143,8 @@ query getRepos(
         author{
           login
         }
+        additions
+        deletions
         createdAt
         closedAt
         number

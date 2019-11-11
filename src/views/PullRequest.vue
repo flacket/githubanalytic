@@ -14,22 +14,36 @@
     <div v-if="show">
       <v-container>
         <v-row>
-          <v-col md="5">
-            <h4>Cohesión Individual:</h4>
-            <BarChart :chartData='chartCohe'/>
+          <v-col sm="12" md="2"> 
+            <v-layout column>
+              <v-flex class="mb-3">
+                <h4>Cohesión Grupal:</h4>
+                <Doughnut :chartData='chartCoheGrupal'/>
+              </v-flex>
+              <v-flex>
+                <p>Participantes: {{this.participants.length}}</p>
+              </v-flex>
+              <v-flex>
+                <p>Tamaño PR: 
+                {{this.repository.pullRequest.additions + this.repository.pullRequest.deletions}}</p>
+              </v-flex>
+              <v-flex>
+                <p>Estado: {{this.repository.pullRequest.state}}</p>
+              </v-flex>
+            </v-layout>
           </v-col>
-          <v-col md="2" sm="5"> 
-            <h4>Cohesión Grupal:</h4>
-            <Doughnut :chartData='chartCoheGrupal'/>
-          </v-col>
-          <v-col md="4" sm="7">
+          <v-col sm="12" md="5">
             <h4>Cantidad de Mensajes:</h4>
-            <v-data-table
+            <v-data-table hide-default-footer
               :headers="encabezados"
               :items="estadisticas"
               :items-per-page="20"
               class="elevation-1 mt-2"
             ></v-data-table>
+          </v-col>
+          <v-col sm="12" md="5">
+            <h4>Cohesión Individual:</h4>
+            <BarChart :chartData='chartCohe'/>
           </v-col>
         </v-row>
       </v-container>
@@ -149,7 +163,6 @@ export default {
         cohesionGrupal += this.estadisticas[k].coeInd
       }
       cohesionGrupal = (cohesionGrupal / cantPersonas) * 100
-      console.log('Cohesión Grupal: ', cohesionGrupal)
       this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
       this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
       this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
@@ -163,7 +176,6 @@ export default {
         this.chartCohe.labels.push(this.estadisticas[i].nombre)
         this.chartCohe.datasets[0].data.push((this.estadisticas[i].coeInd * 100).toFixed(2))
       }
-      console.log(this.chartCohe)
       this.show = true
     },
     refreshQuery(search) {
