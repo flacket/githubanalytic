@@ -6,10 +6,10 @@
   <v-btn class="mb-2" :color="colorCancel" 
   v-on:click="toggleCancelar" v-if="$apollo.loading">
     <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn>
-  <v-btn class="mb-2 mx-2" color="primary" @click.native="btnLoadFile">
-    <v-icon left>mdi-download</v-icon>Cargar Informe</v-btn>
-  <v-btn class="mb-2" color="primary" v-on:click="saveFile()">
-    <v-icon left>mdi-upload</v-icon>Guardar Informe</v-btn>
+
+  <v-btn class="mb-2 mx-2" color="primary" v-on:click="csvExport()">
+    <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>
+
   <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
@@ -20,51 +20,27 @@
     :items-per-page="20"
     class="elevation-1 mt-2"
   ></v-data-table>
+  <div class="mt-2">
+    <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
+      <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
+    <v-btn color="primary" v-on:click="saveFile()">
+      <v-icon left>mdi-upload</v-icon>Guardar json</v-btn>
+  </div>
 
-  <!--<v-expansion-panels accordion>
-    <v-expansion-panel
-      v-for="pullR in estadisticas"
-      :key="pullR.id"
-    >
-      <v-expansion-panel-header>#{{pullR.PR}}</v-expansion-panel-header>
-      <v-expansion-panel-content>
-        <v-simple-table fixed-header height="300px">
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-left">nombre</th>
-                <th class="text-left">coeInd</th>
-                <th class="text-left">msjEnviados</th>
-                <th class="text-left">msjRecibidos</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in pullR.tabla" :key="item.nombre">
-                <td>{{ item.nombre }}</td>
-                <td>{{ item.coeInd }}</td>
-                <td>{{ item.msjEnviados }}</td>
-                <td>{{ item.msjRecibidos }}</td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>-->
   </div>
 </template>
 
 <script>
 import PRSelector from '../components/PRSelector'
 import {GET_REPOS} from '../graphql/queries.js'
-import moment from "moment";
-moment.locale("es-us");
+import moment from 'moment'
+moment.locale('es-us')
 
 export default {
   components: { PRSelector },
   data() {
     return {
-      colorCancel: "error",
+      colorCancel: 'error',
       cancel: true,
       getPR: '',
       countPRs: [],
@@ -108,6 +84,45 @@ export default {
     btnLoadFile() {
       document.getElementById('file-upload').click()
     },
+    csvExport () {
+      //Creo el archivo CSV
+      const { Parser } = require('json2csv')
+      const fields = [
+        'PR',
+        'cohesionGrupal',
+        'cohesionGrupalVarianza',
+        'participantes',
+        'fechaInicio',
+        'fechaCierre',
+        'duraccionDias',
+        'codigoAdd',
+        'codigoRem',
+        'sizePR',
+        'estado'
+      ]
+
+      const json2csvParser = new Parser({ fields })
+      const csv = json2csvParser.parse(this.estadisticas)
+
+      //Exporto ahora el archivo CSV
+      const exportName = "informe" + ".csv" || "export.csv"
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, exportName)
+      } else {
+        const link = document.createElement("a")
+        if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob)
+        link.setAttribute("href", url)
+        link.setAttribute("download", exportName)
+        link.style.visibility = "hidden"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        }
+      }
+      console.log('CSV Guardado')
+    },
     loadFile() {
       let file = this.$refs.myFile.files[0];
       if(!file) return
@@ -129,7 +144,7 @@ export default {
       const blob = new Blob([data], {type: 'text/plain'})
       const e = document.createEvent('MouseEvents'),
             a = document.createElement('a')
-      a.download = "informe.json"
+      a.download = "informe" + ".json"
       a.href = window.URL.createObjectURL(blob)
       a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
       e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
@@ -183,8 +198,9 @@ export default {
       coheGrupalVarianza = coheGrupalVarianza / tabla.length
 
       //Obtengo la duracion del PR en días
-      let createdAt = moment(this.pullRequests[index].createdAt);
-      let closedAt = moment(this.pullRequests[index].closedAt);
+      let createdAt = moment(this.pullRequests[index].createdAt)
+      let closedAt = moment(this.pullRequests[index].closedAt)
+      
       // get the difference between the moments
       let diff = closedAt.diff(createdAt)
       //express as a duration
@@ -192,7 +208,7 @@ export default {
       diff = diffDuration.days()
       if (diff == 0)
         diff = 1
-
+      
       //Calculo el estado del PR
       let estado
       switch(this.pullRequests[index].state){
@@ -210,7 +226,7 @@ export default {
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
         fechaInicio: createdAt.format("DD/MM/YY"),
         fechaCierre: closedAt.format("DD/MM/YY"),
-        duraccionDias: diff,
+        duraccionDias: diff || '-',
         codigoAdd: this.pullRequests[index].additions,
         codigoRem: this.pullRequests[index].deletions,
         sizePR: this.pullRequests[index].additions + this.pullRequests[index].deletions,
@@ -254,6 +270,7 @@ export default {
       //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
       this.estadisticas = []
+      this.pullRequests = ''
       var self = this
       let afterCursor
       let beforeCursor
@@ -689,7 +706,6 @@ export default {
       })//foreach PullRequest
       console.log('Análisis finalizado | Cant PR: ', contando)
       this.countPRs = []
-      this.pullRequests = ''
     }/////////////////////////////////////////////////////////////////////////
   }
 }
