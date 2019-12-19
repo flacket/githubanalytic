@@ -1,5 +1,11 @@
 <template>
   <div>
+    <div class="text-center">
+      <v-snackbar right v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color">
+        {{ snackbar.text }}
+        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+      </v-snackbar>
+    </div>
   <h1 class="subheading-1 blue--text">Repositorio</h1>
 
   <PRSelector v-on:searchPR="countQuery"></PRSelector>
@@ -40,6 +46,12 @@ export default {
   components: { PRSelector },
   data() {
     return {
+      snackbar: {
+        show: false,
+        text: 'welcome to GitAna: Github Analytics',
+        color: 'info',
+        timeout: 2500
+      },
       colorCancel: 'error',
       cancel: true,
       getPR: '',
@@ -81,6 +93,12 @@ export default {
     }
   },
   methods: {
+    showSnackbar(text, color, timeout) {
+      this.snackbar.text = text
+      this.snackbar.color = color
+      this.snackbar.timeout = timeout
+      this.snackbar.show = true
+    },
     btnLoadFile() {
       document.getElementById('file-upload').click()
     },
@@ -697,14 +715,15 @@ export default {
               } //reacciones
             }
             catch(err) {
-              console.log('Error en Review Comments:',err.message)
-              console.log('Error PR #:', pullRequest.number)
+              this.showSnackbar('Error en Review Comments:' + err.message, 'error', 5000)
+              console.log('Error en Review Comments | PR#:', pullRequest.number)
             }
           })  //comentario de cada review
         }) //contar reviews
         self.cohesionFormula(contando - 1)
       })//foreach PullRequest
-      console.log('Análisis finalizado | Cant PR: ', contando)
+      this.showSnackbar('Análisis Finalizado', 'success', 3000)
+      //console.log('Análisis finalizado | Cant PR: ', contando)
       this.countPRs = []
     }/////////////////////////////////////////////////////////////////////////
   }
