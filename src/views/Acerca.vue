@@ -3,7 +3,7 @@
     <v-layout text-center wrap>
       <v-flex xs12>
         <v-img
-          :src="require('../assets/logo.svg')"
+          :src="require('../assets/ga logo.png')"
           class="my-3"
           contain
           height="150"
@@ -14,7 +14,7 @@
         <h1 class="display-2 font-weight-bold ">
           GIT<span class="font-weight-light">ANA</span>
         </h1>
-        <p class="mb-5 title font-weight-light">Github Analytics</p>
+        <p class="mb-5 title font-weight-light">Analíticas de Github</p>
         <p class="subheading font-weight-regular">
           Creado por Facundo Gallardo
           <br>si estas interesado o tienes dudas puedes 

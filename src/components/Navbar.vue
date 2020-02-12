@@ -30,7 +30,7 @@
     <v-toolbar-title class="headline text-uppercase">
       <span class="font-weight-bold">GIT</span>
       <span class="font-weight-light">ANA</span>
-      <span class="body-2 font-weight-light"> Github Analytics</span>
+      <span class="body-2 font-weight-light"> Analíticas de Github</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
     <GithubLogin v-if="isLoggedIn"/>
