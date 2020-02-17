@@ -79,8 +79,8 @@ export default {
     getPR: {
       query: GET_REPOS,
       variables: {
-        owner: "cdr", 
-        name: "code-server",
+        owner: "flacket", 
+        name: "githubanalytic",
         reactions: 1,
         participants: 1,
         comments: 1,
@@ -91,6 +91,9 @@ export default {
       //TODO:
       update: data => data.repository
     }
+  },
+  mounted:function(){
+        this.$apollo.skipAll = true
   },
   methods: {
     showSnackbar(text, color, timeout) {
@@ -314,11 +317,16 @@ export default {
       })
 
       //Hago la consulta
+      if (!this.$apollo.skipAll){
+        this.$apollo.skipAll = false
+      }
       this.$apollo.queries.getPR.refetch({ 
         owner: search.owner, 
         name: search.name,
         afterCursor: afterCursor,
         beforeCursor: beforeCursor,
+        reactions: 1, 
+        participants: 1,
         rvThreads: 1,
         comments: 1,
         rvThreadsComments: 1,
@@ -377,6 +385,8 @@ export default {
           name: search.name,
           afterCursor: afterCursor,
           beforeCursor: beforeCursor,
+          reactions: 1, 
+          participants: 1,
           rvThreads: self.countPRs[i].reviewThreads,
           comments: self.countPRs[i].comments,
           rvThreadsComments: 1,
@@ -435,6 +445,9 @@ export default {
       } else {
         afterCursor = self.countPRs[index-1].endCursor
         beforeCursor = null
+      }
+      if (!this.$apollo.skipAll){
+        this.$apollo.skipAll = false
       }
       this.$apollo.queries.getPR.refetch({
         owner: search.owner,

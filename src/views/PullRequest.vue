@@ -104,8 +104,11 @@ export default {
   apollo:{
     repository: {
       query: GET_REPO,
-      variables: {owner: "cdr", name: "code-server", number: 154},
+      variables: {owner: "flacket", name: "githubanalytic", number: 150},
     },
+  },
+  mounted:function(){
+    this.$apollo.skipAll = true
   },
   methods: {
     cohesionFormula() {
@@ -179,6 +182,9 @@ export default {
       this.show = true
     },
     refreshQuery(search) {
+      if (!this.$apollo.skipAll){
+        this.$apollo.skipAll = false
+      }
       this.$apollo.queries.repository.refetch({ 
         owner: search.owner, 
         name: search.name, 

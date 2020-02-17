@@ -65,8 +65,14 @@ export default {
       variables: {owner: "flacket"}
     },
   },
+  mounted:function(){
+    this.$apollo.skipAll = true
+  },
   methods: {
     listarTodos() {
+      if (!this.$apollo.skipAll){
+        this.$apollo.skipAll = false
+      }
       var estadisticas = ''
       this.users.forEach((item) => {
         var watch, star, fork, followers, following
@@ -107,9 +113,11 @@ export default {
           })
         })
       })
-
     },
     refreshQuery() {
+      if (!this.$apollo.skipAll){
+        this.$apollo.skipAll = false
+      }
       this.$apollo.queries.repositoryOwner.refetch({ owner: this.name })
       .then(() => {
         var watch, star, fork, followers, following
