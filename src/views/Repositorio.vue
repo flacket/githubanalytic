@@ -1,39 +1,40 @@
 <template>
-  <div>
-    <div class="text-center">
-      <v-snackbar right v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color">
-        {{ snackbar.text }}
-        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
-      </v-snackbar>
-    </div>
+<div>
+  <div class="text-center">
+    <v-snackbar right v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color">
+      {{ snackbar.text }}
+      <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+    </v-snackbar>
+  </div>
   <h1 class="subheading-1 blue--text">Repositorio</h1>
 
   <PRSelector v-on:searchPR="countQuery"></PRSelector>
-  <v-btn class="mb-2" :color="colorCancel" 
-  v-on:click="toggleCancelar" v-if="$apollo.loading">
-    <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn>
-
-  <v-btn class="mb-2 mx-2" color="primary" v-on:click="csvExport()">
-    <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>
-
-  <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
   <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
+  <!--/////////////////////////////////////////////////////-->
+  <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar" v-if="$apollo.loading">
+      <v-icon left>mdi-cancel</v-icon>
+  Detener Busqueda</v-btn>
+  <div v-if="show">
+    <div class="mt-2">
+      <v-btn class="mb-2 mx-2" color="primary" v-on:click="csvExport()">
+      <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>   
+      <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
+    </div>
 
-  <v-data-table
-    :headers="encabezados"
-    :items="estadisticas"
-    :items-per-page="20"
-    class="elevation-1 mt-2"
-  ></v-data-table>
-  <div class="mt-2">
     <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
     <v-btn color="primary" v-on:click="saveFile()">
       <v-icon left>mdi-upload</v-icon>Guardar json</v-btn>
-  </div>
 
+    <v-data-table
+      :headers="encabezados"
+      :items="estadisticas"
+      :items-per-page="20"
+      class="elevation-1 mt-2"
+    ></v-data-table>
   </div>
+</div>
 </template>
 
 <script>
@@ -46,9 +47,10 @@ export default {
   components: { PRSelector },
   data() {
     return {
+      show: false,
       snackbar: {
         show: false,
-        text: 'welcome to GitAna: Github Analytics',
+        text: 'Bienvenido a Gitana: Analíticas de Github',
         color: 'info',
         timeout: 2500
       },
@@ -88,7 +90,6 @@ export default {
         rvThreads: 1, 
         rvThreadsComments: 1
       },
-      //TODO:
       update: data => data.repository
     }
   },
@@ -178,6 +179,34 @@ export default {
       this.colorCancel = "error"
       else this.colorCancel = "warning"
     },
+        cohesionFormula(index) {
+      //Esta funcion crea una matriz de cohesion interpersonal
+      //entre los usuarios participantes de un Pull Request
+      let cantPersonas = this.pullRequests[index].participants.totalCount
+      //crear matriz NxN 
+      let x = new Array(cantPersonas)
+      for (let n = 0; n < cantPersonas; n++)
+        { x[n] = new Array(cantPersonas) }
+      this.cohesionMatrix = x
+
+      for(let c = 0; c < cantPersonas; c++){
+        for(let f = 0; f < cantPersonas; f++){
+          //contar cohesion para [c][f]
+          if (c==f)
+            this.cohesionMatrix[c][f] = 0
+          else{
+            var result
+            var sum = this.countMatrix[c][f] + this.countMatrix[f][c]
+            if(sum > 0){
+              result = 1 - ((Math.abs(this.countMatrix[c][f] - this.countMatrix[f][c])) / sum)
+            } else result = 0
+            this.cohesionMatrix[c][f] = Math.round(result * 100) / 100
+            this.cohesionMatrix[f][c] = Math.round(result * 100) / 100
+          }
+        }
+      }
+      this.cohesionEstadisticas(index)
+    },
     cohesionEstadisticas(index) {
       let cantPersonas = this.pullRequests[index].participants.totalCount
       let tabla = '['
@@ -207,14 +236,14 @@ export default {
       tabla = JSON.parse(tabla)
 
       //Obtengo la cohesión grupal y varianza
-      var total = 0
+      var cohesionGrupal = 0
       tabla.forEach(function(item){
-        total += item.coeInd
+        cohesionGrupal += item.coeInd
       })
-      let coheGrupal = total / tabla.length
+      cohesionGrupal = cohesionGrupal / tabla.length
       let coheGrupalVarianza = 0
       tabla.forEach(function(item){
-        coheGrupalVarianza += ((item.coeInd - coheGrupal) * (item.coeInd - coheGrupal))
+        coheGrupalVarianza += ((item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal))
       })
       coheGrupalVarianza = coheGrupalVarianza / tabla.length
 
@@ -243,7 +272,7 @@ export default {
         id: index,
         PR: this.pullRequests[index].number,
         tabla: tabla,
-        cohesionGrupal: coheGrupal.toFixed(3),
+        cohesionGrupal: cohesionGrupal.toFixed(3),
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
         fechaInicio: createdAt.format("DD/MM/YY"),
         fechaCierre: closedAt.format("DD/MM/YY"),
@@ -256,40 +285,14 @@ export default {
         participantes: this.pullRequests[index].participants.totalCount
       }
       this.estadisticas.push(estadisticaPR)
-    },
-    cohesionFormula(index) {
-      //Esta funcion crea una matriz de cohesion interpersonal
-      //entre los usuarios participantes de un Pull Request
-      let cantPersonas = this.pullRequests[index].participants.totalCount
-      //crear matriz NxN 
-      let x = new Array(cantPersonas)
-      for (let n = 0; n < cantPersonas; n++)
-        { x[n] = new Array(cantPersonas) }
-      this.cohesionMatrix = x
-
-      for(let c = 0; c < cantPersonas; c++){
-        for(let f = 0; f < cantPersonas; f++){
-          //contar cohesion para [c][f]
-          if (c==f)
-            this.cohesionMatrix[c][f] = 0
-          else{
-            var result
-            var sum = this.countMatrix[c][f] + this.countMatrix[f][c]
-            if(sum > 0){
-              result = 1 - ((Math.abs(this.countMatrix[c][f] - this.countMatrix[f][c])) / sum)
-            } else result = 0
-            this.cohesionMatrix[c][f] = Math.round(result * 100) / 100
-            this.cohesionMatrix[f][c] = Math.round(result * 100) / 100
-          }
-        }
-      }
-      this.cohesionEstadisticas(index)
+      this.show = true
     },
     countQuery(search){
       //Esta funcion crea una lista con la cantidad de datos que se necesitan 
       //extraer para cada Pull Request (comentarios, reacciones, etc.) 
       //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
+      this.show = false
       this.estadisticas = []
       this.pullRequests = ''
       var self = this

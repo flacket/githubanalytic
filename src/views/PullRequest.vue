@@ -4,14 +4,14 @@
     <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
     <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
     <v-divider class="mb-2"></v-divider>
-    <h1 v-if="show" class="headline grey--text">{{repository.pullRequest.title}}
-      <a class="subheading" target="_blank"
-      :href="repository.pullRequest.url">
-      #{{repository.pullRequest.number}}
-      </a>
-    </h1>
     <!--/////////////////////////////////////////////////////-->
     <div v-if="show">
+      <h1 class="headline grey--text">{{repository.pullRequest.title}}
+        <a class="subheading" target="_blank"
+        :href="repository.pullRequest.url">
+        #{{repository.pullRequest.number}}
+        </a>
+      </h1>
       <v-container>
         <v-row>
           <v-col sm="12" md="2"> 
@@ -32,7 +32,18 @@
               </v-flex>
             </v-layout>
           </v-col>
+
           <v-col sm="12" md="5">
+            <h4>Cohesión Individual:</h4>
+            <BarChart :chartData='chartCohe'/>
+          </v-col>
+            <v-col sm="12" md="5">
+            <h4>Colaboración Individual:</h4>
+            <BarChart :chartData='chartColab'/>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col sm="12" md="12">
             <h4>Cantidad de Mensajes:</h4>
             <v-data-table hide-default-footer
               :headers="encabezados"
@@ -40,10 +51,6 @@
               :items-per-page="20"
               class="elevation-1 mt-2"
             ></v-data-table>
-          </v-col>
-          <v-col sm="12" md="5">
-            <h4>Cohesión Individual:</h4>
-            <BarChart :chartData='chartCohe'/>
           </v-col>
         </v-row>
       </v-container>
@@ -72,6 +79,7 @@ export default {
       show: false,
       countMatrix: '',
       cohesionMatrix: '',
+      colaboracionMatrix: '',
       participants: '',
       repository: '',
       chartCohe: {
@@ -89,6 +97,15 @@ export default {
           {
             data: [],
             backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
+          }
+        ]
+      },
+      chartColab: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: "rgba(0, 71, 255, 1)"
           }
         ]
       },
@@ -135,42 +152,92 @@ export default {
           }
         }
       }
-      this.cohesionEstadisticas()
     },
-    cohesionEstadisticas() {
+    colaboracionFormula(){
       var cantPersonas = this.participants.length
-      var estadisticas = '['
-      var coeInd, msjEnviados, msjRecibidos
+      //crear matriz NxN
+      var x = new Array(cantPersonas);
+      for (let n = 0; n < cantPersonas; n++)
+        { x[n] = new Array(cantPersonas) }
+      this.colaboracionMatrix = x
+
+      var totalinterac = new Array(cantPersonas);
+      for(let p = 0; p < cantPersonas; p++){
+        for(let f = 0; f < cantPersonas; f++){
+          totalinterac[p] = 0
+        }
+      }
+      for(let p = 0; p < cantPersonas; p++){
+        for(let f = 0; f < cantPersonas; f++){
+          totalinterac[p] += this.countMatrix[p][f]
+        }
+      }
+
+      for(let c = 0; c < cantPersonas; c++){
+        for(let f = 0; f < cantPersonas; f++){
+          //contar cohesion para [c][f]
+          if (c==f)
+            this.colaboracionMatrix[c][f] = 0
+          else{
+            var result
+            //cant interacciones entre f y c
+            var sum = this.countMatrix[c][f] + this.countMatrix[f][c]
+            if(sum > 0){
+              result = sum / totalinterac[c]
+            } else result = 0
+            this.colaboracionMatrix[c][f] = Math.round(result * 100) / 100
+            this.colaboracionMatrix[f][c] = Math.round(result * 100) / 100
+          }
+        }
+      }
+    },
+    estadisticasPR() {
+      this.cohesionFormula()
+      this.colaboracionFormula()
+      var cantPersonas = this.participants.length
+      var tabla = '['
+      var coeInd, colabInd, msjEnviados, msjRecibidos
       for (let i = 0; i < cantPersonas; i++){
         coeInd = 0
+        colabInd = 0
         msjEnviados = 0
         msjRecibidos = 0
         for(let j = 0; j < cantPersonas; j++){
           coeInd += this.cohesionMatrix[i][j]
+          colabInd += this.colaboracionMatrix[i][j]
           msjEnviados += this.countMatrix[i][j]
           msjRecibidos += this.countMatrix[j][i]
         }
-        estadisticas += '{"nombre": "' + this.participants[i] +
-          '", "coeInd": ' + (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100) +
+        //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
+        if (cantPersonas > 1)
+            coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
+            colabInd = (Math.round((colabInd / (cantPersonas - 1)) * 100) / 100)
+        //creo la tabla con los datos estaditicos
+        tabla += '{"nombre": "' + this.participants[i] +
+          '", "coeInd": ' + coeInd +
+          ', "colabInd": ' + colabInd +
           ', "msjEnviados": ' + msjEnviados +
           ', "msjRecibidos": ' + msjRecibidos + '}'
         if (i+1 < cantPersonas)
-          estadisticas += ','
+          tabla += ','
       }
-      estadisticas += ']'
-      this.estadisticas = JSON.parse(estadisticas)
-      this.chartDataFormat()
+      tabla += ']'
+      this.estadisticas = JSON.parse(tabla)
       //Obtengo la cohesión grupal
       var cohesionGrupal = 0
-      for (let k = 0; k < cantPersonas; k++){
-        cohesionGrupal += this.estadisticas[k].coeInd
-      }
-      cohesionGrupal = (cohesionGrupal / cantPersonas) * 100
+      this.estadisticas.forEach(function (item) {
+        cohesionGrupal += item.coeInd
+      })
+      cohesionGrupal = cohesionGrupal / this.estadisticas.length
+      //Doy formato al valor de CohesionGrupal para el gráfico
+      cohesionGrupal = cohesionGrupal * 100
       this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
       this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
       this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
+      this.chartDataFormatCohe()
+      this.chartDataFormatColab()
     },
-    chartDataFormat() {
+    chartDataFormatCohe() {
       //Genera el dataset para armar el grafico de cohesion individual
       let cantPersonas = this.participants.length
       this.chartCohe.labels = []
@@ -181,7 +248,19 @@ export default {
       }
       this.show = true
     },
+    chartDataFormatColab() {
+      //Genera el dataset para armar el grafico de cohesion individual
+      let cantPersonas = this.participants.length
+      this.chartColab.labels = []
+      this.chartColab.datasets[0].data = []
+      for(let i = 0; i < cantPersonas; i++){
+        this.chartColab.labels.push(this.estadisticas[i].nombre)
+        this.chartColab.datasets[0].data.push((this.estadisticas[i].colabInd * 100).toFixed(2))
+      }
+      this.show = true
+    },
     refreshQuery(search) {
+      this.show = false
       if (!this.$apollo.skipAll){
         this.$apollo.skipAll = false
       }
@@ -453,7 +532,7 @@ export default {
 
           }  //comentario de cada review
         }) //contar reviews
-        this.cohesionFormula()
+        this.estadisticasPR()
       }) //apollo refetch
     } //refresh query()
   }
