@@ -258,6 +258,15 @@ query userstats($owner: String!) {
   }
 }`;
 
+export const REPOSITORY_PRS = gql`
+query getPRcant($name: String!, $owner: String!){
+  repository (name: $name, owner: $owner) {
+    pullRequests(first: 1){
+      totalCount
+    }
+  }
+}`;
+
 export const RATE_LIMIT = gql`
 query rateLimit{
   rateLimit {

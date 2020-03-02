@@ -128,14 +128,14 @@ export default {
     this.$apollo.skipAll = true
   },
   methods: {
-    cohesionFormula() {
-      var cantPersonas = this.repository.pullRequest.participants.totalCount
+    cohesionFormula(cantPersonas) {
+      //Esta funcion crea una matriz de cohesion interpersonal
+      //entre los usuarios participantes de un Pull Request
       //crear matriz NxN
       var x = new Array(cantPersonas);
       for (let n = 0; n < cantPersonas; n++)
         { x[n] = new Array(cantPersonas) }
       this.cohesionMatrix = x
-
       for(let c = 0; c < cantPersonas; c++){
         for(let f = 0; f < cantPersonas; f++){
           //contar cohesion para [c][f]
@@ -153,8 +153,7 @@ export default {
         }
       }
     },
-    colaboracionFormula(){
-      var cantPersonas = this.repository.pullRequest.participants.totalCount
+    colaboracionFormula(cantPersonas){
       //crear matriz NxN
       var x = new Array(cantPersonas);
       for (let n = 0; n < cantPersonas; n++)
@@ -192,9 +191,10 @@ export default {
       }
     },
     estadisticasPR() {
-      this.cohesionFormula()
-      this.colaboracionFormula()
       var cantPersonas = this.repository.pullRequest.participants.totalCount
+      this.cohesionFormula(cantPersonas)
+      this.colaboracionFormula(cantPersonas)
+
       var tabla = '['
       var coeInd, colabInd, msjEnviados, msjRecibidos
       for (let i = 0; i < cantPersonas; i++){
