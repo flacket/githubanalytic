@@ -1,6 +1,25 @@
 import moment from 'moment'
 moment.locale('es-us')
 
+export function duracionPRdias(tcreated, tclosed) {
+  //Obtengo la duracion del PR en días
+  let createdAt = moment(tcreated)
+  let closedAt = moment(tclosed)
+  // get the difference between the moments
+  let diff = closedAt.diff(createdAt)
+  //expresarlo como duracion
+  let diffDuration = moment.duration(diff)
+  diff = diffDuration.days()
+  //eliminar ceros para evitar errores en operaciones
+  if (diff == 0)
+    diff = 1
+  let duraciondias = {
+    createdAt: createdAt.format("DD/MM/YY"),
+    closedAt: closedAt.format("DD/MM/YY"),
+    diff: diff
+  }
+  return duraciondias
+}
 export function cohesionFormula(cantPersonas, countMatrix) {
     //Esta funcion crea una matriz de cohesion interpersonal
     //entre los usuarios participantes de un Pull Request

@@ -9,9 +9,9 @@
   <h1 class="subheading-1 blue--text">Repositorio</h1>
 
   <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
-  <v-progress-linear v-if="loading" color="primary" :buffer-value="progressValue" :value="progressValue" stream></v-progress-linear>
+  <v-progress-linear v-if="loading" color="primary" :buffer-value="progress" :value="progress" stream></v-progress-linear>
   <v-divider class="mb-2"></v-divider>
-  <!--/////////////////////////////////////////////////////-->
+  <!--///////////////////////////////////////////////////////////////////////////////-->
   <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar" v-if="loading">
       <v-icon left>mdi-cancel</v-icon>
   Detener Busqueda</v-btn>
@@ -40,16 +40,14 @@
 <script>
 import PRSelector from '../components/PRSelector'
 import {GET_REPOS, REPOSITORY_PRS} from '../graphql/queries.js'
-import {matrizConteoPR, cohesionFormula} from '../formulas.js'
-import moment from 'moment'
-moment.locale('es-us')
+import {matrizConteoPR, cohesionFormula, duracionPRdias} from '../formulas.js'
 
 export default {
   components: { PRSelector },
   data() {
     return {
       loading: false,
-      progressValue: 0,
+      progress: 0,
       progressPercent: 0,
       show: false,
       snackbar: {
@@ -232,19 +230,8 @@ export default {
         coheGrupalVarianza += ((item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal))
       })
       coheGrupalVarianza = coheGrupalVarianza / tabla.length
-
       //Obtengo la duracion del PR en días
-      let createdAt = moment(pullRequest.createdAt)
-      let closedAt = moment(pullRequest.closedAt)
-      
-      // get the difference between the moments
-      let diff = closedAt.diff(createdAt)
-      //express as a duration
-      let diffDuration = moment.duration(diff)
-      diff = diffDuration.days()
-      if (diff == 0)
-        diff = 1
-      
+      let duracionDias = duracionPRdias(pullRequest.createdAt, pullRequest.closedAt)
       //Calculo el estado del PR
       let estado
       switch(pullRequest.state){
@@ -252,7 +239,6 @@ export default {
         case 'CLOSED':estado = 0; break
         case 'OPEN': estado = 0.5; break
       }
-
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
@@ -260,9 +246,9 @@ export default {
         tabla: tabla,
         cohesionGrupal: cohesionGrupal.toFixed(3),
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
-        fechaInicio: createdAt.format("DD/MM/YY"),
-        fechaCierre: closedAt.format("DD/MM/YY"),
-        duraccionDias: diff || '-',
+        fechaInicio: duracionDias.createdAt,
+        fechaCierre: duracionDias.closedAt,
+        duraccionDias: duracionDias.diff || '-',
         codigoAdd: pullRequest.additions,
         codigoRem: pullRequest.deletions,
         sizePR: pullRequest.additions + pullRequest.deletions,
@@ -271,7 +257,6 @@ export default {
         participantes: cantPersonas
       }
       this.estadisticas.push(estadisticaPR)
-      //NOTE:this.show = true
     },
     getRepoPRcant(search){
       var self = this      
@@ -413,7 +398,7 @@ export default {
               }
             })
           })
-          self.progressValue = self.progressValue + self.progressPercent
+          self.progress = self.progress + self.progressPercent
           //NOTE:
           //Reviso si faltan cargar más Pull Requests desde la paginación de la API
           //Si estan todos los datos, Llamo a la funcion getFullPR.
@@ -457,7 +442,7 @@ export default {
         let parser = JSON.stringify(self.getPR.pullRequests.nodes)
         parser = parser.substring(1 , parser.length - 1)
         self.pullRequests += parser
-        self.progressValue = self.progressValue + self.progressPercent
+        self.progress = self.progress + self.progressPercent
         //Reviso si faltan PRs por agregar a la lista
         if (index < self.countPRs.length - 1){
           self.pullRequests += ','
