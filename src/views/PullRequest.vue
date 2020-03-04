@@ -65,7 +65,7 @@ import PRSelector from '../components/PRSelector'
 import BarChart from '../components/chartjs/BarChart.vue'
 import Doughnut from '../components/chartjs/Doughnut.vue'
 import {GET_REPO} from '../graphql/queries.js'
-import {matrizConteoPR, cohesionFormula, colaboracionFormula} from '../formulas.js'
+import {matrizConteoPR, cohesionFormula, colaboracionFormula, mimicaFormula} from '../formulas.js'
 
 export default {
   components: { 
@@ -79,6 +79,7 @@ export default {
       countMatrix: '',
       cohesionMatrix: '',
       colaboracionMatrix: '',
+      mimicaMaxtrix: '',
       participants: '',
       repository: '',
       chartCohe: {
@@ -131,6 +132,7 @@ export default {
       var cantPersonas = this.repository.pullRequest.participants.totalCount
       this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix)
       this.colaboracionMatrix = colaboracionFormula(cantPersonas, this.countMatrix)
+      this.mimicaMaxtrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
 
       var tabla = '['
       var coeInd, colabInd, msjEnviados, msjRecibidos
