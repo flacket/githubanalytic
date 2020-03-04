@@ -12,18 +12,12 @@
     </h1>
     <v-container v-if="show">
       <Comment 
-        v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"
         v-bind:login="repository.pullRequest.author.login"
-        v-bind:createdAt="repository.pullRequest.createdAt"
-        v-bind:reactCant="repository.pullRequest.reactions.totalCount"
         v-bind:body="repository.pullRequest.bodyHTML"
       ><v-divider></v-divider>
       </Comment>
       <Comment v-for="item in repository.pullRequest.comments.nodes"
-      v-bind:avatarUrl="item.author.avatarUrl"
       v-bind:login="item.author.login"
-      v-bind:createdAt="item.createdAt"
-      v-bind:reactCant="item.reactions.totalCount"
       v-bind:body="item.bodyHTML"
       v-bind:key="item.id">
       <v-divider></v-divider>
@@ -32,10 +26,7 @@
       <div v-for="item in repository.pullRequest.reviewThreads.nodes"
       v-bind:key="item.id" class="my-2 ml-4">
         <Comment v-for="com in item.comments.nodes"
-        v-bind:avatarUrl="com.author.avatarUrl"
         v-bind:login="com.author.login"
-        v-bind:createdAt="com.createdAt"
-        v-bind:reactCant="com.reactions.totalCount"
         v-bind:body="com.bodyHTML"
         v-bind:key="com.id">
         <v-divider></v-divider>
