@@ -1,5 +1,9 @@
 <template>
   <div>
+    <v-snackbar right v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color">
+      {{ snackbar.text }}
+      <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+    </v-snackbar>
     <h1 class="subheading-1 blue--text">Pull Request</h1> 
     <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
     <v-progress-linear v-if="$apollo.loading" indeterminate color="primary"></v-progress-linear>
@@ -54,8 +58,6 @@
           </v-col>
         </v-row>
       </v-container>
-
-
     </div>
   </div>
 </template>
@@ -82,32 +84,32 @@ export default {
       mimicaMaxtrix: '',
       participants: '',
       repository: '',
+      snackbar: {
+        show: false,
+        text: 'Bienvenido a Gitana: Analíticas de Github',
+        color: 'info',
+        timeout: 2500
+      },
       chartCohe: {
         labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: "rgba(0, 71, 255, 1)"
-          }
-        ]
+        datasets: [{
+          data: [],
+          backgroundColor: "rgba(0, 71, 255, 1)"
+        }]
       },
       chartCoheGrupal: {
         labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
-          }
-        ]
+        datasets: [{
+          data: [],
+          backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
+        }]
       },
       chartColab: {
         labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: "rgba(0, 71, 255, 1)"
-          }
-        ]
+        datasets: [{
+          data: [],
+          backgroundColor: "rgba(0, 71, 255, 1)"
+        }]
       },
       estadisticas: '',
       encabezados: [
@@ -128,53 +130,63 @@ export default {
     this.$apollo.skipAll = true
   },
   methods: {
+    showSnackbar(text, color, timeout) {
+      this.snackbar.text = text
+      this.snackbar.color = color
+      this.snackbar.timeout = timeout
+      this.snackbar.show = true
+    },
     estadisticasPR() {
-      var cantPersonas = this.repository.pullRequest.participants.totalCount
-      this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix)
-      this.colaboracionMatrix = colaboracionFormula(cantPersonas, this.countMatrix)
-      this.mimicaMaxtrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
+      try {
+        var cantPersonas = this.repository.pullRequest.participants.totalCount
+        this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix)
+        this.colaboracionMatrix = colaboracionFormula(cantPersonas, this.countMatrix)
+        this.mimicaMaxtrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
 
-      var tabla = '['
-      var coeInd, colabInd, msjEnviados, msjRecibidos
-      for (let i = 0; i < cantPersonas; i++){
-        coeInd = 0
-        colabInd = 0
-        msjEnviados = 0
-        msjRecibidos = 0
-        for(let j = 0; j < cantPersonas; j++){
-          coeInd += this.cohesionMatrix[i][j]
-          colabInd += this.colaboracionMatrix[i][j]
-          msjEnviados += this.countMatrix[i][j]
-          msjRecibidos += this.countMatrix[j][i]
+        var tabla = '['
+        var coeInd, colabInd, msjEnviados, msjRecibidos
+        for (let i = 0; i < cantPersonas; i++){
+          coeInd = 0
+          colabInd = 0
+          msjEnviados = 0
+          msjRecibidos = 0
+          for(let j = 0; j < cantPersonas; j++){
+            coeInd += this.cohesionMatrix[i][j]
+            colabInd += this.colaboracionMatrix[i][j]
+            msjEnviados += this.countMatrix[i][j]
+            msjRecibidos += this.countMatrix[j][i]
+          }
+          //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
+          if (cantPersonas > 1)
+              coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
+              colabInd = (Math.round((colabInd / (cantPersonas - 1)) * 100) / 100)
+          //creo la tabla con los datos estaditicos
+          tabla += '{"nombre": "' + this.repository.pullRequest.participants.nodes[i].login +
+            '", "coeInd": ' + coeInd +
+            ', "colabInd": ' + colabInd +
+            ', "msjEnviados": ' + msjEnviados +
+            ', "msjRecibidos": ' + msjRecibidos + '}'
+          if (i+1 < cantPersonas)
+            tabla += ','
         }
-        //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
-        if (cantPersonas > 1)
-            coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
-            colabInd = (Math.round((colabInd / (cantPersonas - 1)) * 100) / 100)
-        //creo la tabla con los datos estaditicos
-        tabla += '{"nombre": "' + this.repository.pullRequest.participants.nodes[i].login +
-          '", "coeInd": ' + coeInd +
-          ', "colabInd": ' + colabInd +
-          ', "msjEnviados": ' + msjEnviados +
-          ', "msjRecibidos": ' + msjRecibidos + '}'
-        if (i+1 < cantPersonas)
-          tabla += ','
+        tabla += ']'
+        this.estadisticas = JSON.parse(tabla)
+        //Obtengo la cohesión grupal
+        var cohesionGrupal = 0
+        this.estadisticas.forEach(function (item) {
+          cohesionGrupal += item.coeInd
+        })
+        cohesionGrupal = cohesionGrupal / this.estadisticas.length
+        //Doy formato al valor de CohesionGrupal para el gráfico
+        cohesionGrupal = cohesionGrupal * 100
+        this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
+        this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
+        this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
+        this.chartDataFormatCohe()
+        this.chartDataFormatColab()
+      } catch (error) {
+        this.showSnackbar('Error al generar las estadisticas: ' + error, 'error', 8000)
       }
-      tabla += ']'
-      this.estadisticas = JSON.parse(tabla)
-      //Obtengo la cohesión grupal
-      var cohesionGrupal = 0
-      this.estadisticas.forEach(function (item) {
-        cohesionGrupal += item.coeInd
-      })
-      cohesionGrupal = cohesionGrupal / this.estadisticas.length
-      //Doy formato al valor de CohesionGrupal para el gráfico
-      cohesionGrupal = cohesionGrupal * 100
-      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
-      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
-      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
-      this.chartDataFormatCohe()
-      this.chartDataFormatColab()
     },
     chartDataFormatCohe() {
       //Genera el dataset para armar el grafico de cohesion individual

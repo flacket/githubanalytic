@@ -13,15 +13,14 @@
   <v-divider class="mb-2"></v-divider>
   <!--///////////////////////////////////////////////////////////////////////////////-->
   <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar" v-if="loading">
-      <v-icon left>mdi-cancel</v-icon>
-  Detener Busqueda</v-btn>
-  <div v-if="show">
-    <div class="mt-2">
-      <v-btn class="mb-2 mx-2" color="primary" v-on:click="csvExport()">
-      <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>   
-      <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
-    </div>
+    <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn>
 
+  <v-btn v-if="!show && !loading" color="primary" @click.native="btnLoadFile">
+    <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
+    
+  <div v-if="show">
+    <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
+      <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>
     <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
     <v-btn color="primary" v-on:click="saveFile()">
@@ -34,6 +33,7 @@
       class="elevation-1 mt-2"
     ></v-data-table>
   </div>
+  <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
 </div>
 </template>
 
@@ -145,20 +145,22 @@ export default {
       } else {
         const link = document.createElement("a")
         if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob)
-        link.setAttribute("href", url)
-        link.setAttribute("download", exportName)
-        link.style.visibility = "hidden"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+          const url = URL.createObjectURL(blob)
+          link.setAttribute("href", url)
+          link.setAttribute("download", exportName)
+          link.style.visibility = "hidden"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
         }
       }
-      console.log('CSV Guardado')
+      this.showSnackbar('Archivo CSV Guardado', 'success', 4000)
     },
     loadFile() {
       let file = this.$refs.myFile.files[0];
       if(!file) return
+      this.show = false
+      this.loading = true
       // Credit: https://stackoverflow.com/a/754398/52160
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
@@ -166,10 +168,15 @@ export default {
         this.pullRequests = JSON.parse(evt.target.result)
         //LLamo a realizar el analisis y conteo
         this.estadisticas = []
-        this.getInteractionCount()
+        this.pullRequests.forEach(PR => {
+          this.countMatrix = matrizConteoPR(PR)
+          this.cohesionEstadisticas(PR, this.countMatrix)
+        })
+        this.show = true
+        this.loading = false
       }
       reader.onerror = evt => {
-        console.error(evt);
+        this.showSnackbar('Error al cargar el archivo: \n'+evt, 'error', 8000)
       }
     },
     saveFile () {
@@ -182,12 +189,12 @@ export default {
       a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
       e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
       a.dispatchEvent(e)
-      console.log('Archivo Guardado')
+      this.showSnackbar('Archivo JSON Guardado', 'success', 4000)
     },
     toggleCancelar() {
       this.cancel = !this.cancel
       if(this.cancel)
-      this.colorCancel = "error"
+        this.colorCancel = "error"
       else this.colorCancel = "warning"
     },
     cohesionEstadisticas(pullRequest) {
@@ -454,18 +461,12 @@ export default {
           //Calculo la matriz de conteo y estadisticas para cada PR
           self.pullRequests.forEach(function(pullRequest){
             self.countMatrix = matrizConteoPR(pullRequest)
-            self.cohesionEstadisticas(pullRequest)
+            self.cohesionEstadisticas(pullRequest, this.countMatrix)
           })
           self.show = true
           self.loading = false
-          self.showSnackbar('Análisis Finalizado', 'success', 3000)
-          //console.log('Análisis finalizado | Cant PR: ', contando)
+          self.showSnackbar('Análisis Finalizado', 'success', 4000)
         }
-        /*let cont = 1
-        self.getPR.pullRequests.nodes.forEach(function(pullR){ cont++
-          self.countMatrix = self.matrizConteoPR(pullR)
-          self.cohesionEstadisticas(pullR)
-        })*/
       })
     }//getFullPR
   }
