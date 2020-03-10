@@ -25,7 +25,7 @@
                 <Doughnut :chartData='chartCoheGrupal'/>
               </v-flex>
               <v-flex>
-                <p>Participantes: {{this.participants.length}}</p>
+                <p>Participantes: {{this.repository.pullRequest.participants.totalCount}}</p>
               </v-flex>
               <v-flex>
                 <p>Tamaño PR: 
@@ -41,10 +41,14 @@
             <h4>Cohesión Individual:</h4>
             <BarChart :chartData='chartCohe'/>
           </v-col>
-            <v-col sm="12" md="5">
+          <v-col sm="12" md="5">
             <h4>Colaboración Individual:</h4>
             <BarChart :chartData='chartColab'/>
           </v-col>
+          <!--<v-col sm="12" md="5">
+            <h4>Polaridad:</h4>
+            <BarChart :chartData='chartPolarity'/>
+          </v-col>-->
         </v-row>
         <v-row>
           <v-col sm="12" md="12">
@@ -67,7 +71,13 @@ import PRSelector from '../components/PRSelector'
 import BarChart from '../components/chartjs/BarChart.vue'
 import Doughnut from '../components/chartjs/Doughnut.vue'
 import {GET_REPO} from '../graphql/queries.js'
-import {matrizConteoPR, cohesionFormula, colaboracionFormula, mimicaFormula} from '../formulas.js'
+import {
+  matrizConteoPR, 
+  cohesionFormula, 
+  colaboracionFormula, 
+  //mimicaFormula, 
+  //tonoPositivoFormula,
+} from '../formulas.js'
 
 export default {
   components: { 
@@ -81,21 +91,13 @@ export default {
       countMatrix: '',
       cohesionMatrix: '',
       colaboracionMatrix: '',
-      mimicaMaxtrix: '',
-      participants: '',
+      mimicaMatrix: '',
       repository: '',
       snackbar: {
         show: false,
         text: 'Bienvenido a Gitana: Analíticas de Github',
         color: 'info',
         timeout: 2500
-      },
-      chartCohe: {
-        labels: [],
-        datasets: [{
-          data: [],
-          backgroundColor: "rgba(0, 71, 255, 1)"
-        }]
       },
       chartCoheGrupal: {
         labels: [],
@@ -104,7 +106,22 @@ export default {
           backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
         }]
       },
+      chartCohe: {
+        labels: [],
+        datasets: [{
+          data: [],
+          backgroundColor: "rgba(0, 71, 255, 1)"
+        }]
+      },
       chartColab: {
+        labels: [],
+        datasets: [{
+          data: [],
+          backgroundColor: "rgba(0, 71, 255, 1)"
+        }]
+      },
+      chartPolarity: {
+        type: 'horizontalBar',
         labels: [],
         datasets: [{
           data: [],
@@ -141,8 +158,13 @@ export default {
         var cantPersonas = this.repository.pullRequest.participants.totalCount
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix)
         this.colaboracionMatrix = colaboracionFormula(cantPersonas, this.countMatrix)
-        this.mimicaMaxtrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
-
+        //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
+        //tonoPositivoFormula(cantPersonas, this.repository.pullRequest)
+      } catch (error) {
+        console.log('Error en EstadisticasPR-Creando formulas: ', error)
+        this.showSnackbar('Error al generar las estadisticas: ' + error, 'error', 8000)
+      }
+      try {
         var tabla = '['
         var coeInd, colabInd, msjEnviados, msjRecibidos
         for (let i = 0; i < cantPersonas; i++){
@@ -157,9 +179,10 @@ export default {
             msjRecibidos += this.countMatrix[j][i]
           }
           //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
-          if (cantPersonas > 1)
-              coeInd = (Math.round((coeInd / (cantPersonas - 1)) * 100) / 100)
-              colabInd = (Math.round((colabInd / (cantPersonas - 1)) * 100) / 100)
+          if (cantPersonas > 1){
+            coeInd = Math.round((coeInd / cantPersonas) * 100) / 100
+            colabInd = Math.round((colabInd / cantPersonas) * 100) / 100
+          }
           //creo la tabla con los datos estaditicos
           tabla += '{"nombre": "' + this.repository.pullRequest.participants.nodes[i].login +
             '", "coeInd": ' + coeInd +
@@ -171,24 +194,29 @@ export default {
         }
         tabla += ']'
         this.estadisticas = JSON.parse(tabla)
-        //Obtengo la cohesión grupal
-        var cohesionGrupal = 0
-        this.estadisticas.forEach(function (item) {
-          cohesionGrupal += item.coeInd
-        })
-        cohesionGrupal = cohesionGrupal / this.estadisticas.length
-        //Doy formato al valor de CohesionGrupal para el gráfico
-        cohesionGrupal = cohesionGrupal * 100
-        this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
-        this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
-        this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
-        this.chartDataFormatCohe()
-        this.chartDataFormatColab()
+        //Doy formato a las gráficas
+        this.chartDataCoheGrupal()
+        this.chartDataCohe()
+        this.chartDataColab()
+        this.show = true
       } catch (error) {
+        console.log('Error en EstadisticasPR-Haciendo la tabla: ', error)
         this.showSnackbar('Error al generar las estadisticas: ' + error, 'error', 8000)
       }
     },
-    chartDataFormatCohe() {
+    chartDataCoheGrupal(){
+      //Obtengo la cohesión grupal
+      let cohesionGrupal = 0
+      this.estadisticas.forEach(item => {
+        cohesionGrupal += item.coeInd
+      })
+      cohesionGrupal = (cohesionGrupal / this.estadisticas.length) * 100
+      //Doy formato al valor de CohesionGrupal para el gráfico
+      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + '%'
+      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal
+      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal
+    },
+    chartDataCohe() {
       //Genera el dataset para armar el grafico de cohesion individual
       let cantPersonas = this.repository.pullRequest.participants.totalCount
       this.chartCohe.labels = []
@@ -197,9 +225,8 @@ export default {
         this.chartCohe.labels.push(this.estadisticas[i].nombre)
         this.chartCohe.datasets[0].data.push((this.estadisticas[i].coeInd * 100).toFixed(2))
       }
-      this.show = true
     },
-    chartDataFormatColab() {
+    chartDataColab() {
       //Genera el dataset para armar el grafico de cohesion individual
       let cantPersonas = this.repository.pullRequest.participants.totalCount
       this.chartColab.labels = []
@@ -208,14 +235,12 @@ export default {
         this.chartColab.labels.push(this.estadisticas[i].nombre)
         this.chartColab.datasets[0].data.push((this.estadisticas[i].colabInd * 100).toFixed(2))
       }
-      this.show = true
     },
     refreshQuery(search) {
       this.show = false
       if (!this.$apollo.skipAll){
         this.$apollo.skipAll = false
       }
-
       this.$apollo.queries.repository.refetch({ 
         owner: search.owner, 
         name: search.name, 
