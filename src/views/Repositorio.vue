@@ -105,7 +105,7 @@ export default {
     }
   },
   mounted:function(){
-        this.$apollo.skipAll = true
+    this.$apollo.skipAll = true
   },
   methods: {
     showSnackbar(text, color, timeout) {
@@ -133,10 +133,8 @@ export default {
         'sizePR',
         'estado'
       ]
-
       const json2csvParser = new Parser({ fields })
       const csv = json2csvParser.parse(this.estadisticas)
-
       //Exporto ahora el archivo CSV
       const exportName = "informe" + ".csv" || "export.csv"
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
@@ -170,7 +168,7 @@ export default {
         this.estadisticas = []
         this.pullRequests.forEach(PR => {
           this.countMatrix = matrizConteoPR(PR)
-          this.cohesionEstadisticas(PR, this.countMatrix)
+          this.cohesionEstadisticas(PR)
         })
         this.show = true
         this.loading = false
@@ -459,9 +457,9 @@ export default {
           let aux = "[" + self.pullRequests + "]"
           self.pullRequests = JSON.parse(aux)
           //Calculo la matriz de conteo y estadisticas para cada PR
-          self.pullRequests.forEach(function(pullRequest){
-            self.countMatrix = matrizConteoPR(pullRequest)
-            self.cohesionEstadisticas(pullRequest, this.countMatrix)
+          self.pullRequests.forEach(PR => {
+            self.countMatrix = matrizConteoPR(PR)
+            self.cohesionEstadisticas(PR)
           })
           self.show = true
           self.loading = false

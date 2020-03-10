@@ -27,9 +27,9 @@ export function cohesionFormula(cantPersonas, countMatrix) {
   let cohesionMatrix = new Array(cantPersonas)
   for (let n = 0; n < cantPersonas; n++)
     { cohesionMatrix[n] = new Array(cantPersonas) }
-
+  //recorro y cargo la matriz
   for(let c = 0; c < cantPersonas; c++){
-    for(let f = 0; f < cantPersonas; f++){
+    for(let f = c; f < cantPersonas; f++){
       //contar cohesion para [c][f]
       if (c==f)
         cohesionMatrix[c][f] = 0
@@ -37,10 +37,12 @@ export function cohesionFormula(cantPersonas, countMatrix) {
         var result
         var sum = countMatrix[c][f] + countMatrix[f][c]
         if(sum > 0){
+          //aplico la formula y luego redondeo
           result = 1 - ((Math.abs(countMatrix[c][f] - countMatrix[f][c])) / sum)
+          result = Math.round(result * 100) / 100
         } else result = 0
-        cohesionMatrix[c][f] = Math.round(result * 100) / 100
-        cohesionMatrix[f][c] = cohesionMatrix[c][f]
+        cohesionMatrix[c][f] = result
+        cohesionMatrix[f][c] = result
       }
     }
   }
@@ -48,49 +50,49 @@ export function cohesionFormula(cantPersonas, countMatrix) {
 }
 export function colaboracionFormula(cantPersonas, countMatrix){
   //crear matriz NxN
-  var colaboracionMatrix = new Array(cantPersonas);
-  for (let n = 0; n < cantPersonas; n++)
-    { colaboracionMatrix[n] = new Array(cantPersonas) }
-
-  var totalinterac = new Array(cantPersonas);
-  for(let p = 0; p < cantPersonas; p++){
-    for(let f = 0; f < cantPersonas; f++){
-      totalinterac[p] = 0
-    }
+  var colaboracionMatrix = new Array(cantPersonas)
+  var totalinterac = new Array(cantPersonas)
+  for (let n = 0; n < cantPersonas; n++){ 
+    colaboracionMatrix[n] = new Array(cantPersonas) 
+    totalinterac[n] = 0
   }
-  for(let p = 0; p < cantPersonas; p++){
-    for(let f = 0; f < cantPersonas; f++){
-      totalinterac[p] += countMatrix[p][f]
-    }
+  //calculo el total de interacciones de cada participante con el resto
+  for(let i = 0; i < cantPersonas; i++){
+    for(let j = 0; j < cantPersonas; j++)
+      totalinterac[i] += countMatrix[i][j]
   }
-
-  for(let c = 0; c < cantPersonas; c++){
-    for(let f = 0; f < cantPersonas; f++){
-      //contar cohesion para [c][f]
-      if (c==f)
-        colaboracionMatrix[c][f] = 0
+  for(let i = 0; i < cantPersonas; i++){
+    for(let j = i; j < cantPersonas; j++){
+      //contar cohesion para [i][j]
+      if (i==j)
+        colaboracionMatrix[i][j] = 0
       else{
-        var result
-        //cant interacciones entre f y c
-        var sum = countMatrix[c][f] + countMatrix[f][c]
+        let resulti, resultj
+        //cant interacciones entre j y i
+        var sum = countMatrix[i][j] + countMatrix[j][i]
         if(sum > 0){
-          result = sum / totalinterac[c]
-        } else result = 0
-        colaboracionMatrix[c][f] = Math.round(result * 100) / 100
-        //TODO: REVISAR!!! NO ES LO MISMO DE "A a B" QUE DE "B a A"
-        colaboracionMatrix[f][c] = Math.round(result * 100) / 100
+          //aplico la formula de colaboración
+          resulti = sum / totalinterac[i]
+          resultj = sum / totalinterac[j]
+          //redondeo el resultado
+          resulti = Math.round(resulti * 100) / 100
+          resultj = Math.round(resultj * 100) / 100
+        }
+        else { //no hay interacciones entre i y j
+          resulti = 0
+          resultj = 0
+        }
+        colaboracionMatrix[i][j] = resulti
+        colaboracionMatrix[j][i] = resultj
       }
     }
   }
   return colaboracionMatrix
 }
-export function mimicaFormula(cantPersonas, pullRequest){
-  //Esta funcion crea una matriz con el grado de mimica de los participantes
-  //el grado de mimica es la similaridad que hay entre sus comentarios en un PR
-
+function listaComentariosParticipante(cantPersonas, pullRequest){
   //creo una lista donde cada slot tiene todos los 
   //comentarios encadenados de un participante
-  let listaComents = new Array(cantPersonas)
+  var listaComents = new Array(cantPersonas)
 
   for(let i = 0; i < cantPersonas; i++){
     let person = pullRequest.participants.nodes[i].login
@@ -99,29 +101,31 @@ export function mimicaFormula(cantPersonas, pullRequest){
     if(person == pullRequest.author.login)
       listaComents[i] = pullRequest.body
     else listaComents[i] = ''
-
     pullRequest.comments.nodes.forEach(comment => {
       if(person == comment.author.login)
-        listaComents[i] = listaComents[i] + ' \n' + comment.body
+        listaComents[i] = listaComents[i] + ' ' + comment.body
     })
-
     pullRequest.reviewThreads.nodes.forEach(review => {
       review.comments.nodes.forEach(reviewcomment => {
         if(person == reviewcomment.author.login)
-          listaComents[i] = listaComents[i] + ' \n' + reviewcomment.body
+          listaComents[i] = listaComents[i] + ' ' + reviewcomment.body
       })
     })
     //console.log('- Persona: ', person)
     //console.log(listaComents[i])
   }
-
+  return listaComents
+}
+export function mimicaFormula(cantPersonas, pullRequest){
+  //Esta funcion crea una matriz con el grado de mimica de los participantes
+  //el grado de mimica es la similaridad que hay entre sus comentarios en un PR
+  let listaComm = listaComentariosParticipante(cantPersonas, pullRequest)
   //creo una variable con la funcion del coseno de similaridad
   const docSimilarity = require('doc-similarity')
   //crear matriz NxN 
   let mimicaMatrix = new Array(cantPersonas)
   for (let n = 0; n < cantPersonas; n++)
     mimicaMatrix[n] = new Array(cantPersonas)
-
   for(let i = 0; i < cantPersonas; i++){
     for(let j = 0; j < cantPersonas; j++){
       //contar cohesion para [c][f]
@@ -130,14 +134,28 @@ export function mimicaFormula(cantPersonas, pullRequest){
       else{
         let result
         //llamo a la funcion de coseno de similaridad
-        result = docSimilarity.wordFrequencySim(listaComents[i], listaComents[j], docSimilarity.cosineSim)
+        result = docSimilarity.wordFrequencySim(listaComm[i], listaComm[j], docSimilarity.cosineSim)
         mimicaMatrix[i][j] = Math.round(result * 100) / 100
         mimicaMatrix[j][i] = mimicaMatrix[i][j]
       }
     }
   }
-  //console.log(mimicaMatrix)
+  console.log('Matriz de Mimica: ', mimicaMatrix)
   return mimicaMatrix
+}
+export function tonoPositivoFormula(cantPersonas, pullRequest){
+  let listaComm = listaComentariosParticipante(cantPersonas, pullRequest)
+  var polarity = require('polarity')
+  for(let i = 0; i < cantPersonas; i++){
+    //reemplazo caracteres indeseados
+    let str = listaComm[i].replace(/"/g, " ")
+    str = str.replace(/\n/g, " ")
+    //divido el string en un arreglo de palabras
+    let arreglo = str.trim().split(" ")
+    //aplico función de polaridad
+    let polaridad = polarity(arreglo)
+    console.log('Polaridad del participante ', pullRequest.participants.nodes[i].login, ': ', polaridad)
+  }
 }
 export function matrizConteoPR(pullRequest){
   //busco cantidad de participantes

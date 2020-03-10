@@ -18,6 +18,7 @@
     "json2csv": "^4.5.4",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.24.0",
+    "polarity": "^3.0.4",
     "vue": "^2.6.11",
     "vue-apollo": "^3.0.3",
     "vue-chartjs": "^3.5.0",
