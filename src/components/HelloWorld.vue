@@ -15,7 +15,8 @@
           GITHUB <span class="font-weight-light">ANALYTIC</span>
         </h1>
         <p class="subheading font-weight-regular">
-          Webapp en desarrollo para analisis de sentimientos en equipos de trabajo distribuidos
+          Webapp en desarrollo para analisis de sentimientos en equipos de
+          trabajo distribuidos
         </p>
       </v-flex>
     </v-layout>

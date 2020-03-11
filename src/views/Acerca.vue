@@ -1,5 +1,5 @@
 <template>
-<v-container>
+  <v-container>
     <v-layout text-center wrap>
       <v-flex xs12>
         <v-img
@@ -17,8 +17,10 @@
         <p class="mb-5 title font-weight-light">Analíticas de Github</p>
         <p class="subheading font-weight-regular">
           Creado por Facundo Gallardo
-          <br>si estas interesado o tienes dudas puedes 
-          <a href="mailto:facundoggallardo@gmail.com" target="_blank">enviarme un correo</a>
+          <br />si estas interesado o tienes dudas puedes
+          <a href="mailto:facundoggallardo@gmail.com" target="_blank"
+            >enviarme un correo</a
+          >
         </p>
       </v-flex>
 
@@ -41,19 +43,18 @@
 </template>
 
 <script>
-  export default {
-    data: () => ({
-      linksImportantes: [
-        {
-          text: 'Repositorio Github',
-          href: 'https://github.com/flacket/githubanalytic'
-        },
-        {
-          text: 'Mi Perfil Github',
-          href: 'https://github.com/flacket'
-        }
-      ]
-    })
-  }
+export default {
+  data: () => ({
+    linksImportantes: [
+      {
+        text: "Repositorio Github",
+        href: "https://github.com/flacket/githubanalytic"
+      },
+      {
+        text: "Mi Perfil Github",
+        href: "https://github.com/flacket"
+      }
+    ]
+  })
+};
 </script>
-

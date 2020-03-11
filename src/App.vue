@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <Navbar/>
+    <Navbar />
     <v-content>
       <v-container fluid class="ma-2">
         <router-view></router-view>
@@ -10,17 +10,17 @@
 </template>
 
 <script>
-import Navbar from '@/components/Navbar'
+import Navbar from "@/components/Navbar";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     Navbar
   },
-  data () {
+  data() {
     return {
       //
-    }
+    };
   }
-}
+};
 </script>

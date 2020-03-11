@@ -18,7 +18,8 @@
           <span class="font-weight-light">Analíticas de Github</span>
         </h2>
         <p class="subheading font-weight-regular">
-          Webapp en desarrollo para analisis de sentimientos en equipos de trabajo distribuidos
+          Webapp en desarrollo para analisis de sentimientos en equipos de
+          trabajo distribuidos
         </p>
         <p class="subheading font-weight-regular">
           Inicia Sesion en Github para comenzar
@@ -30,11 +31,11 @@
 </template>
 
 <script>
-import GithubLogin from '../components/GithubLogin'
+import GithubLogin from "../components/GithubLogin";
 
 export default {
   components: {
-    GithubLogin 
+    GithubLogin
   }
-}
+};
 </script>

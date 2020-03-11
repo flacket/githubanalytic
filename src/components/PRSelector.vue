@@ -1,4 +1,3 @@
-
 <template>
   <v-form>
     <v-container>
@@ -32,7 +31,8 @@
 
         <v-col class="py-0" cols="12" sm="2">
           <v-btn color="primary" v-on:click="$emit('searchPR', search)">
-            <v-icon left>mdi-magnify</v-icon>Buscar</v-btn>
+            <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
+          >
         </v-col>
       </v-row>
     </v-container>
@@ -44,11 +44,9 @@ export default {
   data() {
     return {
       //search: {owner: 'cdr', name: 'code-server', number: '154'},
-      search: {owner: '', name: '', number: ''},
-      emptyRules: [
-        v => !!v || 'Ingrese algun valor',
-      ]
-    }
+      search: { owner: "", name: "", number: "" },
+      emptyRules: [v => !!v || "Ingrese algun valor"]
+    };
   }
-}
+};
 </script>

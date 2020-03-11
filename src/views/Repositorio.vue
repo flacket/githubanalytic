@@ -1,46 +1,77 @@
 <template>
-<div>
-  <div class="text-center">
-    <v-snackbar right v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color">
-      {{ snackbar.text }}
-      <v-btn dark text @click="snackbar.show = false">Close</v-btn>
-    </v-snackbar>
+  <div>
+    <div class="text-center">
+      <v-snackbar
+        right
+        v-model="snackbar.show"
+        :timeout="snackbar.timeout"
+        :color="snackbar.color"
+      >
+        {{ snackbar.text }}
+        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+      </v-snackbar>
+    </div>
+    <h1 class="subheading-1 blue--text">Repositorio</h1>
+
+    <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
+    <v-progress-linear
+      v-if="loading"
+      color="primary"
+      :buffer-value="progress"
+      :value="progress"
+      stream
+    ></v-progress-linear>
+    <v-divider class="mb-2"></v-divider>
+    <!--///////////////////////////////////////////////////////////////////////////////-->
+    <v-btn
+      class="mb-2"
+      :color="colorCancel"
+      v-on:click="toggleCancelar"
+      v-if="loading"
+    >
+      <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn
+    >
+
+    <v-btn v-if="!show && !loading" color="primary" @click.native="btnLoadFile">
+      <v-icon left>mdi-download</v-icon>Cargar json</v-btn
+    >
+
+    <div v-if="show">
+      <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
+        <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
+      >
+      <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
+        <v-icon left>mdi-download</v-icon>Cargar json</v-btn
+      >
+      <v-btn color="primary" v-on:click="saveFile()">
+        <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
+      >
+
+      <v-data-table
+        :headers="encabezados"
+        :items="estadisticas"
+        :items-per-page="20"
+        class="elevation-1 mt-2"
+      ></v-data-table>
+    </div>
+    <input
+      id="file-upload"
+      type="file"
+      ref="myFile"
+      style="display:none"
+      @change="loadFile"
+    /><br />
   </div>
-  <h1 class="subheading-1 blue--text">Repositorio</h1>
-
-  <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
-  <v-progress-linear v-if="loading" color="primary" :buffer-value="progress" :value="progress" stream></v-progress-linear>
-  <v-divider class="mb-2"></v-divider>
-  <!--///////////////////////////////////////////////////////////////////////////////-->
-  <v-btn class="mb-2" :color="colorCancel" v-on:click="toggleCancelar" v-if="loading">
-    <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn>
-
-  <v-btn v-if="!show && !loading" color="primary" @click.native="btnLoadFile">
-    <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
-    
-  <div v-if="show">
-    <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
-      <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn>
-    <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
-      <v-icon left>mdi-download</v-icon>Cargar json</v-btn>
-    <v-btn color="primary" v-on:click="saveFile()">
-      <v-icon left>mdi-upload</v-icon>Guardar json</v-btn>
-
-    <v-data-table
-      :headers="encabezados"
-      :items="estadisticas"
-      :items-per-page="20"
-      class="elevation-1 mt-2"
-    ></v-data-table>
-  </div>
-  <input id="file-upload" type="file" ref="myFile" style="display:none" @change="loadFile"><br/>
-</div>
 </template>
 
 <script>
-import PRSelector from '../components/PRSelector'
-import {GET_REPOS, REPOSITORY_PRS} from '../graphql/queries.js'
-import {matrizConteoPR, cohesionFormula, duracionPRdias} from '../formulas.js'
+import PRSelector from "../components/PRSelector";
+import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
+import {
+  matrizConteoPR,
+  cohesionFormula,
+  duracionPRdias
+} from "../formulas.js";
 
 export default {
   components: { PRSelector },
@@ -52,197 +83,215 @@ export default {
       show: false,
       snackbar: {
         show: false,
-        text: 'Bienvenido a Gitana: Analíticas de Github',
-        color: 'info',
+        text: "Bienvenido a Gitana: Analíticas de Github",
+        color: "info",
         timeout: 2500
       },
-      colorCancel: 'error',
+      colorCancel: "error",
       cancel: true,
-      getPR: '',
+      getPR: "",
       countPRs: [],
-      countMatrix: '',
-      cohesionMatrix: '',
+      countMatrix: "",
+      cohesionMatrix: "",
       encabezados: [
-        { text: 'PR#', sortable: false, value: 'PR' },
-        { text: 'Cohesión Grupal', value: 'cohesionGrupal' },
-        { text: 'CG Varianza', value: 'cohesionGrupalVarianza' },
-        { text: 'Participantes', value: 'participantes' },
-        { text: 'Fecha Inicio', value: 'fechaInicio' },
-        { text: 'Fecha Cierre', value: 'fechaCierre' },
-        { text: 'Duración Dias', value: 'duraccionDias' },
-        { text: 'Código Agregado', value: 'codigoAdd' },
-        { text: 'Código Quitado', value: 'codigoRem' },
-        { text: 'Total Cambios', value: 'sizePR' },
-        { text: 'Estado', value: 'estado' },
+        { text: "PR#", sortable: false, value: "PR" },
+        { text: "Cohesión Grupal", value: "cohesionGrupal" },
+        { text: "CG Varianza", value: "cohesionGrupalVarianza" },
+        { text: "Participantes", value: "participantes" },
+        { text: "Fecha Inicio", value: "fechaInicio" },
+        { text: "Fecha Cierre", value: "fechaCierre" },
+        { text: "Duración Dias", value: "duraccionDias" },
+        { text: "Código Agregado", value: "codigoAdd" },
+        { text: "Código Quitado", value: "codigoRem" },
+        { text: "Total Cambios", value: "sizePR" },
+        { text: "Estado", value: "estado" }
       ],
-      pullRequests: '',
-      repository:'',
+      pullRequests: "",
+      repository: "",
       estadisticas: []
-    }
+    };
   },
-  apollo:{
+  apollo: {
     getPR: {
       query: GET_REPOS,
       variables: {
-        owner: "flacket", 
+        owner: "flacket",
         name: "githubanalytic",
         reactions: 1,
         participants: 1,
         comments: 1,
         commentsReactions: 1,
-        rvThreads: 1, 
+        rvThreads: 1,
         rvThreadsComments: 1
       },
       update: data => data.repository
     },
-    getPRcant:{
+    getPRcant: {
       query: REPOSITORY_PRS,
       variables: {
-        owner: "flacket", 
+        owner: "flacket",
         name: "githubanalytic"
       },
       update: data => data.repository.pullRequests
     }
   },
-  mounted:function(){
-    this.$apollo.skipAll = true
+  mounted: function() {
+    this.$apollo.skipAll = true;
   },
   methods: {
     showSnackbar(text, color, timeout) {
-      this.snackbar.text = text
-      this.snackbar.color = color
-      this.snackbar.timeout = timeout
-      this.snackbar.show = true
+      this.snackbar.text = text;
+      this.snackbar.color = color;
+      this.snackbar.timeout = timeout;
+      this.snackbar.show = true;
     },
     btnLoadFile() {
-      document.getElementById('file-upload').click()
+      document.getElementById("file-upload").click();
     },
-    csvExport () {
+    csvExport() {
       //Creo el archivo CSV
-      const { Parser } = require('json2csv')
+      const { Parser } = require("json2csv");
       const fields = [
-        'PR',
-        'cohesionGrupal',
-        'cohesionGrupalVarianza',
-        'participantes',
-        'fechaInicio',
-        'fechaCierre',
-        'duraccionDias',
-        'codigoAdd',
-        'codigoRem',
-        'sizePR',
-        'estado'
-      ]
-      const json2csvParser = new Parser({ fields })
-      const csv = json2csvParser.parse(this.estadisticas)
+        "PR",
+        "cohesionGrupal",
+        "cohesionGrupalVarianza",
+        "participantes",
+        "fechaInicio",
+        "fechaCierre",
+        "duraccionDias",
+        "codigoAdd",
+        "codigoRem",
+        "sizePR",
+        "estado"
+      ];
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(this.estadisticas);
       //Exporto ahora el archivo CSV
-      const exportName = "informe" + ".csv" || "export.csv"
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const exportName = "informe" + ".csv" || "export.csv";
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       if (navigator.msSaveBlob) {
-        navigator.msSaveBlob(blob, exportName)
+        navigator.msSaveBlob(blob, exportName);
       } else {
-        const link = document.createElement("a")
+        const link = document.createElement("a");
         if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob)
-          link.setAttribute("href", url)
-          link.setAttribute("download", exportName)
-          link.style.visibility = "hidden"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", exportName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
       }
-      this.showSnackbar('Archivo CSV Guardado', 'success', 4000)
+      this.showSnackbar("Archivo CSV Guardado", "success", 4000);
     },
     loadFile() {
       let file = this.$refs.myFile.files[0];
-      if(!file) return
-      this.show = false
-      this.loading = true
+      if (!file) return;
+      this.show = false;
+      this.loading = true;
       // Credit: https://stackoverflow.com/a/754398/52160
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
-      reader.onload =  evt => {
-        this.pullRequests = JSON.parse(evt.target.result)
+      reader.onload = evt => {
+        this.pullRequests = JSON.parse(evt.target.result);
         //LLamo a realizar el analisis y conteo
-        this.estadisticas = []
+        this.estadisticas = [];
         this.pullRequests.forEach(PR => {
-          this.countMatrix = matrizConteoPR(PR)
-          this.cohesionEstadisticas(PR)
-        })
-        this.show = true
-        this.loading = false
-      }
+          this.countMatrix = matrizConteoPR(PR);
+          this.cohesionEstadisticas(PR);
+        });
+        this.show = true;
+        this.loading = false;
+      };
       reader.onerror = evt => {
-        this.showSnackbar('Error al cargar el archivo: \n'+evt, 'error', 8000)
-      }
+        this.showSnackbar(
+          "Error al cargar el archivo: \n" + evt,
+          "error",
+          8000
+        );
+      };
     },
-    saveFile () {
-      const data = JSON.stringify(this.pullRequests)
-      const blob = new Blob([data], {type: 'text/plain'})
-      const e = document.createEvent('MouseEvents'),
-            a = document.createElement('a')
-      a.download = "informe" + ".json"
-      a.href = window.URL.createObjectURL(blob)
-      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
-      e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
-      a.dispatchEvent(e)
-      this.showSnackbar('Archivo JSON Guardado', 'success', 4000)
+    saveFile() {
+      const data = JSON.stringify(this.pullRequests);
+      const blob = new Blob([data], { type: "text/plain" });
+      const e = document.createEvent("MouseEvents"),
+        a = document.createElement("a");
+      a.download = "informe" + ".json";
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+      e.initEvent("click", true, false);
+      a.dispatchEvent(e);
+      this.showSnackbar("Archivo JSON Guardado", "success", 4000);
     },
     toggleCancelar() {
-      this.cancel = !this.cancel
-      if(this.cancel)
-        this.colorCancel = "error"
-      else this.colorCancel = "warning"
+      this.cancel = !this.cancel;
+      if (this.cancel) this.colorCancel = "error";
+      else this.colorCancel = "warning";
     },
     cohesionEstadisticas(pullRequest) {
-      let cantPersonas = pullRequest.participants.totalCount
-      this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix)
-      let tabla = '['
-      let coeInd, msjEnviados, msjRecibidos
-      for (var i = 0; i < cantPersonas; i++){
-        coeInd = 0
-        msjEnviados = 0
-        msjRecibidos = 0
+      let cantPersonas = pullRequest.participants.totalCount;
+      this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
+      let tabla = "[";
+      let coeInd, msjEnviados, msjRecibidos;
+      for (var i = 0; i < cantPersonas; i++) {
+        coeInd = 0;
+        msjEnviados = 0;
+        msjRecibidos = 0;
         //Cuento los mensajes enviados y recibidos para la persona "i"
-        for(var j = 0; j < cantPersonas; j++){
-          coeInd += this.cohesionMatrix[i][j]
-          msjEnviados += this.countMatrix[i][j]
-          msjRecibidos += this.countMatrix[j][i]
+        for (var j = 0; j < cantPersonas; j++) {
+          coeInd += this.cohesionMatrix[i][j];
+          msjEnviados += this.countMatrix[i][j];
+          msjRecibidos += this.countMatrix[j][i];
         }
         //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
         if (cantPersonas > 1)
-          coeInd = (Math.round ((coeInd / (cantPersonas - 1)) * 100) / 100)
+          coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
         //creo la tabla con los datos estaditicos
-        tabla += '{"nombre": "' + pullRequest.participants.nodes[i].login +
-          '", "coeInd": ' + coeInd +
-          ', "msjEnviados": ' + msjEnviados +
-          ', "msjRecibidos": ' + msjRecibidos + '}'
-        if (i + 1 < cantPersonas)
-          tabla += ','
+        tabla +=
+          '{"nombre": "' +
+          pullRequest.participants.nodes[i].login +
+          '", "coeInd": ' +
+          coeInd +
+          ', "msjEnviados": ' +
+          msjEnviados +
+          ', "msjRecibidos": ' +
+          msjRecibidos +
+          "}";
+        if (i + 1 < cantPersonas) tabla += ",";
       }
-      tabla += ']'
-      tabla = JSON.parse(tabla)
+      tabla += "]";
+      tabla = JSON.parse(tabla);
 
       //Obtengo la cohesión grupal y varianza
-      var cohesionGrupal = 0
-      tabla.forEach(function(item){
-        cohesionGrupal += item.coeInd
-      })
-      cohesionGrupal = cohesionGrupal / tabla.length
-      let coheGrupalVarianza = 0
-      tabla.forEach(function(item){
-        coheGrupalVarianza += ((item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal))
-      })
-      coheGrupalVarianza = coheGrupalVarianza / tabla.length
+      var cohesionGrupal = 0;
+      tabla.forEach(function(item) {
+        cohesionGrupal += item.coeInd;
+      });
+      cohesionGrupal = cohesionGrupal / tabla.length;
+      let coheGrupalVarianza = 0;
+      tabla.forEach(function(item) {
+        coheGrupalVarianza +=
+          (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
+      });
+      coheGrupalVarianza = coheGrupalVarianza / tabla.length;
       //Obtengo la duracion del PR en días
-      let duracionDias = duracionPRdias(pullRequest.createdAt, pullRequest.closedAt)
+      let duracionDias = duracionPRdias(
+        pullRequest.createdAt,
+        pullRequest.closedAt
+      );
       //Calculo el estado del PR
-      let estado
-      switch(pullRequest.state){
-        case 'MERGED': estado = 1; break
-        case 'CLOSED':estado = 0; break
-        case 'OPEN': estado = 0.5; break
+      let estado;
+      switch (pullRequest.state) {
+        case "MERGED":
+          estado = 1;
+          break;
+        case "CLOSED":
+          estado = 0;
+          break;
+        case "OPEN":
+          estado = 0.5;
+          break;
       }
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
@@ -253,220 +302,254 @@ export default {
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
         fechaInicio: duracionDias.createdAt,
         fechaCierre: duracionDias.closedAt,
-        duraccionDias: duracionDias.diff || '-',
+        duraccionDias: duracionDias.diff || "-",
         codigoAdd: pullRequest.additions,
         codigoRem: pullRequest.deletions,
         sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
         participantes: cantPersonas
-      }
-      this.estadisticas.push(estadisticaPR)
+      };
+      this.estadisticas.push(estadisticaPR);
     },
-    getRepoPRcant(search){
-      var self = this      
+    getRepoPRcant(search) {
+      var self = this;
       //Hago la consulta
-      if (!this.$apollo.skipAll){
-        this.$apollo.skipAll = false
+      if (!this.$apollo.skipAll) {
+        this.$apollo.skipAll = false;
       }
-      this.$apollo.queries.getPRcant.refetch({ 
-        owner: search.owner, 
-        name: search.name,
-      }).then(() => {
-        console.log('Cantidad de PRs: ',self.getPRcant.totalCount)
-        self.progressPercent = 100 / (Math.ceil(self.getPRcant.totalCount / 50) * 2)
-        self.countQuery(search)
-      })
+      this.$apollo.queries.getPRcant
+        .refetch({
+          owner: search.owner,
+          name: search.name
+        })
+        .then(() => {
+          console.log("Cantidad de PRs: ", self.getPRcant.totalCount);
+          self.progressPercent =
+            100 / (Math.ceil(self.getPRcant.totalCount / 50) * 2);
+          self.countQuery(search);
+        });
     },
-    countQuery(search){
-      //Esta funcion crea una lista con la cantidad de datos que se necesitan 
-      //extraer para cada Pull Request (comentarios, reacciones, etc.) 
+    countQuery(search) {
+      //Esta funcion crea una lista con la cantidad de datos que se necesitan
+      //extraer para cada Pull Request (comentarios, reacciones, etc.)
       //Optimizando así la busqueda y reduciendo la cantidad de llamadas a la API.
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
-      this.show = false
-      this.loading = true
-      this.estadisticas = []
-      this.pullRequests = ''
-      var self = this
-      let afterCursor
-      let beforeCursor
-      let hasNextPage = false
+      this.show = false;
+      this.loading = true;
+      this.estadisticas = [];
+      this.pullRequests = "";
+      var self = this;
+      let afterCursor;
+      let beforeCursor;
+      let hasNextPage = false;
       //reviso si el array esta vacio (Primer Consulta)
       //sino tomo el cursor de la ultima consluta
-      beforeCursor = null
-      if (this.countPRs.length == 0)
-        afterCursor = null
-      else afterCursor = this.countPRs[this.countPRs.length - 1].endCursor
+      beforeCursor = null;
+      if (this.countPRs.length == 0) afterCursor = null;
+      else afterCursor = this.countPRs[this.countPRs.length - 1].endCursor;
       //Creo un nuevo item en el arreglo de countPRs donde guardar el resultado de la consulta
       this.countPRs.push({
-        comments: 0, 
-        reviewThreads: 0, 
-        reactions: 0, 
+        comments: 0,
+        reviewThreads: 0,
+        reactions: 0,
         participants: 0,
         reviewThreadsComments: 0,
         commentsReactions: 0,
         endCursor: null,
         startCursor: null
-      })
-      this.$apollo.queries.getPR.refetch({ 
-        owner: search.owner, 
-        name: search.name,
-        afterCursor: afterCursor,
-        beforeCursor: beforeCursor,
-        reactions: 1, 
-        participants: 1,
-        rvThreads: 1,
-        comments: 1,
-        rvThreadsComments: 1,
-        commentsReactions: 1
-      }).then(() => {
-        let i = self.countPRs.length - 1
-        //cargo los primeros valores del contador PR
-        self.countPRs[i].startCursor = self.getPR.pullRequests.pageInfo.startCursor
-        self.countPRs[i].endCursor = self.getPR.pullRequests.pageInfo.endCursor
-        hasNextPage = self.getPR.pullRequests.pageInfo.hasNextPage
-        self.getPR.pullRequests.nodes.forEach(function(item){
-          if (item.comments.totalCount > self.countPRs[i].comments){
-            if (item.comments.totalCount > 100){
-              self.countPRs[i].comments = 100
-              console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', comments')
-            }
-            else
-              self.countPRs[i].comments = item.comments.totalCount
-          }
-          if (item.reviewThreads.totalCount > self.countPRs[i].reviewThreads){
-            if (item.reviewThreads.totalCount > 100){
-              self.countPRs[i].reviewThreads = 100
-              console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', reviewThreads')
-            }
-            else
-            self.countPRs[i].reviewThreads = item.reviewThreads.totalCount
-          }
-          if (item.reactions.totalCount > self.countPRs[i].reactions){
-            if (item.reactions.totalCount > 100){
-              self.countPRs[i].reactions = 100
-              console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', reactions')
-            }
-            else
-              self.countPRs[i].reactions = item.reactions.totalCount
-          }
-          if (item.participants.totalCount > self.countPRs[i].participants){
-            if (item.participants.totalCount > 100){
-              self.countPRs[i].participants = 100
-              console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', participants')
-            }
-            else
-              self.countPRs[i].participants = item.participants.totalCount
-          }
-        })
-        //si es el primer conjunto buscado
-        if (i == 0){
-          afterCursor = null
-          beforeCursor = self.countPRs[i].endCursor
-        } else {
-          afterCursor = self.countPRs[i-1].endCursor
-          beforeCursor = null
-        }
-        //Busco los valores que faltan que estan anidados dentro de lo recien consultado
-        self.$apollo.queries.getPR.refetch({ 
-          owner: search.owner, 
+      });
+      this.$apollo.queries.getPR
+        .refetch({
+          owner: search.owner,
           name: search.name,
           afterCursor: afterCursor,
           beforeCursor: beforeCursor,
-          reactions: 1, 
+          reactions: 1,
           participants: 1,
-          rvThreads: self.countPRs[i].reviewThreads,
-          comments: self.countPRs[i].comments,
+          rvThreads: 1,
+          comments: 1,
           rvThreadsComments: 1,
           commentsReactions: 1
-        }).then(() => {
-          //caargo los ultimos valores del contador PR
-          self.getPR.pullRequests.nodes.forEach(function(item){
-            item.reviewThreads.nodes.forEach(function(revThread){
-              if (revThread.comments.totalCount > self.countPRs[i].reviewThreadsComments){
-                if (revThread.comments.totalCount > 100){
-                  self.countPRs[i].reviewThreadsComments = 100
-                  console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', reviewThreadsComments')
-                }
-                else
-                  self.countPRs[i].reviewThreadsComments = revThread.comments.totalCount
-              }
-            })
-            item.comments.nodes.forEach(function(comm){
-              if (comm.reactions.totalCount > self.countPRs[i].commentsReactions){
-                if (comm.reactions.totalCount > 100){
-                  self.countPRs[i].commentsReactions = 100
-                  console.log('Se superó el limite de la API - Limitado a 100 (PR:', self.countPRs[i], ', commentsReactions')
-                }
-                else
-                  self.countPRs[i].commentsReactions = comm.reactions.totalCount
-              }
-            })
-          })
-          self.progress = self.progress + self.progressPercent
-          //NOTE:
-          //Reviso si faltan cargar más Pull Requests desde la paginación de la API
-          //Si estan todos los datos, Llamo a la funcion getFullPR.
-          if (hasNextPage && self.cancel)
-            self.countQuery(search)
-          else {
-          self.getFullPR(search, 0)
+        })
+        .then(() => {
+          let i = self.countPRs.length - 1;
+          //cargo los primeros valores del contador PR
+          self.countPRs[i].startCursor =
+            self.getPR.pullRequests.pageInfo.startCursor;
+          self.countPRs[i].endCursor =
+            self.getPR.pullRequests.pageInfo.endCursor;
+          hasNextPage = self.getPR.pullRequests.pageInfo.hasNextPage;
+          self.getPR.pullRequests.nodes.forEach(function(item) {
+            if (item.comments.totalCount > self.countPRs[i].comments) {
+              if (item.comments.totalCount > 100) {
+                self.countPRs[i].comments = 100;
+                console.log(
+                  "Se superó el limite de la API - Limitado a 100 (PR:",
+                  self.countPRs[i],
+                  ", comments"
+                );
+              } else self.countPRs[i].comments = item.comments.totalCount;
+            }
+            if (
+              item.reviewThreads.totalCount > self.countPRs[i].reviewThreads
+            ) {
+              if (item.reviewThreads.totalCount > 100) {
+                self.countPRs[i].reviewThreads = 100;
+                console.log(
+                  "Se superó el limite de la API - Limitado a 100 (PR:",
+                  self.countPRs[i],
+                  ", reviewThreads"
+                );
+              } else
+                self.countPRs[i].reviewThreads = item.reviewThreads.totalCount;
+            }
+            if (item.reactions.totalCount > self.countPRs[i].reactions) {
+              if (item.reactions.totalCount > 100) {
+                self.countPRs[i].reactions = 100;
+                console.log(
+                  "Se superó el limite de la API - Limitado a 100 (PR:",
+                  self.countPRs[i],
+                  ", reactions"
+                );
+              } else self.countPRs[i].reactions = item.reactions.totalCount;
+            }
+            if (item.participants.totalCount > self.countPRs[i].participants) {
+              if (item.participants.totalCount > 100) {
+                self.countPRs[i].participants = 100;
+                console.log(
+                  "Se superó el limite de la API - Limitado a 100 (PR:",
+                  self.countPRs[i],
+                  ", participants"
+                );
+              } else
+                self.countPRs[i].participants = item.participants.totalCount;
+            }
+          });
+          //si es el primer conjunto buscado
+          if (i == 0) {
+            afterCursor = null;
+            beforeCursor = self.countPRs[i].endCursor;
+          } else {
+            afterCursor = self.countPRs[i - 1].endCursor;
+            beforeCursor = null;
           }
-        })//repository.refetch2*/
-      })//repository.refetch
+          //Busco los valores que faltan que estan anidados dentro de lo recien consultado
+          self.$apollo.queries.getPR
+            .refetch({
+              owner: search.owner,
+              name: search.name,
+              afterCursor: afterCursor,
+              beforeCursor: beforeCursor,
+              reactions: 1,
+              participants: 1,
+              rvThreads: self.countPRs[i].reviewThreads,
+              comments: self.countPRs[i].comments,
+              rvThreadsComments: 1,
+              commentsReactions: 1
+            })
+            .then(() => {
+              //caargo los ultimos valores del contador PR
+              self.getPR.pullRequests.nodes.forEach(function(item) {
+                item.reviewThreads.nodes.forEach(function(revThread) {
+                  if (
+                    revThread.comments.totalCount >
+                    self.countPRs[i].reviewThreadsComments
+                  ) {
+                    if (revThread.comments.totalCount > 100) {
+                      self.countPRs[i].reviewThreadsComments = 100;
+                      console.log(
+                        "Se superó el limite de la API - Limitado a 100 (PR:",
+                        self.countPRs[i],
+                        ", reviewThreadsComments"
+                      );
+                    } else
+                      self.countPRs[i].reviewThreadsComments =
+                        revThread.comments.totalCount;
+                  }
+                });
+                item.comments.nodes.forEach(function(comm) {
+                  if (
+                    comm.reactions.totalCount >
+                    self.countPRs[i].commentsReactions
+                  ) {
+                    if (comm.reactions.totalCount > 100) {
+                      self.countPRs[i].commentsReactions = 100;
+                      console.log(
+                        "Se superó el limite de la API - Limitado a 100 (PR:",
+                        self.countPRs[i],
+                        ", commentsReactions"
+                      );
+                    } else
+                      self.countPRs[i].commentsReactions =
+                        comm.reactions.totalCount;
+                  }
+                });
+              });
+              self.progress = self.progress + self.progressPercent;
+              //NOTE:
+              //Reviso si faltan cargar más Pull Requests desde la paginación de la API
+              //Si estan todos los datos, Llamo a la funcion getFullPR.
+              if (hasNextPage && self.cancel) self.countQuery(search);
+              else {
+                self.getFullPR(search, 0);
+              }
+            }); //repository.refetch2*/
+        }); //repository.refetch
       //this.refreshQuery(search)
-    },//countQuery
-    getFullPR(search, index){
+    }, //countQuery
+    getFullPR(search, index) {
       //Esta funcion busca los datos de los Pull Request
-      //analizando la lista de this.countPRs y pidiendo 
+      //analizando la lista de this.countPRs y pidiendo
       //solo la cantidad necesaria de datos a la API
-      var self = this
-      let afterCursor
-      let beforeCursor
+      var self = this;
+      let afterCursor;
+      let beforeCursor;
       //si es el primer conjunto buscado
-      if (index == 0){
-        afterCursor = null
-        beforeCursor = self.countPRs[index].endCursor
+      if (index == 0) {
+        afterCursor = null;
+        beforeCursor = self.countPRs[index].endCursor;
       } else {
-        afterCursor = self.countPRs[index-1].endCursor
-        beforeCursor = null
+        afterCursor = self.countPRs[index - 1].endCursor;
+        beforeCursor = null;
       }
-      this.$apollo.queries.getPR.refetch({
-        owner: search.owner,
-        name: search.name,
-        afterCursor: afterCursor,
-        beforeCursor: beforeCursor,
-        reactions: this.countPRs[index].reactions,
-        participants: this.countPRs[index].participants,
-        comments: this.countPRs[index].comments,
-        rvThreads: this.countPRs[index].reviewThreads,
-        rvThreadsComments: this.countPRs[index].reviewThreadsComments,
-        commentsReactions: this.countPRs[index].commentsReactions
-      }).then(() => {
-
-        let parser = JSON.stringify(self.getPR.pullRequests.nodes)
-        parser = parser.substring(1 , parser.length - 1)
-        self.pullRequests += parser
-        self.progress = self.progress + self.progressPercent
-        //Reviso si faltan PRs por agregar a la lista
-        if (index < self.countPRs.length - 1){
-          self.pullRequests += ','
-          self.getFullPR(search, index + 1)
-        } else {
-          //Transformo a Objeto la lista de self.pullRequests
-          let aux = "[" + self.pullRequests + "]"
-          self.pullRequests = JSON.parse(aux)
-          //Calculo la matriz de conteo y estadisticas para cada PR
-          self.pullRequests.forEach(PR => {
-            self.countMatrix = matrizConteoPR(PR)
-            self.cohesionEstadisticas(PR)
-          })
-          self.show = true
-          self.loading = false
-          self.showSnackbar('Análisis Finalizado', 'success', 4000)
-        }
-      })
-    }//getFullPR
+      this.$apollo.queries.getPR
+        .refetch({
+          owner: search.owner,
+          name: search.name,
+          afterCursor: afterCursor,
+          beforeCursor: beforeCursor,
+          reactions: this.countPRs[index].reactions,
+          participants: this.countPRs[index].participants,
+          comments: this.countPRs[index].comments,
+          rvThreads: this.countPRs[index].reviewThreads,
+          rvThreadsComments: this.countPRs[index].reviewThreadsComments,
+          commentsReactions: this.countPRs[index].commentsReactions
+        })
+        .then(() => {
+          let parser = JSON.stringify(self.getPR.pullRequests.nodes);
+          parser = parser.substring(1, parser.length - 1);
+          self.pullRequests += parser;
+          self.progress = self.progress + self.progressPercent;
+          //Reviso si faltan PRs por agregar a la lista
+          if (index < self.countPRs.length - 1) {
+            self.pullRequests += ",";
+            self.getFullPR(search, index + 1);
+          } else {
+            //Transformo a Objeto la lista de self.pullRequests
+            let aux = "[" + self.pullRequests + "]";
+            self.pullRequests = JSON.parse(aux);
+            //Calculo la matriz de conteo y estadisticas para cada PR
+            self.pullRequests.forEach(PR => {
+              self.countMatrix = matrizConteoPR(PR);
+              self.cohesionEstadisticas(PR);
+            });
+            self.show = true;
+            self.loading = false;
+            self.showSnackbar("Análisis Finalizado", "success", 4000);
+          }
+        });
+    } //getFullPR
   }
-}
+};
 </script>
