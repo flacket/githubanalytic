@@ -70,6 +70,7 @@ import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
 import {
   matrizConteoPR,
   cohesionFormula,
+  colaboracionFormula,
   duracionPRdias
 } from "../formulas.js";
 
@@ -93,10 +94,12 @@ export default {
       countPRs: [],
       countMatrix: "",
       cohesionMatrix: "",
+      colabMatrix: "",
       encabezados: [
         { text: "PR#", sortable: false, value: "PR" },
         { text: "Cohesión Grupal", value: "cohesionGrupal" },
         { text: "CG Varianza", value: "cohesionGrupalVarianza" },
+        { text: "Colaboración Grupal", value: "colaboracionGrupal" },
         { text: "Participantes", value: "participantes" },
         { text: "Fecha Inicio", value: "fechaInicio" },
         { text: "Fecha Cierre", value: "fechaCierre" },
@@ -199,7 +202,7 @@ export default {
         this.estadisticas = [];
         this.pullRequests.forEach(PR => {
           this.countMatrix = matrizConteoPR(PR);
-          this.cohesionEstadisticas(PR);
+          this.getEstadisticas(PR);
         });
         this.show = true;
         this.loading = false;
@@ -229,30 +232,48 @@ export default {
       if (this.cancel) this.colorCancel = "error";
       else this.colorCancel = "warning";
     },
-    cohesionEstadisticas(pullRequest) {
-      let cantPersonas = pullRequest.participants.totalCount;
-      this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
+    getEstadisticas(pullRequest) {
+      try {
+        var cantPersonas = pullRequest.participants.totalCount;
+        this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
+        this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
+        console.log("PR N°: ", pullRequest.number);
+        console.log(this.colabMatrix);
+      } catch (error) {
+        console.log("Error en EstadisticasPR-Creando formulas: ", error);
+        this.showSnackbar(
+          "Error al generar las estadisticas: " + error,
+          "error",
+          8000
+        );
+      }
       let tabla = "[";
-      let coeInd, msjEnviados, msjRecibidos;
-      for (var i = 0; i < cantPersonas; i++) {
+      let coeInd, colabInd, msjEnviados, msjRecibidos;
+      for (let i = 0; i < cantPersonas; i++) {
         coeInd = 0;
+        colabInd = 0;
         msjEnviados = 0;
         msjRecibidos = 0;
         //Cuento los mensajes enviados y recibidos para la persona "i"
-        for (var j = 0; j < cantPersonas; j++) {
+        for (let j = 0; j < cantPersonas; j++) {
           coeInd += this.cohesionMatrix[i][j];
+          colabInd += this.colabMatrix[i][j];
           msjEnviados += this.countMatrix[i][j];
           msjRecibidos += this.countMatrix[j][i];
         }
         //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
-        if (cantPersonas > 1)
+        if (cantPersonas > 1) {
           coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
+          colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
+        }
         //creo la tabla con los datos estaditicos
         tabla +=
           '{"nombre": "' +
           pullRequest.participants.nodes[i].login +
           '", "coeInd": ' +
           coeInd +
+          ', "colabInd": ' +
+          colabInd +
           ', "msjEnviados": ' +
           msjEnviados +
           ', "msjRecibidos": ' +
@@ -264,22 +285,33 @@ export default {
       tabla = JSON.parse(tabla);
 
       //Obtengo la cohesión grupal y varianza
-      var cohesionGrupal = 0;
-      tabla.forEach(function(item) {
+      let cohesionGrupal = 0;
+      tabla.forEach(item => {
         cohesionGrupal += item.coeInd;
       });
       cohesionGrupal = cohesionGrupal / tabla.length;
+
+      //varianza
       let coheGrupalVarianza = 0;
-      tabla.forEach(function(item) {
+      tabla.forEach(item => {
         coheGrupalVarianza +=
           (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
       });
       coheGrupalVarianza = coheGrupalVarianza / tabla.length;
+
+      //Obtengo la colaboración grupal
+      let colabGrupal = 0;
+      tabla.forEach(item => {
+        colabGrupal += item.coeInd;
+      });
+      colabGrupal = colabGrupal / tabla.length;
+
       //Obtengo la duracion del PR en días
       let duracionDias = duracionPRdias(
         pullRequest.createdAt,
         pullRequest.closedAt
       );
+
       //Calculo el estado del PR
       let estado;
       switch (pullRequest.state) {
@@ -300,6 +332,7 @@ export default {
         tabla: tabla,
         cohesionGrupal: cohesionGrupal.toFixed(3),
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
+        colaboracionGrupal: colabGrupal.toFixed(3),
         fechaInicio: duracionDias.createdAt,
         fechaCierre: duracionDias.closedAt,
         duraccionDias: duracionDias.diff || "-",
@@ -542,7 +575,7 @@ export default {
             //Calculo la matriz de conteo y estadisticas para cada PR
             self.pullRequests.forEach(PR => {
               self.countMatrix = matrizConteoPR(PR);
-              self.cohesionEstadisticas(PR);
+              self.getEstadisticas(PR);
             });
             self.show = true;
             self.loading = false;

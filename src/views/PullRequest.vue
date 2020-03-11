@@ -33,10 +33,6 @@
         <v-row>
           <v-col sm="12" md="2">
             <v-layout column>
-              <v-flex class="mb-3">
-                <h4>Cohesión Grupal:</h4>
-                <Doughnut :chartData="chartCoheGrupal" />
-              </v-flex>
               <v-flex>
                 <p>
                   Participantes:
@@ -57,7 +53,16 @@
               </v-flex>
             </v-layout>
           </v-col>
-
+          <v-col class="mb-3" sm="2">
+            <h4>Cohesión Grupal:</h4>
+            <Doughnut :chartData="chartCoheGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Colaboración Grupal:</h4>
+            <Doughnut :chartData="chartColabGrupal" />
+          </v-col>
+        </v-row>
+        <v-row>
           <v-col sm="12" md="5">
             <h4>Cohesión Individual:</h4>
             <BarChart :chartData="chartCohe" />
@@ -112,7 +117,7 @@ export default {
       show: false,
       countMatrix: "",
       cohesionMatrix: "",
-      colaboracionMatrix: "",
+      colabMatrix: "",
       mimicaMatrix: "",
       repository: "",
       snackbar: {
@@ -122,6 +127,15 @@ export default {
         timeout: 2500
       },
       chartCoheGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
+          }
+        ]
+      },
+      chartColabGrupal: {
         labels: [],
         datasets: [
           {
@@ -187,10 +201,7 @@ export default {
       try {
         var cantPersonas = this.repository.pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
-        this.colaboracionMatrix = colaboracionFormula(
-          cantPersonas,
-          this.countMatrix
-        );
+        this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
         //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
         //tonoPositivoFormula(cantPersonas, this.repository.pullRequest)
       } catch (error) {
@@ -209,9 +220,10 @@ export default {
           colabInd = 0;
           msjEnviados = 0;
           msjRecibidos = 0;
+          //Cuento los mensajes enviados y recibidos para la persona "i"
           for (let j = 0; j < cantPersonas; j++) {
             coeInd += this.cohesionMatrix[i][j];
-            colabInd += this.colaboracionMatrix[i][j];
+            colabInd += this.colabMatrix[i][j];
             msjEnviados += this.countMatrix[i][j];
             msjRecibidos += this.countMatrix[j][i];
           }
@@ -239,6 +251,7 @@ export default {
         this.estadisticas = JSON.parse(tabla);
         //Doy formato a las gráficas
         this.chartDataCoheGrupal();
+        this.chartDataColabGrupal();
         this.chartDataCohe();
         this.chartDataColab();
         this.show = true;
@@ -262,6 +275,18 @@ export default {
       this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + "%";
       this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal;
       this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal;
+    },
+    chartDataColabGrupal() {
+      //Obtengo la cohesión grupal
+      let colabGrupal = 0;
+      this.estadisticas.forEach(item => {
+        colabGrupal += item.colabInd;
+      });
+      colabGrupal = (colabGrupal / this.estadisticas.length) * 100;
+      //Doy formato al valor de colabGrupal para el gráfico
+      this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
+      this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
+      this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
     },
     chartDataCohe() {
       //Genera el dataset para armar el grafico de cohesion individual

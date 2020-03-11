@@ -67,7 +67,7 @@ export function colaboracionFormula(cantPersonas, countMatrix) {
         let resulti, resultj;
         //cant interacciones entre j y i
         var sum = countMatrix[i][j] + countMatrix[j][i];
-        if (sum > 0) {
+        if (totalinterac[i] > 0 && totalinterac[j] > 0) {
           //aplico la formula de colaboración
           resulti = sum / totalinterac[i];
           resultj = sum / totalinterac[j];
