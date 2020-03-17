@@ -14,7 +14,7 @@
     "core-js": "^3.6.4",
     "doc-similarity": "0.0.1",
     "eslint-plugin-graphql": "^3.1.1",
-    "firebase": "^7.10.0",
+    "firebase": "^7.11.0",
     "json2csv": "^4.5.4",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.24.0",
