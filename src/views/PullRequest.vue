@@ -72,8 +72,19 @@
             <BarChart :chartData="chartColab" />
           </v-col>
           <!--<v-col sm="12" md="5">
-            <h4>Polaridad:</h4>
-            <BarChart :chartData='chartPolarity'/>
+            <h4>Mimica:</h4>
+            <v-select
+              @change="chartDataMimica"
+              v-model="participante"
+              :items="participantes"
+              label="Participante"
+              item-text="nombre"
+              item-value="pos"
+              return-object
+              dense
+              :hint="`${participante.nombre}, ${participante.pos}`"
+            ></v-select>
+            <RadarChart :chartData="chartMimica" />
           </v-col>-->
         </v-row>
         <v-row>
@@ -95,20 +106,22 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
+//import RadarChart from "../components/chartjs/RadarChart.vue";
 import BarChart from "../components/chartjs/BarChart.vue";
 import Doughnut from "../components/chartjs/Doughnut.vue";
 import { GET_REPO } from "../graphql/queries.js";
 import {
   matrizConteoPR,
   cohesionFormula,
-  colaboracionFormula
-  //mimicaFormula,
-  //tonoPositivoFormula,
+  colaboracionFormula,
+  //mimicaFormula
+  //polaridadFormula
 } from "../formulas.js";
 
 export default {
   components: {
     PRSelector,
+    //RadarChart,
     BarChart,
     Doughnut
   },
@@ -162,17 +175,18 @@ export default {
           }
         ]
       },
-      chartPolarity: {
-        type: "horizontalBar",
+      participante: {},
+      participantes: [],
+      chartMimica: {
         labels: [],
         datasets: [
           {
             data: [],
-            backgroundColor: "rgba(0, 71, 255, 1)"
+            backgroundColor: "rgba(0, 71, 255, 0.5)"
           }
         ]
       },
-      estadisticas: "",
+      estadisticas: [],
       encabezados: [
         { text: "Participante", sortable: false, value: "nombre" },
         { text: "Msj. Enviados", value: "msjEnviados" },
@@ -202,8 +216,8 @@ export default {
         var cantPersonas = this.repository.pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest)
-        //tonoPositivoFormula(cantPersonas, this.repository.pullRequest)
+        //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest);
+        //polaridadFormula(cantPersonas, this.repository.pullRequest);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
@@ -213,7 +227,6 @@ export default {
         );
       }
       try {
-        var tabla = "[";
         var coeInd, colabInd, msjEnviados, msjRecibidos;
         for (let i = 0; i < cantPersonas; i++) {
           coeInd = 0;
@@ -233,27 +246,30 @@ export default {
             colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
           }
           //creo la tabla con los datos estaditicos
-          tabla +=
-            '{"nombre": "' +
-            this.repository.pullRequest.participants.nodes[i].login +
-            '", "coeInd": ' +
-            coeInd +
-            ', "colabInd": ' +
-            colabInd +
-            ', "msjEnviados": ' +
-            msjEnviados +
-            ', "msjRecibidos": ' +
-            msjRecibidos +
-            "}";
-          if (i + 1 < cantPersonas) tabla += ",";
+          let tabla = {
+            nombre: this.repository.pullRequest.participants.nodes[i].login,
+            coeInd: coeInd,
+            colabInd: colabInd,
+            msjEnviados: msjEnviados,
+            msjRecibidos: msjRecibidos
+          };
+          this.estadisticas.push(tabla)
         }
-        tabla += "]";
-        this.estadisticas = JSON.parse(tabla);
         //Doy formato a las gráficas
         this.chartDataCoheGrupal();
         this.chartDataColabGrupal();
         this.chartDataCohe();
         this.chartDataColab();
+        /*let pos = 0;
+        this.repository.pullRequest.participants.nodes.forEach(item => {
+          this.participantes.push({
+            nombre: item.login,
+            pos: pos
+          });
+          pos++;
+        });
+        this.participante = this.participantes[0];
+        this.chartDataMimica();*/
         this.show = true;
       } catch (error) {
         console.log("Error en EstadisticasPR-Haciendo la tabla: ", error);
@@ -310,6 +326,24 @@ export default {
         this.chartColab.datasets[0].data.push(
           (this.estadisticas[i].colabInd * 100).toFixed(2)
         );
+      }
+    },
+    chartDataMimica() {
+      try{
+      //Genera el dataset para armar el grafico de mimica
+      let cantPersonas = this.repository.pullRequest.participants.totalCount;
+      this.chartMimica.labels = [];
+      this.chartMimica.datasets.data = [];
+      for (let i = 0; i < cantPersonas; i++) {
+        if (i != this.participante.pos) {
+          this.chartMimica.labels.push(this.estadisticas[i].nombre);
+          this.chartMimica.datasets[0].data.push(
+            this.mimicaMatrix[this.participante.pos][i]
+          );
+        }
+      }
+      }catch (error) {
+        console.log("Error en chartDataMimica: ", error);
       }
     },
     refreshQuery(search) {

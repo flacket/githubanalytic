@@ -237,8 +237,6 @@ export default {
         var cantPersonas = pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        console.log("PR N°: ", pullRequest.number);
-        console.log(this.colabMatrix);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
@@ -247,7 +245,7 @@ export default {
           8000
         );
       }
-      let tabla = "[";
+      let tabla = new Array()
       let coeInd, colabInd, msjEnviados, msjRecibidos;
       for (let i = 0; i < cantPersonas; i++) {
         coeInd = 0;
@@ -267,22 +265,14 @@ export default {
           colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
         }
         //creo la tabla con los datos estaditicos
-        tabla +=
-          '{"nombre": "' +
-          pullRequest.participants.nodes[i].login +
-          '", "coeInd": ' +
-          coeInd +
-          ', "colabInd": ' +
-          colabInd +
-          ', "msjEnviados": ' +
-          msjEnviados +
-          ', "msjRecibidos": ' +
-          msjRecibidos +
-          "}";
-        if (i + 1 < cantPersonas) tabla += ",";
+        tabla.push({
+          nombre: pullRequest.participants.nodes[i].login,
+          coeInd: coeInd,
+          colabInd: colabInd,
+          msjEnviados: msjEnviados,
+          msjRecibidos: msjRecibidos
+        })
       }
-      tabla += "]";
-      tabla = JSON.parse(tabla);
 
       //Obtengo la cohesión grupal y varianza
       let cohesionGrupal = 0;

@@ -142,7 +142,7 @@ export function mimicaFormula(cantPersonas, pullRequest) {
   console.log("Matriz de Mimica: ", mimicaMatrix);
   return mimicaMatrix;
 }
-export function tonoPositivoFormula(cantPersonas, pullRequest) {
+export function polaridadFormula(cantPersonas, pullRequest) {
   let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
   var polarity = require("polarity");
   for (let i = 0; i < cantPersonas; i++) {
