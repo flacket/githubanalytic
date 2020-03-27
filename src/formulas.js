@@ -47,6 +47,65 @@ export function cohesionFormula(cantPersonas, countMatrix) {
   }
   return cohesionMatrix;
 }
+export function comunaFormula(participantes) {
+  //TODO: EXPLICAR ESTO
+  //Esta funcion crea una matriz de comunalidad
+  //entre los usuarios participantes de un Pull Request
+  //#######################################################
+  let cantPersonas = participantes.totalCount;
+  //creo un arreglo dando formato a los datos de comunalidad
+  //para luego calcular la formula sobre esos datos
+  let comunaConteo = [];
+  for (let i = 0; i < cantPersonas; i++) {
+    let varComuna = { location: "", following: "", starredRepos: "" };
+    varComuna.location = participantes.nodes[i].location;
+
+    participantes.nodes[i].following.nodes.forEach(following => {
+      varComuna.following = varComuna.following + " " + following.id;
+    });
+    participantes.nodes[i].starredRepositories.nodes.forEach(starredRepos => {
+      varComuna.starredRepos = varComuna.starredRepos + " " + starredRepos.id;
+    });
+    comunaConteo.push(varComuna);
+  }
+  //creo una variable con la funcion del coseno de similaridad
+  const docSimilarity = require("doc-similarity");
+  //crear matriz NxN de comunalidad
+  let comunaMatrix = new Array(cantPersonas);
+  for (let n = 0; n < cantPersonas; n++) {
+    comunaMatrix[n] = new Array(cantPersonas);
+  }
+  //recorro y cargo la matriz
+  for (let i = 0; i < cantPersonas; i++) {
+    for (let j = i; j < cantPersonas; j++) {
+      //contar cohesion para [i][j]
+      if (i == j) comunaMatrix[i][j] = 0;
+      else {
+        let following, starredRepos, location, result;
+        //calculo similaridad de seguidos
+        following = docSimilarity.wordFrequencySim(
+          comunaConteo[i].following,
+          comunaConteo[j].following,
+          docSimilarity.cosineSim
+        );
+        //calculo similaridad de seguidos
+        starredRepos = docSimilarity.wordFrequencySim(
+          comunaConteo[i].starredRepos,
+          comunaConteo[j].starredRepos,
+          docSimilarity.cosineSim
+        );
+        //TODO:Calculo distancia por indice de Hofstead
+        location = 0;
+        result = (following + starredRepos + location) / 3;
+        result = (following + starredRepos) / 2; //NOTE: borrar cuando este lista location
+        comunaMatrix[i][j] = Math.round(result * 100) / 100;
+        comunaMatrix[j][i] = comunaMatrix[i][j];
+      }
+    }
+  }
+  console.log("comunaMatrix: ", comunaMatrix);
+  return comunaMatrix;
+}
 export function colaboracionFormula(cantPersonas, countMatrix) {
   //crear matriz NxN
   var colaboracionMatrix = new Array(cantPersonas);
@@ -122,9 +181,10 @@ export function mimicaFormula(cantPersonas, pullRequest) {
   let mimicaMatrix = new Array(cantPersonas);
   for (let n = 0; n < cantPersonas; n++)
     mimicaMatrix[n] = new Array(cantPersonas);
+  //calculo valores de mimica para la matriz
   for (let i = 0; i < cantPersonas; i++) {
-    for (let j = 0; j < cantPersonas; j++) {
-      //contar cohesion para [c][f]
+    for (let j = i; j < cantPersonas; j++) {
+      //contar cohesion para [i][j]
       if (i == j) mimicaMatrix[i][j] = 0;
       else {
         let result;

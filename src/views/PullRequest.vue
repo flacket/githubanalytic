@@ -114,6 +114,7 @@ import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
+  comunaFormula
   //mimicaFormula
   //polaridadFormula
 } from "../formulas.js";
@@ -131,6 +132,7 @@ export default {
       countMatrix: "",
       cohesionMatrix: "",
       colabMatrix: "",
+      comunaMatrix: "",
       mimicaMatrix: "",
       repository: "",
       snackbar: {
@@ -192,7 +194,8 @@ export default {
         { text: "Msj. Enviados", value: "msjEnviados" },
         { text: "Msj. Recibidos", value: "msjRecibidos" }
       ],
-      cohesionGrupal: ""
+      cohesionGrupal: "",
+      getComuna: ""
     };
   },
   apollo: {
@@ -216,6 +219,7 @@ export default {
         var cantPersonas = this.repository.pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
+        this.comunaMatrix = this.comunaFormula(this.repository.pullRequest.participants);
         //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest);
         //polaridadFormula(cantPersonas, this.repository.pullRequest);
       } catch (error) {
@@ -253,7 +257,7 @@ export default {
             msjEnviados: msjEnviados,
             msjRecibidos: msjRecibidos
           };
-          this.estadisticas.push(tabla)
+          this.estadisticas.push(tabla);
         }
         //Doy formato a las gráficas
         this.chartDataCoheGrupal();
@@ -329,20 +333,20 @@ export default {
       }
     },
     chartDataMimica() {
-      try{
-      //Genera el dataset para armar el grafico de mimica
-      let cantPersonas = this.repository.pullRequest.participants.totalCount;
-      this.chartMimica.labels = [];
-      this.chartMimica.datasets.data = [];
-      for (let i = 0; i < cantPersonas; i++) {
-        if (i != this.participante.pos) {
-          this.chartMimica.labels.push(this.estadisticas[i].nombre);
-          this.chartMimica.datasets[0].data.push(
-            this.mimicaMatrix[this.participante.pos][i]
-          );
+      try {
+        //Genera el dataset para armar el grafico de mimica
+        let cantPersonas = this.repository.pullRequest.participants.totalCount;
+        this.chartMimica.labels = [];
+        this.chartMimica.datasets.data = [];
+        for (let i = 0; i < cantPersonas; i++) {
+          if (i != this.participante.pos) {
+            this.chartMimica.labels.push(this.estadisticas[i].nombre);
+            this.chartMimica.datasets[0].data.push(
+              this.mimicaMatrix[this.participante.pos][i]
+            );
+          }
         }
-      }
-      }catch (error) {
+      } catch (error) {
         console.log("Error en chartDataMimica: ", error);
       }
     },

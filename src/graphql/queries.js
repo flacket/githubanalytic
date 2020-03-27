@@ -73,6 +73,21 @@ export const GET_REPO = gql`
           totalCount
           nodes {
             login
+            ################################
+            location
+            following(first: 100) {
+              totalCount
+              nodes {
+                id
+              }
+            }
+            starredRepositories(first: 100) {
+              totalCount
+              nodes {
+                id
+              }
+            }
+            ################################
           }
         }
         reviewThreads(first: 50) {

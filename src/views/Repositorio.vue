@@ -14,11 +14,12 @@
     <h1 class="subheading-1 blue--text">Repositorio</h1>
 
     <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
+    <p v-if="loading" class="font-weight-light">{{progress.text}}</p>
     <v-progress-linear
       v-if="loading"
       color="primary"
-      :buffer-value="progress"
-      :value="progress"
+      :buffer-value="progress.bartotal"
+      :value="progress.bartotal"
       stream
     ></v-progress-linear>
     <v-divider class="mb-2"></v-divider>
@@ -79,8 +80,12 @@ export default {
   data() {
     return {
       loading: false,
-      progress: 0,
-      progressPercent: 0,
+      progress: {
+        text: 'Cargando',
+        bar: 0,
+        bartotal: 0,
+        totalPR: 0
+      },
       show: false,
       snackbar: {
         show: false,
@@ -148,6 +153,17 @@ export default {
       this.snackbar.timeout = timeout;
       this.snackbar.show = true;
     },
+    progressbar() {
+      if(this.progress.bar == 0){
+        this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
+        this.progress.bartotal = 0;
+        this.progress.bar =
+            100 / (Math.ceil(this.progress.totalPR / 50) * 2);
+      } else {
+        this.progress.bartotal = this.progress.bartotal + this.progress.bar;
+        this.progress.text = "Cargando " + this.progress.totalPR + " PR's. " + Math.floor(this.progress.bartotal) + "% Completado";
+      }
+    },
     btnLoadFile() {
       document.getElementById("file-upload").click();
     },
@@ -205,6 +221,7 @@ export default {
           this.getEstadisticas(PR);
         });
         this.show = true;
+        this.progress.bar = 0;
         this.loading = false;
       };
       reader.onerror = evt => {
@@ -216,9 +233,9 @@ export default {
       };
     },
     saveFile() {
-      const data = JSON.stringify(this.pullRequests);
-      const blob = new Blob([data], { type: "text/plain" });
-      const e = document.createEvent("MouseEvents"),
+      const data = JSON.stringify(this.pullRequests),
+        blob = new Blob([data], { type: "text/plain" }),
+        e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
       a.download = "informe" + ".json";
       a.href = window.URL.createObjectURL(blob);
@@ -347,9 +364,8 @@ export default {
           name: search.name
         })
         .then(() => {
-          console.log("Cantidad de PRs: ", self.getPRcant.totalCount);
-          self.progressPercent =
-            100 / (Math.ceil(self.getPRcant.totalCount / 50) * 2);
+          self.progress.totalPR = self.getPRcant.totalCount;
+          self.progressbar();
           self.countQuery(search);
         });
     },
@@ -509,7 +525,7 @@ export default {
                   }
                 });
               });
-              self.progress = self.progress + self.progressPercent;
+              self.progressbar();
               //NOTE:
               //Reviso si faltan cargar más Pull Requests desde la paginación de la API
               //Si estan todos los datos, Llamo a la funcion getFullPR.
@@ -553,7 +569,7 @@ export default {
           let parser = JSON.stringify(self.getPR.pullRequests.nodes);
           parser = parser.substring(1, parser.length - 1);
           self.pullRequests += parser;
-          self.progress = self.progress + self.progressPercent;
+          self.progressbar();
           //Reviso si faltan PRs por agregar a la lista
           if (index < self.countPRs.length - 1) {
             self.pullRequests += ",";
@@ -568,6 +584,7 @@ export default {
               self.getEstadisticas(PR);
             });
             self.show = true;
+            self.progress.bar = 0;
             self.loading = false;
             self.showSnackbar("Análisis Finalizado", "success", 4000);
           }
