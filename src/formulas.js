@@ -1,6 +1,45 @@
 import moment from "moment";
 moment.locale("es-us");
-
+export function listaParticipantesRepo(pullRequests) {
+  //creo una lista de los Paticipantes de cada PR del repositorio
+  let listPersonas = [];
+  pullRequests.forEach(PR => {
+    PR.participants.nodes.forEach(participante => {
+      if (!listPersonas.includes(participante.login)) {
+        listPersonas.push(participante.login);
+      }
+    })
+  })
+  //console.log("Lista de Participantes:", listPersonas);
+}
+export function habilidadParticipante(pullRequests) {
+  //creo una lista de los Paticipantes de cada PR del repositorio
+  var listPersonas = [];
+  for (let i = 0; i < pullRequests.length; i++) {
+    //hago una lista de participantes
+    for (let j = 0; j < pullRequests[i].participants.nodes.length; j++) {
+      //Busco si el participante ya esta incluido en la lista
+      var index = -1;
+      for(var p = 0; p < listPersonas.length; p++) {
+        if (listPersonas[p].nombre == pullRequests[i].participants.nodes[j].login) {
+          index = p;
+        }
+      }
+      //si no esta incluido lo agrego
+      if (index == -1) {
+        let newpersona = { nombre: pullRequests[i].participants.nodes[j].login, cantAutor: 0, cantMerge: 0 }
+        index = listPersonas.push(newpersona);
+        index = index - 1;
+      }
+      //busco el creador del PR y reviso si fue mergeado y sumo
+      if (pullRequests[i].author.login == pullRequests[i].participants.nodes[j].login) {
+        listPersonas[index].cantAutor++;
+        if (pullRequests[i].state == "MERGED") listPersonas[index].cantMerge++;
+      }
+    }
+  }
+  return listPersonas;
+}
 export function duracionPRdias(tcreated, tclosed) {
   //Obtengo la duracion del PR en días
   let createdAt = moment(tcreated);
@@ -51,7 +90,7 @@ export function comunaFormula(participantes) {
   //TODO: EXPLICAR ESTO
   //Esta funcion crea una matriz de comunalidad
   //entre los usuarios participantes de un Pull Request
-  //#######################################################
+  //########################################################
   let cantPersonas = participantes.totalCount;
   //creo un arreglo dando formato a los datos de comunalidad
   //para luego calcular la formula sobre esos datos

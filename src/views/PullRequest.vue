@@ -114,7 +114,7 @@ import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  comunaFormula
+  //comunaFormula
   //mimicaFormula
   //polaridadFormula
 } from "../formulas.js";

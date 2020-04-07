@@ -72,7 +72,8 @@ import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  duracionPRdias
+  duracionPRdias,
+  habilidadParticipante
 } from "../formulas.js";
 
 export default {
@@ -254,6 +255,8 @@ export default {
         var cantPersonas = pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
+        let listPersonas = habilidadParticipante(this.pullRequests);
+        console.log("Habilidad del participante:", listPersonas);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
