@@ -20,7 +20,7 @@ export default {
   data() {
     return {
       isLoggedIn: false,
-      ghIcon: mdiGithub
+      ghIcon: mdiGithub,
     };
   },
   created() {
@@ -73,7 +73,7 @@ export default {
           console.log("errorCode: ", error.code);
           console.log("errorMessage: ", error.message);
         });
-    }
-  }
+    },
+  },
 };
 </script>

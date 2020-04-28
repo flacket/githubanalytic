@@ -14,7 +14,7 @@
     <h1 class="subheading-1 blue--text">Repositorio</h1>
 
     <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
-    <p v-if="loading" class="font-weight-light">{{progress.text}}</p>
+    <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"
       color="primary"
@@ -73,7 +73,7 @@ import {
   cohesionFormula,
   colaboracionFormula,
   duracionPRdias,
-  habilidadParticipante
+  habilidadParticipante,
 } from "../formulas.js";
 
 export default {
@@ -82,17 +82,17 @@ export default {
     return {
       loading: false,
       progress: {
-        text: 'Cargando',
+        text: "Cargando",
         bar: 0,
         bartotal: 0,
-        totalPR: 0
+        totalPR: 0,
       },
       show: false,
       snackbar: {
         show: false,
         text: "Bienvenido a Gitana: Analíticas de Github",
         color: "info",
-        timeout: 2500
+        timeout: 2500,
       },
       colorCancel: "error",
       cancel: true,
@@ -113,11 +113,11 @@ export default {
         { text: "Código Agregado", value: "codigoAdd" },
         { text: "Código Quitado", value: "codigoRem" },
         { text: "Total Cambios", value: "sizePR" },
-        { text: "Estado", value: "estado" }
+        { text: "Estado", value: "estado" },
       ],
       pullRequests: "",
       repository: "",
-      estadisticas: []
+      estadisticas: [],
     };
   },
   apollo: {
@@ -131,18 +131,18 @@ export default {
         comments: 1,
         commentsReactions: 1,
         rvThreads: 1,
-        rvThreadsComments: 1
+        rvThreadsComments: 1,
       },
-      update: data => data.repository
+      update: (data) => data.repository,
     },
     getPRcant: {
       query: REPOSITORY_PRS,
       variables: {
         owner: "flacket",
-        name: "githubanalytic"
+        name: "githubanalytic",
       },
-      update: data => data.repository.pullRequests
-    }
+      update: (data) => data.repository.pullRequests,
+    },
   },
   mounted: function() {
     this.$apollo.skipAll = true;
@@ -155,14 +155,18 @@ export default {
       this.snackbar.show = true;
     },
     progressbar() {
-      if(this.progress.bar == 0){
+      if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
         this.progress.bartotal = 0;
-        this.progress.bar =
-            100 / (Math.ceil(this.progress.totalPR / 50) * 2);
+        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 50) * 2);
       } else {
         this.progress.bartotal = this.progress.bartotal + this.progress.bar;
-        this.progress.text = "Cargando " + this.progress.totalPR + " PR's. " + Math.floor(this.progress.bartotal) + "% Completado";
+        this.progress.text =
+          "Cargando " +
+          this.progress.totalPR +
+          " PR's. " +
+          Math.floor(this.progress.bartotal) +
+          "% Completado";
       }
     },
     btnLoadFile() {
@@ -182,7 +186,7 @@ export default {
         "codigoAdd",
         "codigoRem",
         "sizePR",
-        "estado"
+        "estado",
       ];
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(this.estadisticas);
@@ -213,11 +217,11 @@ export default {
       // Credit: https://stackoverflow.com/a/754398/52160
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
-      reader.onload = evt => {
+      reader.onload = (evt) => {
         this.pullRequests = JSON.parse(evt.target.result);
         //LLamo a realizar el analisis y conteo
         this.estadisticas = [];
-        this.pullRequests.forEach(PR => {
+        this.pullRequests.forEach((PR) => {
           this.countMatrix = matrizConteoPR(PR);
           this.getEstadisticas(PR);
         });
@@ -225,7 +229,7 @@ export default {
         this.progress.bar = 0;
         this.loading = false;
       };
-      reader.onerror = evt => {
+      reader.onerror = (evt) => {
         this.showSnackbar(
           "Error al cargar el archivo: \n" + evt,
           "error",
@@ -265,7 +269,7 @@ export default {
           8000
         );
       }
-      let tabla = new Array()
+      let tabla = new Array();
       let coeInd, colabInd, msjEnviados, msjRecibidos;
       for (let i = 0; i < cantPersonas; i++) {
         coeInd = 0;
@@ -290,20 +294,20 @@ export default {
           coeInd: coeInd,
           colabInd: colabInd,
           msjEnviados: msjEnviados,
-          msjRecibidos: msjRecibidos
-        })
+          msjRecibidos: msjRecibidos,
+        });
       }
 
       //Obtengo la cohesión grupal y varianza
       let cohesionGrupal = 0;
-      tabla.forEach(item => {
+      tabla.forEach((item) => {
         cohesionGrupal += item.coeInd;
       });
       cohesionGrupal = cohesionGrupal / tabla.length;
 
       //varianza
       let coheGrupalVarianza = 0;
-      tabla.forEach(item => {
+      tabla.forEach((item) => {
         coheGrupalVarianza +=
           (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
       });
@@ -311,7 +315,7 @@ export default {
 
       //Obtengo la colaboración grupal
       let colabGrupal = 0;
-      tabla.forEach(item => {
+      tabla.forEach((item) => {
         colabGrupal += item.coeInd;
       });
       colabGrupal = colabGrupal / tabla.length;
@@ -351,7 +355,7 @@ export default {
         sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
-        participantes: cantPersonas
+        participantes: cantPersonas,
       };
       this.estadisticas.push(estadisticaPR);
     },
@@ -364,7 +368,7 @@ export default {
       this.$apollo.queries.getPRcant
         .refetch({
           owner: search.owner,
-          name: search.name
+          name: search.name,
         })
         .then(() => {
           self.progress.totalPR = self.getPRcant.totalCount;
@@ -399,7 +403,7 @@ export default {
         reviewThreadsComments: 0,
         commentsReactions: 0,
         endCursor: null,
-        startCursor: null
+        startCursor: null,
       });
       this.$apollo.queries.getPR
         .refetch({
@@ -412,7 +416,7 @@ export default {
           rvThreads: 1,
           comments: 1,
           rvThreadsComments: 1,
-          commentsReactions: 1
+          commentsReactions: 1,
         })
         .then(() => {
           let i = self.countPRs.length - 1;
@@ -488,7 +492,7 @@ export default {
               rvThreads: self.countPRs[i].reviewThreads,
               comments: self.countPRs[i].comments,
               rvThreadsComments: 1,
-              commentsReactions: 1
+              commentsReactions: 1,
             })
             .then(() => {
               //caargo los ultimos valores del contador PR
@@ -566,7 +570,7 @@ export default {
           comments: this.countPRs[index].comments,
           rvThreads: this.countPRs[index].reviewThreads,
           rvThreadsComments: this.countPRs[index].reviewThreadsComments,
-          commentsReactions: this.countPRs[index].commentsReactions
+          commentsReactions: this.countPRs[index].commentsReactions,
         })
         .then(() => {
           let parser = JSON.stringify(self.getPR.pullRequests.nodes);
@@ -582,7 +586,7 @@ export default {
             let aux = "[" + self.pullRequests + "]";
             self.pullRequests = JSON.parse(aux);
             //Calculo la matriz de conteo y estadisticas para cada PR
-            self.pullRequests.forEach(PR => {
+            self.pullRequests.forEach((PR) => {
               self.countMatrix = matrizConteoPR(PR);
               self.getEstadisticas(PR);
             });
@@ -592,7 +596,7 @@ export default {
             self.showSnackbar("Análisis Finalizado", "success", 4000);
           }
         });
-    } //getFullPR
-  }
+    }, //getFullPR
+  },
 };
 </script>

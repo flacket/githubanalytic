@@ -48,13 +48,13 @@ export default {
     linksImportantes: [
       {
         text: "Repositorio Github",
-        href: "https://github.com/flacket/githubanalytic"
+        href: "https://github.com/flacket/githubanalytic",
       },
       {
         text: "Mi Perfil Github",
-        href: "https://github.com/flacket"
-      }
-    ]
-  })
+        href: "https://github.com/flacket",
+      },
+    ],
+  }),
 };
 </script>

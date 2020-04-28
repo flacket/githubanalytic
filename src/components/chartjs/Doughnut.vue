@@ -8,8 +8,8 @@ export default {
   props: {
     chartData: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
@@ -18,12 +18,12 @@ export default {
         maintainAspectRatio: true,
         legend: { display: true },
         tooltips: { enabled: false },
-        cutoutPercentage: 60
-      }
+        cutoutPercentage: 60,
+      },
     };
   },
   mounted() {
     this.renderChart(this.chartData, this.options);
-  }
+  },
 };
 </script>

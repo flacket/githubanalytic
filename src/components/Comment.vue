@@ -32,7 +32,7 @@ export default {
     moment: function(date) {
       //validar si es tipo fecha
       return moment(date).format("DD/MM/YY, h:mm:ss a");
-    }
-  }
+    },
+  },
 };
 </script>

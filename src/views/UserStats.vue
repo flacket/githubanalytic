@@ -45,7 +45,7 @@ export default {
         { text: "Stars", value: "star" },
         { text: "Forks", value: "fork" },
         { text: "Seguidores", value: "followers" },
-        { text: "Siguiendo", value: "following" }
+        { text: "Siguiendo", value: "following" },
       ],
       estadisticas: "",
       repositoryOwner: "",
@@ -82,19 +82,19 @@ export default {
         "foresthoffman",
         "satlus",
         "ibnesayeed",
-        "ptoulouse"
-      ]
+        "ptoulouse",
+      ],
     };
   },
   apollo: {
     repositoryOwner: {
       query: USER_STATS,
-      variables: { owner: "flacket" }
+      variables: { owner: "flacket" },
     },
     user: {
       query: USER,
-      variables: { owner: "flacket" }
-    }
+      variables: { owner: "flacket" },
+    },
   },
   mounted: function() {
     this.$apollo.skipAll = true;
@@ -105,7 +105,7 @@ export default {
         this.$apollo.skipAll = false;
       }
       var estadisticas = "";
-      this.users.forEach(item => {
+      this.users.forEach((item) => {
         var watch, star, fork, followers, following;
         this.$apollo.queries.repositoryOwner
           .refetch({ owner: item })
@@ -194,7 +194,7 @@ export default {
             this.show = true;
           });
         });
-    } //refresh query
-  }
+    }, //refresh query
+  },
 };
 </script>

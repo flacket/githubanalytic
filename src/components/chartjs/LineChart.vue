@@ -8,17 +8,17 @@ export default {
   props: {
     chartData: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
   },
   data: () => ({
     options: {
       responsive: true,
-      maintainAspectRatio: false
-    }
+      maintainAspectRatio: false,
+    },
   }),
   mounted() {
     this.renderChart(this.chartdata, this.options);
-  }
+  },
 };
 </script>
