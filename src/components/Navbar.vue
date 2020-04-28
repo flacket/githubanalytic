@@ -51,7 +51,7 @@ import GithubLogin from "./GithubLogin";
 
 export default {
   components: {
-    GithubLogin
+    GithubLogin,
   },
   data() {
     return {
@@ -63,8 +63,8 @@ export default {
         { icon: "list_alt", text: "Pull Request", route: "/pullrequest" },
         { icon: "timeline", text: "Repositorio", route: "/repositorio" },
         { icon: "person", text: "Participantes", route: "/userstats" },
-        { icon: "help", text: "Acerca de", route: "/acerca" }
-      ]
+        { icon: "help", text: "Acerca de", route: "/acerca" },
+      ],
     };
   },
   created() {
@@ -73,7 +73,7 @@ export default {
     else this.isLoggedIn = false;
   },
   props: {
-    source: String
-  }
+    source: String,
+  },
 };
 </script>

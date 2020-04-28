@@ -1,6 +1,54 @@
 import moment from "moment";
 moment.locale("es-us");
-
+export function listaParticipantesRepo(pullRequests) {
+  //creo una lista de los Paticipantes de cada PR del repositorio
+  let listPersonas = [];
+  pullRequests.forEach((PR) => {
+    PR.participants.nodes.forEach((participante) => {
+      if (!listPersonas.includes(participante.login)) {
+        listPersonas.push(participante.login);
+      }
+    });
+  });
+  //console.log("Lista de Participantes:", listPersonas);
+}
+export function habilidadParticipante(pullRequests) {
+  //creo una lista de los Paticipantes de cada PR del repositorio
+  var listPersonas = [];
+  for (let i = 0; i < pullRequests.length; i++) {
+    //hago una lista de participantes
+    for (let j = 0; j < pullRequests[i].participants.nodes.length; j++) {
+      //Busco si el participante ya esta incluido en la lista
+      var index = -1;
+      for (var p = 0; p < listPersonas.length; p++) {
+        if (
+          listPersonas[p].nombre == pullRequests[i].participants.nodes[j].login
+        ) {
+          index = p;
+        }
+      }
+      //si no esta incluido lo agrego
+      if (index == -1) {
+        let newpersona = {
+          nombre: pullRequests[i].participants.nodes[j].login,
+          cantAutor: 0,
+          cantMerge: 0,
+        };
+        index = listPersonas.push(newpersona);
+        index = index - 1;
+      }
+      //busco el creador del PR y reviso si fue mergeado y sumo
+      if (
+        pullRequests[i].author.login ==
+        pullRequests[i].participants.nodes[j].login
+      ) {
+        listPersonas[index].cantAutor++;
+        if (pullRequests[i].state == "MERGED") listPersonas[index].cantMerge++;
+      }
+    }
+  }
+  return listPersonas;
+}
 export function duracionPRdias(tcreated, tclosed) {
   //Obtengo la duracion del PR en días
   let createdAt = moment(tcreated);
@@ -15,7 +63,7 @@ export function duracionPRdias(tcreated, tclosed) {
   let duraciondias = {
     createdAt: createdAt.format("DD/MM/YY"),
     closedAt: closedAt.format("DD/MM/YY"),
-    diff: diff
+    diff: diff,
   };
   return duraciondias;
 }
@@ -51,7 +99,7 @@ export function comunaFormula(participantes) {
   //TODO: EXPLICAR ESTO
   //Esta funcion crea una matriz de comunalidad
   //entre los usuarios participantes de un Pull Request
-  //#######################################################
+  //########################################################
   let cantPersonas = participantes.totalCount;
   //creo un arreglo dando formato a los datos de comunalidad
   //para luego calcular la formula sobre esos datos
@@ -60,10 +108,10 @@ export function comunaFormula(participantes) {
     let varComuna = { location: "", following: "", starredRepos: "" };
     varComuna.location = participantes.nodes[i].location;
 
-    participantes.nodes[i].following.nodes.forEach(following => {
+    participantes.nodes[i].following.nodes.forEach((following) => {
       varComuna.following = varComuna.following + " " + following.id;
     });
-    participantes.nodes[i].starredRepositories.nodes.forEach(starredRepos => {
+    participantes.nodes[i].starredRepositories.nodes.forEach((starredRepos) => {
       varComuna.starredRepos = varComuna.starredRepos + " " + starredRepos.id;
     });
     comunaConteo.push(varComuna);
@@ -156,12 +204,12 @@ function listaComentariosParticipante(cantPersonas, pullRequest) {
     //caso contrario "cereo" la cadena para las prox consultas
     if (person == pullRequest.author.login) listaComents[i] = pullRequest.body;
     else listaComents[i] = "";
-    pullRequest.comments.nodes.forEach(comment => {
+    pullRequest.comments.nodes.forEach((comment) => {
       if (person == comment.author.login)
         listaComents[i] = listaComents[i] + " " + comment.body;
     });
-    pullRequest.reviewThreads.nodes.forEach(review => {
-      review.comments.nodes.forEach(reviewcomment => {
+    pullRequest.reviewThreads.nodes.forEach((review) => {
+      review.comments.nodes.forEach((reviewcomment) => {
         if (person == reviewcomment.author.login)
           listaComents[i] = listaComents[i] + " " + reviewcomment.body;
       });

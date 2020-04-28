@@ -43,10 +43,10 @@
 export default {
   data() {
     return {
-      search: {owner: 'cdr', name: 'code-server', number: '154'},
+      search: { owner: "cdr", name: "code-server", number: "154" },
       //search: { owner: "", name: "", number: "" },
-      emptyRules: [v => !!v || "Ingrese algun valor"]
+      emptyRules: [(v) => !!v || "Ingrese algun valor"],
     };
-  }
+  },
 };
 </script>

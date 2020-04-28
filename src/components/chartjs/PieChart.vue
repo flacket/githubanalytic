@@ -8,15 +8,15 @@ export default {
   props: {
     chartData: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
       options: {
         responsive: true,
-        maintainAspectRatio: true
-      }
+        maintainAspectRatio: true,
+      },
     };
   },
   mounted() {
@@ -36,6 +36,6 @@ export default {
     this.gradient2.addColorStop(1, "rgba(0, 231, 255, 0)");
 
     this.renderChart(this.chartdata, this.options);
-  }
+  },
 };
 </script>

@@ -35,7 +35,7 @@ import GithubLogin from "../components/GithubLogin";
 
 export default {
   components: {
-    GithubLogin
-  }
+    GithubLogin,
+  },
 };
 </script>

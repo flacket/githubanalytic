@@ -64,19 +64,19 @@ import { GET_REPO } from "../graphql/queries.js";
 export default {
   components: {
     Comment,
-    PRSelector
+    PRSelector,
   },
   data() {
     return {
       show: false,
-      repository: ""
+      repository: "",
     };
   },
   apollo: {
     repository: {
       query: GET_REPO,
-      variables: { owner: "cdr", name: "code-server", number: 154 }
-    }
+      variables: { owner: "cdr", name: "code-server", number: 154 },
+    },
   },
   methods: {
     refreshQuery(search) {
@@ -84,16 +84,16 @@ export default {
         .refetch({
           owner: search.owner,
           name: search.name,
-          number: parseInt(search.number)
+          number: parseInt(search.number),
         })
         .then(() => {
           this.show = true;
         })
-        .catch(err => {
+        .catch((err) => {
           console.log("Ocurrio un problema al buscar el PR: ", err.message);
           this.show = false;
         });
-    } //refresh query
-  }
+    }, //refresh query
+  },
 };
 </script>

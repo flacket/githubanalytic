@@ -114,7 +114,7 @@ import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  comunaFormula
+  //comunaFormula
   //mimicaFormula
   //polaridadFormula
 } from "../formulas.js";
@@ -124,7 +124,7 @@ export default {
     PRSelector,
     //RadarChart,
     BarChart,
-    Doughnut
+    Doughnut,
   },
   data() {
     return {
@@ -139,43 +139,43 @@ export default {
         show: false,
         text: "Bienvenido a Gitana: Analíticas de Github",
         color: "info",
-        timeout: 2500
+        timeout: 2500,
       },
       chartCoheGrupal: {
         labels: [],
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
-          }
-        ]
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
       },
       chartColabGrupal: {
         labels: [],
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"]
-          }
-        ]
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
       },
       chartCohe: {
         labels: [],
         datasets: [
           {
             data: [],
-            backgroundColor: "rgba(0, 71, 255, 1)"
-          }
-        ]
+            backgroundColor: "rgba(0, 71, 255, 1)",
+          },
+        ],
       },
       chartColab: {
         labels: [],
         datasets: [
           {
             data: [],
-            backgroundColor: "rgba(0, 71, 255, 1)"
-          }
-        ]
+            backgroundColor: "rgba(0, 71, 255, 1)",
+          },
+        ],
       },
       participante: {},
       participantes: [],
@@ -184,25 +184,25 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: "rgba(0, 71, 255, 0.5)"
-          }
-        ]
+            backgroundColor: "rgba(0, 71, 255, 0.5)",
+          },
+        ],
       },
       estadisticas: [],
       encabezados: [
         { text: "Participante", sortable: false, value: "nombre" },
         { text: "Msj. Enviados", value: "msjEnviados" },
-        { text: "Msj. Recibidos", value: "msjRecibidos" }
+        { text: "Msj. Recibidos", value: "msjRecibidos" },
       ],
       cohesionGrupal: "",
-      getComuna: ""
+      getComuna: "",
     };
   },
   apollo: {
     repository: {
       query: GET_REPO,
-      variables: { owner: "flacket", name: "githubanalytic", number: 150 }
-    }
+      variables: { owner: "flacket", name: "githubanalytic", number: 150 },
+    },
   },
   mounted: function() {
     this.$apollo.skipAll = true;
@@ -219,7 +219,9 @@ export default {
         var cantPersonas = this.repository.pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        this.comunaMatrix = this.comunaFormula(this.repository.pullRequest.participants);
+        this.comunaMatrix = this.comunaFormula(
+          this.repository.pullRequest.participants
+        );
         //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest);
         //polaridadFormula(cantPersonas, this.repository.pullRequest);
       } catch (error) {
@@ -255,7 +257,7 @@ export default {
             coeInd: coeInd,
             colabInd: colabInd,
             msjEnviados: msjEnviados,
-            msjRecibidos: msjRecibidos
+            msjRecibidos: msjRecibidos,
           };
           this.estadisticas.push(tabla);
         }
@@ -287,7 +289,7 @@ export default {
     chartDataCoheGrupal() {
       //Obtengo la cohesión grupal
       let cohesionGrupal = 0;
-      this.estadisticas.forEach(item => {
+      this.estadisticas.forEach((item) => {
         cohesionGrupal += item.coeInd;
       });
       cohesionGrupal = (cohesionGrupal / this.estadisticas.length) * 100;
@@ -299,7 +301,7 @@ export default {
     chartDataColabGrupal() {
       //Obtengo la cohesión grupal
       let colabGrupal = 0;
-      this.estadisticas.forEach(item => {
+      this.estadisticas.forEach((item) => {
         colabGrupal += item.colabInd;
       });
       colabGrupal = (colabGrupal / this.estadisticas.length) * 100;
@@ -359,7 +361,7 @@ export default {
         .refetch({
           owner: search.owner,
           name: search.name,
-          number: parseInt(search.number)
+          number: parseInt(search.number),
         })
         .then(() => {
           //Llamo a hacer el conteo de Interacciones
@@ -367,7 +369,7 @@ export default {
           //LLamo a generar las estadisticas en base al conteo
           this.estadisticasPR();
         }); //apollo refetch
-    }
-  }
+    },
+  },
 };
 </script>
