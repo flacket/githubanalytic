@@ -17,7 +17,7 @@
     "firebase": "^7.14.2",
     "json2csv": "^5.0.0",
     "material-design-icons-iconfont": "^5.0.1",
-    "moment": "^2.24.0",
+    "moment": "^2.25.0",
     "polarity": "^3.0.4",
     "vue": "^2.6.11",
     "vue-apollo": "^3.0.3",
