@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@playlyfe/gql": "^2.6.2",
-    "apollo-boost": "^0.4.7",
+    "apollo-boost": "^0.4.8",
     "chart.js": "^2.9.3",
     "core-js": "^3.6.4",
     "doc-similarity": "0.0.1",
