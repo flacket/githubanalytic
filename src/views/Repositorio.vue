@@ -179,6 +179,7 @@ export default {
         "PR",
         "cohesionGrupal",
         "cohesionGrupalVarianza",
+        "colaboracionGrupal",
         "participantes",
         "fechaInicio",
         "fechaCierre",
@@ -327,8 +328,8 @@ export default {
       );
 
       //Calculo el estado del PR
-      let estado;
-      switch (pullRequest.state) {
+      let estado = pullRequest.state;
+      /*switch (pullRequest.state) {
         case "MERGED":
           estado = 1;
           break;
@@ -338,7 +339,7 @@ export default {
         case "OPEN":
           estado = 0.5;
           break;
-      }
+      }*/
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,

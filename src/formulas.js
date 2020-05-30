@@ -134,13 +134,13 @@ export function comunaFormula(participantes) {
         following = docSimilarity.wordFrequencySim(
           comunaConteo[i].following,
           comunaConteo[j].following,
-          docSimilarity.cosineSim
+          docSimilarity.jaccardSim
         );
         //calculo similaridad de seguidos
         starredRepos = docSimilarity.wordFrequencySim(
           comunaConteo[i].starredRepos,
           comunaConteo[j].starredRepos,
-          docSimilarity.cosineSim
+          docSimilarity.jaccardSim
         );
         //TODO:Calculo distancia por indice de Hofstead
         location = 0;
@@ -222,6 +222,7 @@ function listaComentariosParticipante(cantPersonas, pullRequest) {
 export function mimicaFormula(cantPersonas, pullRequest) {
   //Esta funcion crea una matriz con el grado de mimica de los participantes
   //el grado de mimica es la similaridad que hay entre sus comentarios en un PR
+  //https://www.npmjs.com/package/doc-similarity
   let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
   //creo una variable con la funcion del coseno de similaridad
   const docSimilarity = require("doc-similarity");
@@ -252,7 +253,8 @@ export function mimicaFormula(cantPersonas, pullRequest) {
 }
 export function polaridadFormula(cantPersonas, pullRequest) {
   let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
-  var polarity = require("polarity");
+  let polarity = require("polarity");
+  let polarityTable = new Array();
   for (let i = 0; i < cantPersonas; i++) {
     //reemplazo caracteres indeseados
     let str = listaComm[i].replace(/"/g, " ");
@@ -261,13 +263,9 @@ export function polaridadFormula(cantPersonas, pullRequest) {
     let arreglo = str.trim().split(" ");
     //aplico función de polaridad
     let polaridad = polarity(arreglo);
-    console.log(
-      "Polaridad del participante ",
-      pullRequest.participants.nodes[i].login,
-      ": ",
-      polaridad
-    );
+    polarityTable.push(polaridad);
   }
+  return polarityTable;
 }
 export function matrizConteoPR(pullRequest) {
   //busco cantidad de participantes

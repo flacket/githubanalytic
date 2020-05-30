@@ -30,38 +30,49 @@
         </a>
       </h1>
       <v-container>
-        <v-row>
-          <v-col sm="12" md="2">
-            <v-layout column>
-              <v-flex>
-                <p>
-                  Participantes:
-                  {{ this.repository.pullRequest.participants.totalCount }}
-                </p>
-              </v-flex>
-              <v-flex>
-                <p>
-                  Tamaño PR:
-                  {{
-                    this.repository.pullRequest.additions +
-                      this.repository.pullRequest.deletions
-                  }}
-                </p>
-              </v-flex>
-              <v-flex>
-                <p>Estado: {{ this.repository.pullRequest.state }}</p>
-              </v-flex>
-            </v-layout>
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Cohesión Grupal:</h4>
-            <Doughnut :chartData="chartCoheGrupal" />
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Colaboración Grupal:</h4>
-            <Doughnut :chartData="chartColabGrupal" />
-          </v-col>
-        </v-row>
+        <v-card pa-2 outlined>
+          <h4>Estadisticas Grupales</h4>
+          <v-row>
+            <v-col sm="12" md="2">
+              <v-layout column>
+                <v-flex>
+                  <p>
+                    Participantes:
+                    {{ this.repository.pullRequest.participants.totalCount }}
+                  </p>
+                </v-flex>
+                <v-flex>
+                  <p>
+                    Tamaño PR:
+                    {{
+                      this.repository.pullRequest.additions +
+                        this.repository.pullRequest.deletions
+                    }}
+                  </p>
+                </v-flex>
+                <v-flex>
+                  <p>Estado: {{ this.repository.pullRequest.state }}</p>
+                </v-flex>
+              </v-layout>
+            </v-col>
+            <v-col class="mb-3" sm="2">
+              <h4>Cohesión:</h4>
+              <Doughnut :chartData="chartCoheGrupal" />
+            </v-col>
+            <v-col class="mb-3" sm="2">
+              <h4>Colaboración:</h4>
+              <Doughnut :chartData="chartColabGrupal" />
+            </v-col>
+            <v-col class="mb-3" sm="2">
+              <h4>Mímica:</h4>
+              <Doughnut :chartData="chartMimicaGrupal" />
+            </v-col>
+            <v-col class="mb-3" sm="2">
+              <h4>Polaridad:</h4>
+              <Doughnut :chartData="chartTonoGrupal" />
+            </v-col>
+          </v-row>
+        </v-card>
         <v-row>
           <v-col sm="12" md="5">
             <h4>Cohesión Individual:</h4>
@@ -114,9 +125,9 @@ import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  //comunaFormula
-  //mimicaFormula
-  //polaridadFormula
+  comunaFormula,
+  mimicaFormula,
+  polaridadFormula,
 } from "../formulas.js";
 
 export default {
@@ -159,6 +170,24 @@ export default {
           },
         ],
       },
+      chartMimicaGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
+      chartTonoGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
       chartCohe: {
         labels: [],
         datasets: [
@@ -193,6 +222,8 @@ export default {
         { text: "Participante", sortable: false, value: "nombre" },
         { text: "Msj. Enviados", value: "msjEnviados" },
         { text: "Msj. Recibidos", value: "msjRecibidos" },
+        { text: "Mímica", value: "mimicaInd" },
+        { text: "Polaridad", value: "tonoInd" },
       ],
       cohesionGrupal: "",
       getComuna: "",
@@ -219,11 +250,19 @@ export default {
         var cantPersonas = this.repository.pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        this.comunaMatrix = this.comunaFormula(
+        this.comunaMatrix = comunaFormula(
           this.repository.pullRequest.participants
         );
-        //this.mimicaMatrix = mimicaFormula(cantPersonas, this.repository.pullRequest);
-        //polaridadFormula(cantPersonas, this.repository.pullRequest);
+        this.mimicaMatrix = mimicaFormula(
+          cantPersonas,
+          this.repository.pullRequest
+        );
+        var polaridad = polaridadFormula(
+          cantPersonas,
+          this.repository.pullRequest
+        );
+        console.log("Polar 1: ", polaridad[1].polarity);
+        console.log("Polar tabla: ", polaridad);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
@@ -233,16 +272,18 @@ export default {
         );
       }
       try {
-        var coeInd, colabInd, msjEnviados, msjRecibidos;
+        var coeInd, colabInd, mimicaInd, msjEnviados, msjRecibidos;
         for (let i = 0; i < cantPersonas; i++) {
           coeInd = 0;
           colabInd = 0;
+          mimicaInd = 0;
           msjEnviados = 0;
           msjRecibidos = 0;
           //Cuento los mensajes enviados y recibidos para la persona "i"
           for (let j = 0; j < cantPersonas; j++) {
             coeInd += this.cohesionMatrix[i][j];
             colabInd += this.colabMatrix[i][j];
+            mimicaInd += this.mimicaMatrix[i][j];
             msjEnviados += this.countMatrix[i][j];
             msjRecibidos += this.countMatrix[j][i];
           }
@@ -250,12 +291,15 @@ export default {
           if (cantPersonas > 1) {
             coeInd = Math.round((coeInd / cantPersonas) * 100) / 100;
             colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
+            mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
           }
           //creo la tabla con los datos estaditicos
           let tabla = {
             nombre: this.repository.pullRequest.participants.nodes[i].login,
             coeInd: coeInd,
             colabInd: colabInd,
+            mimicaInd: mimicaInd,
+            tonoInd: polaridad[i].polarity,
             msjEnviados: msjEnviados,
             msjRecibidos: msjRecibidos,
           };
@@ -264,8 +308,11 @@ export default {
         //Doy formato a las gráficas
         this.chartDataCoheGrupal();
         this.chartDataColabGrupal();
+        this.chartDataMimicaGrupal();
+        this.chartDataTonoGrupal();
         this.chartDataCohe();
         this.chartDataColab();
+
         /*let pos = 0;
         this.repository.pullRequest.participants.nodes.forEach(item => {
           this.participantes.push({
@@ -309,6 +356,27 @@ export default {
       this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
       this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
       this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
+    },
+    chartDataMimicaGrupal() {
+      //Obtengo la cohesión grupal
+      let mimicaGrupal = 0;
+      this.estadisticas.forEach((item) => {
+        mimicaGrupal += item.mimicaInd;
+      });
+      mimicaGrupal = (mimicaGrupal / this.estadisticas.length) * 100;
+      //Doy formato al valor de colabGrupal para el gráfico
+      this.chartMimicaGrupal.labels[0] = mimicaGrupal.toFixed(2) + "%";
+      this.chartMimicaGrupal.datasets[0].data[0] = mimicaGrupal;
+      this.chartMimicaGrupal.datasets[0].data[1] = 100 - mimicaGrupal;
+    },
+    chartDataTonoGrupal() {
+      //Obtengo la cohesión grupal
+      let tonoGrupal = 5.2;
+      tonoGrupal = (tonoGrupal / this.estadisticas.length) * 100;
+      //Doy formato al valor de colabGrupal para el gráfico
+      this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
+      this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
+      this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
     },
     chartDataCohe() {
       //Genera el dataset para armar el grafico de cohesion individual
