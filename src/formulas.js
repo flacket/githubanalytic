@@ -170,7 +170,25 @@ export function colaboracionFormula(cantPersonas, countMatrix) {
     for (let j = i; j < cantPersonas; j++) {
       //contar cohesion para [i][j]
       if (i == j) colaboracionMatrix[i][j] = 0;
+      //colaboracion entre i y j en conjunto
       else {
+        let result;
+        //cant interacciones entre j y i
+        var sum = countMatrix[i][j] + countMatrix[j][i];
+        if (totalinterac[i] > 0 && totalinterac[j] > 0) {
+          //aplico la formula de colaboración
+          result = sum / (totalinterac[i] + totalinterac[j]);
+          //redondeo el resultado
+          result = Math.round(result * 100) / 100;
+        } else {
+          //no hay interacciones entre i y j
+          result = 0;
+        }
+        colaboracionMatrix[i][j] = result;
+        colaboracionMatrix[j][i] = result;
+      }
+      //colaboracion de i con j, y de j con i
+      /*else {
         let resulti, resultj;
         //cant interacciones entre j y i
         var sum = countMatrix[i][j] + countMatrix[j][i];
@@ -188,7 +206,7 @@ export function colaboracionFormula(cantPersonas, countMatrix) {
         }
         colaboracionMatrix[i][j] = resulti;
         colaboracionMatrix[j][i] = resultj;
-      }
+      }*/
     }
   }
   return colaboracionMatrix;
@@ -248,7 +266,6 @@ export function mimicaFormula(cantPersonas, pullRequest) {
       }
     }
   }
-  console.log("Matriz de Mimica: ", mimicaMatrix);
   return mimicaMatrix;
 }
 export function polaridadFormula(cantPersonas, pullRequest) {

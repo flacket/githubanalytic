@@ -73,7 +73,9 @@ import {
   cohesionFormula,
   colaboracionFormula,
   duracionPRdias,
-  habilidadParticipante,
+  //habilidadParticipante,
+  mimicaFormula,
+  polaridadFormula,
 } from "../formulas.js";
 
 export default {
@@ -101,11 +103,14 @@ export default {
       countMatrix: "",
       cohesionMatrix: "",
       colabMatrix: "",
+      mimicaMatrix: "",
       encabezados: [
         { text: "PR#", sortable: false, value: "PR" },
         { text: "Cohesión Grupal", value: "cohesionGrupal" },
         { text: "CG Varianza", value: "cohesionGrupalVarianza" },
         { text: "Colaboración Grupal", value: "colaboracionGrupal" },
+        { text: "Mímica Grupal", value: "mimicaGrupal" },
+        { text: "Polaridad Grupal", value: "tonoGrupal" },
         { text: "Participantes", value: "participantes" },
         { text: "Fecha Inicio", value: "fechaInicio" },
         { text: "Fecha Cierre", value: "fechaCierre" },
@@ -260,8 +265,10 @@ export default {
         var cantPersonas = pullRequest.participants.totalCount;
         this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        let listPersonas = habilidadParticipante(this.pullRequests);
-        console.log("Habilidad del participante:", listPersonas);
+        this.mimicaMatrix = mimicaFormula(cantPersonas, pullRequest);
+        var polaridad = polaridadFormula(cantPersonas, pullRequest);
+        //let listPersonas = habilidadParticipante(this.pullRequests);
+        //console.log("Habilidad del participante:", listPersonas);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
@@ -271,16 +278,18 @@ export default {
         );
       }
       let tabla = new Array();
-      let coeInd, colabInd, msjEnviados, msjRecibidos;
+      let coeInd, colabInd, mimicaInd, msjEnviados, msjRecibidos;
       for (let i = 0; i < cantPersonas; i++) {
         coeInd = 0;
         colabInd = 0;
+        mimicaInd = 0;
         msjEnviados = 0;
         msjRecibidos = 0;
         //Cuento los mensajes enviados y recibidos para la persona "i"
         for (let j = 0; j < cantPersonas; j++) {
           coeInd += this.cohesionMatrix[i][j];
           colabInd += this.colabMatrix[i][j];
+          mimicaInd += this.mimicaMatrix[i][j];
           msjEnviados += this.countMatrix[i][j];
           msjRecibidos += this.countMatrix[j][i];
         }
@@ -288,12 +297,20 @@ export default {
         if (cantPersonas > 1) {
           coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
           colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
+          mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
         }
+        //calculo Polaridad
+        let tonoInd = 0,
+          tonoPos = polaridad[i].positivity,
+          tonoNeg = Math.abs(polaridad[i].negativity);
+        if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
         //creo la tabla con los datos estaditicos
         tabla.push({
           nombre: pullRequest.participants.nodes[i].login,
           coeInd: coeInd,
           colabInd: colabInd,
+          mimicaInd: mimicaInd,
+          tonoInd: tonoInd,
           msjEnviados: msjEnviados,
           msjRecibidos: msjRecibidos,
         });
@@ -321,6 +338,20 @@ export default {
       });
       colabGrupal = colabGrupal / tabla.length;
 
+      //Obtengo la mimica grupal
+      let mimicaGrupal = 0;
+      tabla.forEach((item) => {
+        mimicaGrupal += item.mimicaInd;
+      });
+      mimicaGrupal = mimicaGrupal / tabla.length;
+
+      //Obtengo la polaridad grupal
+      let tonoGrupal = 0;
+      tabla.forEach((item) => {
+        tonoGrupal += item.tonoInd;
+      });
+      tonoGrupal = tonoGrupal / tabla.length;
+
       //Obtengo la duracion del PR en días
       let duracionDias = duracionPRdias(
         pullRequest.createdAt,
@@ -345,9 +376,11 @@ export default {
         //TODO:id: index,
         PR: pullRequest.number,
         tabla: tabla,
-        cohesionGrupal: cohesionGrupal.toFixed(3),
-        cohesionGrupalVarianza: coheGrupalVarianza.toFixed(3),
-        colaboracionGrupal: colabGrupal.toFixed(3),
+        cohesionGrupal: cohesionGrupal.toFixed(2),
+        cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
+        colaboracionGrupal: colabGrupal.toFixed(2),
+        mimicaGrupal: mimicaGrupal.toFixed(2),
+        tonoGrupal: tonoGrupal.toFixed(2),
         fechaInicio: duracionDias.createdAt,
         fechaCierre: duracionDias.closedAt,
         duraccionDias: duracionDias.diff || "-",

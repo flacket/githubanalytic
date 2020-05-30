@@ -31,9 +31,9 @@
       </h1>
       <v-container>
         <v-card pa-2 outlined>
-          <h4>Estadisticas Grupales</h4>
+          <h4>Metricas Grupales de Proyecto</h4>
           <v-row>
-            <v-col sm="12" md="2">
+            <v-col sm="12" md="3">
               <v-layout column>
                 <v-flex>
                   <p>
@@ -43,7 +43,7 @@
                 </v-flex>
                 <v-flex>
                   <p>
-                    Tamaño PR:
+                    Tamaño PR (loc):
                     {{
                       this.repository.pullRequest.additions +
                         this.repository.pullRequest.deletions
@@ -287,19 +287,25 @@ export default {
             msjEnviados += this.countMatrix[i][j];
             msjRecibidos += this.countMatrix[j][i];
           }
-          //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
+          //Me aseguro que hayan 2 o mas personas para calcular las cohesiónes
           if (cantPersonas > 1) {
             coeInd = Math.round((coeInd / cantPersonas) * 100) / 100;
             colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
             mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
           }
+          //calculo Polaridad
+          console.log("negatividad: ", Math.abs(polaridad[i].negativity));
+          let tonoInd = 0,
+            tonoPos = polaridad[i].positivity,
+            tonoNeg = Math.abs(polaridad[i].negativity);
+          if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
           //creo la tabla con los datos estaditicos
           let tabla = {
             nombre: this.repository.pullRequest.participants.nodes[i].login,
             coeInd: coeInd,
             colabInd: colabInd,
             mimicaInd: mimicaInd,
-            tonoInd: polaridad[i].polarity,
+            tonoInd: tonoInd,
             msjEnviados: msjEnviados,
             msjRecibidos: msjRecibidos,
           };
@@ -371,7 +377,10 @@ export default {
     },
     chartDataTonoGrupal() {
       //Obtengo la cohesión grupal
-      let tonoGrupal = 5.2;
+      let tonoGrupal = 0;
+      this.estadisticas.forEach((item) => {
+        tonoGrupal += item.tonoInd;
+      });
       tonoGrupal = (tonoGrupal / this.estadisticas.length) * 100;
       //Doy formato al valor de colabGrupal para el gráfico
       this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
