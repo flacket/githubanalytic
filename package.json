@@ -13,7 +13,7 @@
     "chart.js": "^2.9.3",
     "core-js": "^3.6.4",
     "doc-similarity": "0.0.1",
-    "eslint-plugin-graphql": "^3.1.1",
+    "eslint-plugin-graphql": "^4.0.0",
     "firebase": "^7.14.2",
     "json2csv": "^5.0.0",
     "material-design-icons-iconfont": "^5.0.1",
@@ -40,6 +40,6 @@
     "vue-cli-plugin-apollo": "^0.21.3",
     "vue-cli-plugin-vuetify": "^2.0.5",
     "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.4.3"
+    "vuetify-loader": "^1.4.4"
   }
 }
