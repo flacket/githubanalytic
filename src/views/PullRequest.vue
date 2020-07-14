@@ -110,6 +110,9 @@
             ></v-data-table>
           </v-col>
         </v-row>
+        <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
+          <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn
+        >
       </v-container>
     </div>
   </div>
@@ -128,6 +131,7 @@ import {
   comunaFormula,
   mimicaFormula,
   polaridadFormula,
+  getPRChat,
 } from "../formulas.js";
 
 export default {
@@ -146,6 +150,7 @@ export default {
       comunaMatrix: "",
       mimicaMatrix: "",
       repository: "",
+      chat: "",
       snackbar: {
         show: false,
         text: "Bienvenido a Gitana: Analíticas de Github",
@@ -244,6 +249,38 @@ export default {
       this.snackbar.color = color;
       this.snackbar.timeout = timeout;
       this.snackbar.show = true;
+    },
+    csvExport() {
+      //Creo el archivo CSV
+      const { Parser } = require("json2csv");
+      const fields = ["Participante", "Comentario", "Fecha"];
+
+      const json2csvParser = new Parser({ fields });
+      let chat = getPRChat(
+        this.repository.pullRequest.participants.totalCount,
+        this.repository.pullRequest
+      );
+      const csv = json2csvParser.parse(chat);
+      let nombreArchivo = "Chat - " + this.repository.pullRequest.title;
+      //Exporto ahora el archivo CSV
+      const exportName = nombreArchivo + ".csv" || "chatPR.csv";
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, exportName);
+      } else {
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", exportName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+      this.showSnackbar("Archivo CSV Guardado", "success", 4000);
     },
     estadisticasPR() {
       try {

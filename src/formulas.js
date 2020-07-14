@@ -218,6 +218,32 @@ export function colaboracionFormula(cantPersonas, countMatrix) {
   }
   return colaboracionMatrix;
 }
+export function getPRChat(cantPersonas, pullRequest) {
+  //Crea una lista de los comentarios que se hicieron en un PR
+  //mostrando Participante, Comentario y Fecha
+  var listaChat = new Array(cantPersonas);
+
+  pullRequest.comments.nodes.forEach((comment) => {
+    let row = {
+      Participante: comment.author.login,
+      Comentario: comment.body,
+      Fecha: comment.createdAt,
+    };
+    listaChat.push(row);
+  });
+  pullRequest.reviewThreads.nodes.forEach((review) => {
+    review.comments.nodes.forEach((reviewcomment) => {
+      let row = {
+        Participante: reviewcomment.author.login,
+        Comentario: reviewcomment.body,
+        Fecha: reviewcomment.createdAt,
+      };
+      listaChat.push(row);
+    });
+  });
+
+  return listaChat;
+}
 function listaComentariosParticipante(cantPersonas, pullRequest) {
   //creo una lista donde cada slot tiene todos los
   //comentarios encadenados de un participante
