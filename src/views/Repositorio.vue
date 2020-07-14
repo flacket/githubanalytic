@@ -99,12 +99,12 @@
         class="elevation-1 mt-2"
       ></v-data-table>
 
-      <v-data-table
+      <!--<v-data-table
         :headers="encabezados2"
         :items="estadisticas2"
         :items-per-page="20"
         class="elevation-1 mt-2"
-      ></v-data-table>
+      ></v-data-table>-->
     </div>
     <input
       id="file-upload"
