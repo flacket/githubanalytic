@@ -31,7 +31,7 @@
       </h1>
       <v-container>
         <v-card pa-2 outlined>
-          <h4>Metricas Grupales de Proyecto</h4>
+          <h4>Metricas Grupales del Pull Request</h4>
           <v-row>
             <v-col sm="12" md="3">
               <v-layout column>
@@ -261,8 +261,6 @@ export default {
           cantPersonas,
           this.repository.pullRequest
         );
-        console.log("Polar 1: ", polaridad[1].polarity);
-        console.log("Polar tabla: ", polaridad);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
@@ -294,7 +292,6 @@ export default {
             mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
           }
           //calculo Polaridad
-          console.log("negatividad: ", Math.abs(polaridad[i].negativity));
           let tonoInd = 0,
             tonoPos = polaridad[i].positivity,
             tonoNeg = Math.abs(polaridad[i].negativity);
@@ -441,10 +438,18 @@ export default {
           number: parseInt(search.number),
         })
         .then(() => {
-          //Llamo a hacer el conteo de Interacciones
-          this.countMatrix = matrizConteoPR(this.repository.pullRequest);
-          //LLamo a generar las estadisticas en base al conteo
-          this.estadisticasPR();
+          if (this.repository.pullRequest.participants.totalCount > 1) {
+            //Llamo a hacer el conteo de Interacciones
+            this.countMatrix = matrizConteoPR(this.repository.pullRequest);
+            //LLamo a generar las estadisticas en base al conteo
+            this.estadisticasPR();
+          } else {
+            this.showSnackbar(
+              "El Pull Request seleccionado no presenta interacciones",
+              "info",
+              8000
+            );
+          }
         }); //apollo refetch
     },
   },

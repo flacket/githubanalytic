@@ -57,7 +57,15 @@ export function duracionPRdias(tcreated, tclosed) {
   let diff = closedAt.diff(createdAt);
   //expresarlo como duracion
   let diffDuration = moment.duration(diff);
-  diff = diffDuration.days();
+  //console.log("diffDuration: ", diffDuration);
+  //TODO: mejorar
+  diff =
+    diffDuration.days() +
+    "D:" +
+    diffDuration.hours() +
+    "H:" +
+    diffDuration.minutes() +
+    "M";
   //eliminar ceros para evitar errores en operaciones
   if (diff == 0) diff = 1;
   let duraciondias = {
