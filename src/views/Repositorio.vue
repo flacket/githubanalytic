@@ -38,6 +38,50 @@
     >
 
     <div v-if="show">
+      <v-card pa-2 outlined>
+        <h4>Metricas Grupales de Proyecto</h4>
+        <v-row>
+          <v-col sm="12" md="3">
+            <v-layout column>
+              <v-flex>
+                <p>
+                  Participantes:
+                  <!--{{ this.pullRequests.participants.totalCount }}-->
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  Tamaño PRs:<!--
+                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  Estado:
+                  <!--{{ this.pullRequests.state }}-->
+                </p>
+              </v-flex>
+            </v-layout>
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Cohesión:</h4>
+            <Doughnut :chartData="chartCoheGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Colaboración:</h4>
+            <Doughnut :chartData="chartColabGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Mímica:</h4>
+            <Doughnut :chartData="chartMimicaGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Polaridad:</h4>
+            <Doughnut :chartData="chartTonoGrupal" />
+          </v-col>
+        </v-row>
+      </v-card>
+
       <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
@@ -54,6 +98,13 @@
         :items-per-page="20"
         class="elevation-1 mt-2"
       ></v-data-table>
+
+      <!--<v-data-table
+        :headers="encabezados2"
+        :items="estadisticas2"
+        :items-per-page="20"
+        class="elevation-1 mt-2"
+      ></v-data-table>-->
     </div>
     <input
       id="file-upload"
@@ -68,6 +119,7 @@
 <script>
 import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
+import Doughnut from "../components/chartjs/Doughnut.vue";
 import {
   matrizConteoPR,
   cohesionFormula,
@@ -79,7 +131,7 @@ import {
 } from "../formulas.js";
 
 export default {
-  components: { PRSelector },
+  components: { PRSelector, Doughnut },
   data() {
     return {
       loading: false,
@@ -120,9 +172,67 @@ export default {
         { text: "Total Cambios", value: "sizePR" },
         { text: "Estado", value: "estado" },
       ],
-      pullRequests: "",
+      encabezados2: [
+        { text: "Miembro", sortable: false, value: "miembro" },
+        { text: "Cohesión Individual", value: "cohesionIndividual" },
+        { text: "Colaboración Individual", value: "colaboracionIndividual" },
+        { text: "Habilidad", value: "habilidad" },
+        { text: "Cant. PR Autor", value: "cantAuthor" },
+        { text: "Polaridad", value: "polaridad" },
+        { text: "Cant. PR Participa", value: "cantParticipa" },
+        { text: "Rol", value: "rol" },
+      ],
+      estadisticas2: [
+        {
+          miembro: "Test",
+          cohesionIndividual: "0.23",
+          colaboracionIndividual: "0.55",
+          habilidad: "1.00",
+          cantAuthor: 2,
+          polaridad: "0.32",
+          cantParticipa: 5,
+          rol: "contribuyente",
+        },
+      ],
+      pullRequests: [],
       repository: "",
       estadisticas: [],
+      chartCoheGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
+      chartColabGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
+      chartMimicaGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
+      chartTonoGrupal: {
+        labels: [],
+        datasets: [
+          {
+            data: [],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+          },
+        ],
+      },
     };
   },
   apollo: {
@@ -224,13 +334,22 @@ export default {
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
       reader.onload = (evt) => {
-        this.pullRequests = JSON.parse(evt.target.result);
+        //this.pullRequests = JSON.parse(evt.target.result);
+        let pullReqs = JSON.parse(evt.target.result);
+        this.pullRequests = [];
+        for (let i = 0; i < pullReqs.length; i++) {
+          if (pullReqs[i].participants.totalCount > 1) {
+            this.pullRequests.push(pullReqs[i]);
+          }
+        }
         //LLamo a realizar el analisis y conteo
         this.estadisticas = [];
         this.pullRequests.forEach((PR) => {
           this.countMatrix = matrizConteoPR(PR);
           this.getEstadisticas(PR);
         });
+        //Doy formato a las gráficas
+        this.chartsDataGrupal();
         this.show = true;
         this.progress.bar = 0;
         this.loading = false;
@@ -316,41 +435,29 @@ export default {
         });
       }
 
-      //Obtengo la cohesión grupal y varianza
+      //Saco estadisticas de grupo
       let cohesionGrupal = 0;
+      let colabGrupal = 0;
+      let mimicaGrupal = 0;
+      let tonoGrupal = 0;
       tabla.forEach((item) => {
         cohesionGrupal += item.coeInd;
+        colabGrupal += item.coeInd;
+        mimicaGrupal += item.mimicaInd;
+        tonoGrupal += item.tonoInd;
       });
       cohesionGrupal = cohesionGrupal / tabla.length;
+      colabGrupal = colabGrupal / tabla.length;
+      mimicaGrupal = mimicaGrupal / tabla.length;
+      tonoGrupal = tonoGrupal / tabla.length;
 
-      //varianza
+      //Obtengo la varianza de cohesión
       let coheGrupalVarianza = 0;
       tabla.forEach((item) => {
         coheGrupalVarianza +=
           (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
       });
       coheGrupalVarianza = coheGrupalVarianza / tabla.length;
-
-      //Obtengo la colaboración grupal
-      let colabGrupal = 0;
-      tabla.forEach((item) => {
-        colabGrupal += item.coeInd;
-      });
-      colabGrupal = colabGrupal / tabla.length;
-
-      //Obtengo la mimica grupal
-      let mimicaGrupal = 0;
-      tabla.forEach((item) => {
-        mimicaGrupal += item.mimicaInd;
-      });
-      mimicaGrupal = mimicaGrupal / tabla.length;
-
-      //Obtengo la polaridad grupal
-      let tonoGrupal = 0;
-      tabla.forEach((item) => {
-        tonoGrupal += item.tonoInd;
-      });
-      tonoGrupal = tonoGrupal / tabla.length;
 
       //Obtengo la duracion del PR en días
       let duracionDias = duracionPRdias(
@@ -361,16 +468,10 @@ export default {
       //Calculo el estado del PR
       let estado = pullRequest.state;
       /*switch (pullRequest.state) {
-        case "MERGED":
-          estado = 1;
-          break;
-        case "CLOSED":
-          estado = 0;
-          break;
-        case "OPEN":
-          estado = 0.5;
-          break;
-      }*/
+        case "MERGED": estado = 1;break;
+        case "CLOSED": estado = 0;break;
+        case "OPEN": estado = 0.5;break;}*/
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
@@ -392,6 +493,44 @@ export default {
         participantes: cantPersonas,
       };
       this.estadisticas.push(estadisticaPR);
+    },
+    chartsDataGrupal() {
+      //Obtengo la cohesión grupal
+      var cant = this.estadisticas.length;
+      let cohesionGrupal = 0;
+      let colabGrupal = 0;
+      let mimicaGrupal = 0;
+      let tonoGrupal = 0;
+
+      for (let i = 0; i < cant; i++) {
+        cohesionGrupal += Number(this.estadisticas[i].cohesionGrupal);
+        colabGrupal += Number(this.estadisticas[i].colaboracionGrupal);
+        mimicaGrupal += Number(this.estadisticas[i].mimicaGrupal);
+        tonoGrupal += Number(this.estadisticas[i].tonoGrupal);
+      }
+      cohesionGrupal = (cohesionGrupal / cant) * 100;
+      colabGrupal = (colabGrupal / cant) * 100;
+      mimicaGrupal = (mimicaGrupal / cant) * 100;
+      tonoGrupal = (tonoGrupal / cant) * 100;
+
+      //Doy formato al valor de CohesionGrupal para el gráfico
+      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + "%";
+      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal;
+      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal;
+      //Doy formato al valor de colabGrupal para el gráfico
+      this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
+      this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
+      this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
+
+      //Doy formato al valor de mimicaGrupal para el gráfico
+      this.chartMimicaGrupal.labels[0] = mimicaGrupal.toFixed(2) + "%";
+      this.chartMimicaGrupal.datasets[0].data[0] = mimicaGrupal;
+      this.chartMimicaGrupal.datasets[0].data[1] = 100 - mimicaGrupal;
+
+      //Doy formato al valor de tonoGrupal para el gráfico
+      this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
+      this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
+      this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
     },
     getRepoPRcant(search) {
       var self = this;
@@ -618,12 +757,22 @@ export default {
           } else {
             //Transformo a Objeto la lista de self.pullRequests
             let aux = "[" + self.pullRequests + "]";
-            self.pullRequests = JSON.parse(aux);
+            let pullReqs = JSON.parse(aux);
+            self.pullRequests = [];
+            pullReqs.forEach((PR) => {
+              if (PR.participants.totalCount > 1) {
+                self.pullRequests.push(PR);
+              }
+            });
             //Calculo la matriz de conteo y estadisticas para cada PR
             self.pullRequests.forEach((PR) => {
               self.countMatrix = matrizConteoPR(PR);
               self.getEstadisticas(PR);
             });
+
+            //Doy formato a las gráficas
+            self.chartsDataGrupal();
+
             self.show = true;
             self.progress.bar = 0;
             self.loading = false;
