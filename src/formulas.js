@@ -159,7 +159,6 @@ export function comunaFormula(participantes) {
       }
     }
   }
-  console.log("comunaMatrix: ", comunaMatrix);
   return comunaMatrix;
 }
 export function colaboracionFormula(cantPersonas, countMatrix) {

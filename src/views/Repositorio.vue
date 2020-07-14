@@ -184,7 +184,7 @@ export default {
       ],
       estadisticas2: [
         {
-          miembro: "Noel2",
+          miembro: "Test",
           cohesionIndividual: "0.23",
           colaboracionIndividual: "0.55",
           habilidad: "1.00",
@@ -415,8 +415,8 @@ export default {
         //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
         if (cantPersonas > 1) {
           coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
-          colabInd = Math.round((colabInd / cantPersonas - 1) * 100) / 100;
-          mimicaInd = Math.round((mimicaInd / cantPersonas - 1) * 100) / 100;
+          colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
+          mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
         }
         //calculo Polaridad
         let tonoInd = 0,
