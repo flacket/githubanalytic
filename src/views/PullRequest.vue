@@ -162,7 +162,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -171,7 +171,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -180,7 +180,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -189,7 +189,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
