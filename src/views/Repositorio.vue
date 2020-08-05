@@ -46,12 +46,12 @@
               <v-flex>
                 <p>
                   Participantes:
-                  <!--{{ this.pullRequests.participants.totalCount }}-->
+                  {{ this.estadisticasPersona.length }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  Tamaño PRs:<!--
+                  Cant. PR Merged:<!--
                   {{this.pullRequests.additions + this.pullRequests.deletions}}-->
                 </p>
               </v-flex>
@@ -91,14 +91,14 @@
       <v-btn color="primary" v-on:click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
-
+      <h4 class="mt-4">Tabla de PRs</h4>
       <v-data-table
         :headers="encabezados"
         :items="estadisticas"
         :items-per-page="20"
         class="elevation-1 mt-2"
       ></v-data-table>
-
+      <h4 class="mt-4">Tabla de Personas</h4>
       <v-data-table
         :headers="encabezadosPersona"
         :items="estadisticasPersona"
