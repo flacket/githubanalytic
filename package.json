@@ -20,7 +20,7 @@
     "moment": "^2.27.0",
     "polarity": "^3.0.4",
     "vue": "^2.6.11",
-    "vue-apollo": "^3.0.3",
+    "vue-apollo": "^3.0.4",
     "vue-chartjs": "^3.5.0",
     "vue-router": "^3.3.2",
     "vuetify": "^2.3.1"

@@ -40,6 +40,13 @@
         <span class="body-2 font-weight-light"> Analíticas de Github</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-switch
+        v-model="$vuetify.theme.dark"
+        hide-details
+        inset
+        class="mx-4"
+        label="Modo Oscuro"
+      ></v-switch>
       <GithubLogin v-if="isLoggedIn" />
     </v-app-bar>
   </div>
