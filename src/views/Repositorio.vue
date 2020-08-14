@@ -46,12 +46,12 @@
               <v-flex>
                 <p>
                   Participantes:
-                  <!--{{ this.pullRequests.participants.totalCount }}-->
+                  {{ this.estadisticasPersona.length }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  Tamaño PRs:<!--
+                  Cant. PR Merged:<!--
                   {{this.pullRequests.additions + this.pullRequests.deletions}}-->
                 </p>
               </v-flex>
@@ -91,20 +91,20 @@
       <v-btn color="primary" v-on:click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
-
+      <h4 class="mt-4">Tabla de PRs</h4>
       <v-data-table
         :headers="encabezados"
         :items="estadisticas"
         :items-per-page="20"
         class="elevation-1 mt-2"
       ></v-data-table>
-
-      <!--<v-data-table
-        :headers="encabezados2"
-        :items="estadisticas2"
+      <h4 class="mt-4">Tabla de Personas</h4>
+      <v-data-table
+        :headers="encabezadosPersona"
+        :items="estadisticasPersona"
         :items-per-page="20"
         class="elevation-1 mt-2"
-      ></v-data-table>-->
+      ></v-data-table>
     </div>
     <input
       id="file-upload"
@@ -128,6 +128,7 @@ import {
   //habilidadParticipante,
   mimicaFormula,
   polaridadFormula,
+  getParticipantesRepoStat,
 } from "../formulas.js";
 
 export default {
@@ -172,7 +173,16 @@ export default {
         { text: "Total Cambios", value: "sizePR" },
         { text: "Estado", value: "estado" },
       ],
-      encabezados2: [
+      encabezadosPersona: [
+        { text: "nombre", sortable: false, value: "nombre" },
+        { text: "Cant. PR Author", value: "CantPRAuthor" },
+        { text: "Cant. PR Participa", value: "CantPRParticipa" },
+        { text: "Cohesión Individual", value: "coheInd" },
+        { text: "Colaboración Individual", value: "colabInd" },
+        { text: "Mimica Individual", value: "mimicaInd" },
+        { text: "Polaridad Individual", value: "tonoInd" },
+      ],
+      encabezadosOLD: [
         { text: "Miembro", sortable: false, value: "miembro" },
         { text: "Cohesión Individual", value: "cohesionIndividual" },
         { text: "Colaboración Individual", value: "colaboracionIndividual" },
@@ -182,18 +192,7 @@ export default {
         { text: "Cant. PR Participa", value: "cantParticipa" },
         { text: "Rol", value: "rol" },
       ],
-      estadisticas2: [
-        {
-          miembro: "Test",
-          cohesionIndividual: "0.23",
-          colaboracionIndividual: "0.55",
-          habilidad: "1.00",
-          cantAuthor: 2,
-          polaridad: "0.32",
-          cantParticipa: 5,
-          rol: "contribuyente",
-        },
-      ],
+      estadisticasPersona: "",
       pullRequests: [],
       repository: "",
       estadisticas: [],
@@ -202,7 +201,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -211,7 +210,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -220,7 +219,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -229,7 +228,7 @@ export default {
         datasets: [
           {
             data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "#ccccff"],
+            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
           },
         ],
       },
@@ -348,8 +347,12 @@ export default {
           this.countMatrix = matrizConteoPR(PR);
           this.getEstadisticas(PR);
         });
+
+        //llamo a crear la tabla de estadisticas de cada persona
+        this.estadisticasPersona = getParticipantesRepoStat(this.estadisticas);
         //Doy formato a las gráficas
         this.chartsDataGrupal();
+
         this.show = true;
         this.progress.bar = 0;
         this.loading = false;
@@ -491,6 +494,7 @@ export default {
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
         participantes: cantPersonas,
+        autor: pullRequest.author.login,
       };
       this.estadisticas.push(estadisticaPR);
     },
@@ -769,6 +773,8 @@ export default {
               self.countMatrix = matrizConteoPR(PR);
               self.getEstadisticas(PR);
             });
+            //llamo a crear la tabla de estadisticas de cada persona
+            self.getParticipantesRepoStat(self.estadisticas);
 
             //Doy formato a las gráficas
             self.chartsDataGrupal();
