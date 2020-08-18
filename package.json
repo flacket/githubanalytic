@@ -29,7 +29,7 @@
     "@mdi/font": "^5.5.55",
     "@mdi/js": "^5.5.55",
     "@vue/cli-plugin-babel": "^4.5.3",
-    "@vue/cli-plugin-eslint": "^4.5.3",
+    "@vue/cli-plugin-eslint": "^4.5.4",
     "@vue/cli-service": "^4.5.3",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.8.0",
