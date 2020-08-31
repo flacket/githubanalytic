@@ -2,21 +2,21 @@ import moment from "moment";
 moment.locale("es-us");
 /*export function listaParticipantesRepo(pullRequests) {
   //creo una lista de los Paticipantes de cada PR del repositorio
-  let listPersonas = [];
+  let habilidadLista = [];
   pullRequests.forEach((PR) => {
     PR.participants.nodes.forEach((participante) => {
-      if (!listPersonas.includes(participante.login)) {
-        listPersonas.push(participante.login);
+      if (!habilidadLista.includes(participante.login)) {
+        habilidadLista.push(participante.login);
       }
     });
   });
-  return listPersonas;
+  return habilidadLista;
 }*/
 export function getParticipantesRepoStat(estadisticasPR) {
-  //console.log("estadisticasPR: ", estadisticasPR);
   //creo una lista de los Paticipantes de cada PR del repositorio
   let participantesStat = [];
   estadisticasPR.forEach((PR) => {
+    let estadoPR = PR.estado;
     PR.tabla.forEach((participante) => {
       let cantParticipantes = participantesStat.length;
       let encontrado = false;
@@ -47,8 +47,6 @@ export function getParticipantesRepoStat(estadisticasPR) {
         participantesStat[i].tonoInd =
           participantesStat[i].tonoIndSum / participantesStat[i].tonoIndTotal++;
         participantesStat[i].CantPRParticipa++;
-        if (participantesStat[i].nombre == PR.autor)
-          participantesStat[i].CantPRAuthor++;
       } else {
         //agrego stats como participante nuevo
         var partStat = {
@@ -65,27 +63,35 @@ export function getParticipantesRepoStat(estadisticasPR) {
           tonoInd: participante.tonoInd,
           tonoIndSum: participante.tonoInd,
           tonoIndTotal: 1,
+          habilidad: 0,
           CantPRAuthor: 0,
+          CantPRMerge: 0,
           CantPRParticipa: 1,
         };
-        if (partStat.nombre == PR.autor) partStat.CantPRAuthor++;
-        participantesStat.push(partStat);
+        i = participantesStat.push(partStat) - 1;
+      }
+      if (participantesStat[i].nombre == PR.autor) {
+        participantesStat[i].CantPRAuthor++;
+        if (estadoPR == "MERGED") participantesStat[i].CantPRMerge++;
+        participantesStat[i].habilidad =
+          participantesStat[i].CantPRMerge / participantesStat[i].CantPRAuthor;
       }
     });
   });
   return participantesStat;
 }
-export function habilidadParticipante(pullRequests) {
+export function habilidadParticipantes(pullRequests) {
   //creo una lista de los Paticipantes de cada PR del repositorio
-  var listPersonas = [];
+  var habilidadLista = [];
   for (let i = 0; i < pullRequests.length; i++) {
     //hago una lista de participantes
     for (let j = 0; j < pullRequests[i].participants.nodes.length; j++) {
       //Busco si el participante ya esta incluido en la lista
       var index = -1;
-      for (var p = 0; p < listPersonas.length; p++) {
+      for (var p = 0; p < habilidadLista.length; p++) {
         if (
-          listPersonas[p].nombre == pullRequests[i].participants.nodes[j].login
+          habilidadLista[p].nombre ==
+          pullRequests[i].participants.nodes[j].login
         ) {
           index = p;
         }
@@ -97,7 +103,7 @@ export function habilidadParticipante(pullRequests) {
           cantAutor: 0,
           cantMerge: 0,
         };
-        index = listPersonas.push(newpersona);
+        index = habilidadLista.push(newpersona);
         index = index - 1;
       }
       //busco el creador del PR y reviso si fue mergeado y sumo
@@ -105,12 +111,13 @@ export function habilidadParticipante(pullRequests) {
         pullRequests[i].author.login ==
         pullRequests[i].participants.nodes[j].login
       ) {
-        listPersonas[index].cantAutor++;
-        if (pullRequests[i].state == "MERGED") listPersonas[index].cantMerge++;
+        habilidadLista[index].cantAutor++;
+        if (pullRequests[i].state == "MERGED")
+          habilidadLista[index].cantMerge++;
       }
     }
   }
-  return listPersonas;
+  return habilidadLista;
 }
 export function duracionPRdias(tcreated, tclosed) {
   //Obtengo la duracion del PR en días

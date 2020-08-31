@@ -125,7 +125,6 @@ import {
   cohesionFormula,
   colaboracionFormula,
   duracionPRdias,
-  //habilidadParticipante,
   mimicaFormula,
   polaridadFormula,
   getParticipantesRepoStat,
@@ -178,19 +177,9 @@ export default {
         { text: "Cant. PR Author", value: "CantPRAuthor" },
         { text: "Cant. PR Participa", value: "CantPRParticipa" },
         { text: "Cohesión Individual", value: "coheInd" },
-        { text: "Colaboración Individual", value: "colabInd" },
-        { text: "Mimica Individual", value: "mimicaInd" },
-        { text: "Polaridad Individual", value: "tonoInd" },
-      ],
-      encabezadosOLD: [
-        { text: "Miembro", sortable: false, value: "miembro" },
-        { text: "Cohesión Individual", value: "cohesionIndividual" },
-        { text: "Colaboración Individual", value: "colaboracionIndividual" },
         { text: "Habilidad", value: "habilidad" },
-        { text: "Cant. PR Autor", value: "cantAuthor" },
-        { text: "Polaridad", value: "polaridad" },
-        { text: "Cant. PR Participa", value: "cantParticipa" },
-        { text: "Rol", value: "rol" },
+        { text: "Mimica", value: "mimicaInd" },
+        { text: "Polaridad", value: "tonoInd" },
       ],
       estadisticasPersona: "",
       pullRequests: [],
@@ -389,7 +378,6 @@ export default {
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
         this.mimicaMatrix = mimicaFormula(cantPersonas, pullRequest);
         var polaridad = polaridadFormula(cantPersonas, pullRequest);
-        //let listPersonas = habilidadParticipante(this.pullRequests);
         //console.log("Habilidad del participante:", listPersonas);
       } catch (error) {
         console.log("Error en EstadisticasPR-Creando formulas: ", error);
