@@ -318,25 +318,40 @@ function listaComentariosParticipante(cantPersonas, pullRequest) {
   //creo una lista donde cada slot tiene todos los
   //comentarios encadenados de un participante
   var listaComents = new Array(cantPersonas);
+  try {
+    for (let i = 0; i < cantPersonas; i++) {
+      let person, prAutor, commentAutor, reviewcommentAutor;
 
-  for (let i = 0; i < cantPersonas; i++) {
-    let person = pullRequest.participants.nodes[i].login;
-    //me fijo si el comentario dela persona es la del Autor
-    //caso contrario "cereo" la cadena para las prox consultas
-    if (person == pullRequest.author.login) listaComents[i] = pullRequest.body;
-    else listaComents[i] = "";
-    pullRequest.comments.nodes.forEach((comment) => {
-      if (person == comment.author.login)
-        listaComents[i] = listaComents[i] + " " + comment.body;
-    });
-    pullRequest.reviewThreads.nodes.forEach((review) => {
-      review.comments.nodes.forEach((reviewcomment) => {
-        if (person == reviewcomment.author.login)
-          listaComents[i] = listaComents[i] + " " + reviewcomment.body;
+      if (pullRequest.author) prAutor = pullRequest.author.login;
+      else prAutor = "|Usuario Borrado|";
+
+      if (pullRequest.participants.nodes[i])
+        person = pullRequest.participants.nodes[i].login;
+      else person = "|Participante Borrado|";
+      //me fijo si el comentario dela persona es la del Autor
+      //caso contrario "cereo" la cadena para las prox consultas
+      if (person == prAutor) listaComents[i] = pullRequest.body;
+      else listaComents[i] = "";
+      //TODO: ARREGLAR EL COSO ESTE QUE TIRA NULL CUANDO UN USARIO SE BORRO DE GITHUB
+      pullRequest.comments.nodes.forEach((comment) => {
+        if (comment.author) commentAutor = comment.author.login;
+        else commentAutor = "|CommUsuario Borrado|";
+
+        if (person == commentAutor)
+          listaComents[i] = listaComents[i] + " " + comment.body;
       });
-    });
-    //console.log('- Persona: ', person)
-    //console.log(listaComents[i])
+      pullRequest.reviewThreads.nodes.forEach((review) => {
+        review.comments.nodes.forEach((reviewcomment) => {
+          if (reviewcomment.author)
+            reviewcommentAutor = reviewcomment.author.login;
+          else reviewcommentAutor = "|reviewcommUsuario Borrado|";
+          if (person == reviewcommentAutor)
+            listaComents[i] = listaComents[i] + " " + reviewcomment.body;
+        });
+      });
+    }
+  } catch (error) {
+    console.log("Error en Formulas.js | listaComentariosParticipante: ", error);
   }
   return listaComents;
 }
@@ -344,46 +359,55 @@ export function mimicaFormula(cantPersonas, pullRequest) {
   //Esta funcion crea una matriz con el grado de mimica de los participantes
   //el grado de mimica es la similaridad que hay entre sus comentarios en un PR
   //https://www.npmjs.com/package/doc-similarity
-  let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
-  //creo una variable con la funcion del coseno de similaridad
-  const docSimilarity = require("doc-similarity");
+  var listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
   //crear matriz NxN
-  let mimicaMatrix = new Array(cantPersonas);
-  for (let n = 0; n < cantPersonas; n++)
-    mimicaMatrix[n] = new Array(cantPersonas);
-  //calculo valores de mimica para la matriz
-  for (let i = 0; i < cantPersonas; i++) {
-    for (let j = i; j < cantPersonas; j++) {
-      //contar cohesion para [i][j]
-      if (i == j) mimicaMatrix[i][j] = 0;
-      else {
-        let result;
-        //llamo a la funcion de coseno de similaridad
-        result = docSimilarity.wordFrequencySim(
-          listaComm[i],
-          listaComm[j],
-          docSimilarity.cosineSim
-        );
-        mimicaMatrix[i][j] = Math.round(result * 100) / 100;
-        mimicaMatrix[j][i] = mimicaMatrix[i][j];
+  var mimicaMatrix = new Array(cantPersonas);
+  try {
+    //creo una variable con la funcion del coseno de similaridad
+    const docSimilarity = require("doc-similarity");
+    //crear matriz NxN
+    for (let n = 0; n < cantPersonas; n++)
+      mimicaMatrix[n] = new Array(cantPersonas);
+    //calculo valores de mimica para la matriz
+    for (let i = 0; i < cantPersonas; i++) {
+      for (let j = i; j < cantPersonas; j++) {
+        //contar cohesion para [i][j]
+        if (i == j) mimicaMatrix[i][j] = 0;
+        else {
+          let result;
+          //llamo a la funcion de coseno de similaridad
+          result = docSimilarity.wordFrequencySim(
+            listaComm[i],
+            listaComm[j],
+            docSimilarity.cosineSim
+          );
+          mimicaMatrix[i][j] = Math.round(result * 100) / 100;
+          mimicaMatrix[j][i] = mimicaMatrix[i][j];
+        }
       }
     }
+  } catch (error) {
+    console.log("Error en Formulas.js | mimicaFormula: ", error);
   }
   return mimicaMatrix;
 }
 export function polaridadFormula(cantPersonas, pullRequest) {
   let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
-  let polarity = require("polarity");
   let polarityTable = new Array();
-  for (let i = 0; i < cantPersonas; i++) {
-    //reemplazo caracteres indeseados
-    let str = listaComm[i].replace(/"/g, " ");
-    str = str.replace(/\n/g, " ");
-    //divido el string en un arreglo de palabras
-    let arreglo = str.trim().split(" ");
-    //aplico función de polaridad
-    let polaridad = polarity(arreglo);
-    polarityTable.push(polaridad);
+  try {
+    let polarity = require("polarity");
+    for (let i = 0; i < cantPersonas; i++) {
+      //reemplazo caracteres indeseados
+      let str = listaComm[i].replace(/"/g, " ");
+      str = str.replace(/\n/g, " ");
+      //divido el string en un arreglo de palabras
+      let arreglo = str.trim().split(" ");
+      //aplico función de polaridad
+      let polaridad = polarity(arreglo);
+      polarityTable.push(polaridad);
+    }
+  } catch (error) {
+    console.log("Error en Formulas.js | polaridadFormula: ", error);
   }
   return polarityTable;
 }

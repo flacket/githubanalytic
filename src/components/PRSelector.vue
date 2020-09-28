@@ -6,7 +6,7 @@
           <v-text-field
             v-model="search.owner"
             :rules="emptyRules"
-            label="Organización"
+            label="Usuario / Organización"
             required
           ></v-text-field>
         </v-col>
@@ -30,7 +30,7 @@
         </v-col>
 
         <v-col class="py-0" cols="12" sm="2">
-          <v-btn color="primary" v-on:click="$emit('searchPR', search)">
+          <v-btn color="primary" v-on:click="$emit('search-pr', search)">
             <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
           >
         </v-col>
@@ -43,7 +43,8 @@
 export default {
   data() {
     return {
-      search: { owner: "cdr", name: "code-server", number: "154" },
+      search: { owner: "twitter", name: "serial", number: "" },
+      //search: { owner: "cdr", name: "code-server", number: "154" },
       //search: { owner: "", name: "", number: "" },
       emptyRules: [(v) => !!v || "Ingrese algun valor"],
     };

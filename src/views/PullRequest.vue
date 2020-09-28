@@ -10,7 +10,7 @@
       <v-btn dark text @click="snackbar.show = false">Close</v-btn>
     </v-snackbar>
     <h1 class="subheading-1 blue--text">Pull Request</h1>
-    <PRSelector v-on:searchPR="refreshQuery"></PRSelector>
+    <PRSelector v-on:search-pr="refreshQuery"></PRSelector>
     <v-progress-linear
       v-if="$apollo.loading"
       indeterminate
@@ -100,7 +100,7 @@
         </v-row>
         <v-row>
           <v-col sm="12" md="12">
-            <h4>Cantidad de Mensajes:</h4>
+            <h4>Estadísticas de Participantes:</h4>
             <v-data-table
               hide-default-footer
               :headers="encabezados"
@@ -225,8 +225,8 @@ export default {
       estadisticas: [],
       encabezados: [
         { text: "Participante", sortable: false, value: "nombre" },
-        { text: "Msj. Enviados", value: "msjEnviados" },
-        { text: "Msj. Recibidos", value: "msjRecibidos" },
+        { text: "Interacciones Enviadas", value: "msjEnviados" },
+        { text: "Interacciones Recibidas", value: "msjRecibidos" },
         { text: "Mímica", value: "mimicaInd" },
         { text: "Polaridad", value: "tonoInd" },
       ],

@@ -13,7 +13,7 @@
     </div>
     <h1 class="subheading-1 blue--text">Repositorio</h1>
 
-    <PRSelector v-on:searchPR="getRepoPRcant"></PRSelector>
+    <PRSelector v-on:search-pr="getRepoPRcant"></PRSelector>
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"
@@ -51,13 +51,19 @@
               </v-flex>
               <v-flex>
                 <p>
-                  Cant. PR Merged:<!--
+                  Cant. Colaboradores:<!--
                   {{this.pullRequests.additions + this.pullRequests.deletions}}-->
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  Estado:
+                  PR Merged:<!--
+                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  PR Cerrados:
                   <!--{{ this.pullRequests.state }}-->
                 </p>
               </v-flex>
@@ -91,7 +97,7 @@
       <v-btn color="primary" v-on:click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
-      <h4 class="mt-4">Tabla de PRs</h4>
+      <h4 class="mt-4">Tabla de Pull Request</h4>
       <v-data-table
         :headers="encabezados"
         :items="estadisticas"
@@ -173,7 +179,7 @@ export default {
         { text: "Estado", value: "estado" },
       ],
       encabezadosPersona: [
-        { text: "nombre", sortable: false, value: "nombre" },
+        { text: "Nombre", sortable: false, value: "nombre" },
         { text: "Cant. PR Author", value: "CantPRAuthor" },
         { text: "Cant. PR Participa", value: "CantPRParticipa" },
         { text: "Cohesión Individual", value: "coheInd" },
@@ -324,13 +330,15 @@ export default {
       reader.onload = (evt) => {
         //this.pullRequests = JSON.parse(evt.target.result);
         let pullReqs = JSON.parse(evt.target.result);
+
         this.pullRequests = [];
-        for (let i = 0; i < pullReqs.length; i++) {
-          if (pullReqs[i].participants.totalCount > 1) {
-            this.pullRequests.push(pullReqs[i]);
+        pullReqs.forEach((PR) => {
+          if (PR.participants.totalCount > 1) {
+            this.pullRequests.push(PR);
           }
-        }
-        //LLamo a realizar el analisis y conteo
+        });
+
+        //Calculo la matriz de conteo y estadisticas para cada PR
         this.estadisticas = [];
         this.pullRequests.forEach((PR) => {
           this.countMatrix = matrizConteoPR(PR);
@@ -414,9 +422,15 @@ export default {
           tonoPos = polaridad[i].positivity,
           tonoNeg = Math.abs(polaridad[i].negativity);
         if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
+
+        let nombre;
+        if (pullRequest.participants.nodes[i])
+          nombre = pullRequest.participants.nodes[i].login;
+        else nombre = "|Usuario Borrado|";
+
         //creo la tabla con los datos estaditicos
         tabla.push({
-          nombre: pullRequest.participants.nodes[i].login,
+          nombre: nombre,
           coeInd: coeInd,
           colabInd: colabInd,
           mimicaInd: mimicaInd,
@@ -463,6 +477,10 @@ export default {
         case "CLOSED": estado = 0;break;
         case "OPEN": estado = 0.5;break;}*/
 
+      let author;
+      if (pullRequest.author) author = pullRequest.author.login;
+      else author = "|Usuario Borrado|";
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
@@ -482,7 +500,7 @@ export default {
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
         participantes: cantPersonas,
-        autor: pullRequest.author.login,
+        autor: author,
       };
       this.estadisticas.push(estadisticaPR);
     },
@@ -750,20 +768,24 @@ export default {
             //Transformo a Objeto la lista de self.pullRequests
             let aux = "[" + self.pullRequests + "]";
             let pullReqs = JSON.parse(aux);
+
             self.pullRequests = [];
             pullReqs.forEach((PR) => {
               if (PR.participants.totalCount > 1) {
                 self.pullRequests.push(PR);
               }
             });
+
             //Calculo la matriz de conteo y estadisticas para cada PR
+            self.estadisticas = [];
             self.pullRequests.forEach((PR) => {
               self.countMatrix = matrizConteoPR(PR);
               self.getEstadisticas(PR);
             });
             //llamo a crear la tabla de estadisticas de cada persona
-            self.getParticipantesRepoStat(self.estadisticas);
-
+            self.estadisticasPersona = getParticipantesRepoStat(
+              self.estadisticas
+            );
             //Doy formato a las gráficas
             self.chartsDataGrupal();
 
