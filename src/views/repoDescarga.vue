@@ -8,12 +8,40 @@
         :color="snackbar.color"
       >
         {{ snackbar.text }}
-        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+        <v-btn dark text absolute right @click="snackbar.show = false"
+          >Close</v-btn
+        >
       </v-snackbar>
     </div>
     <h1 class="subheading-1 blue--text">Descarga de Repositorios</h1>
+    <v-container>
+      <v-row>
+        <v-col class="py-0" cols="12" sm="3">
+          <v-text-field
+            v-model="search.owner"
+            :rules="emptyRules"
+            label="Usuario / Organización"
+            required
+          ></v-text-field>
+        </v-col>
 
-    <PRSelector v-on:search-pr="getRepoPRcant"></PRSelector>
+        <v-col class="py-0" cols="12" sm="4">
+          <v-text-field
+            v-model="search.name"
+            :rules="emptyRules"
+            label="Repositorio"
+            required
+          ></v-text-field>
+        </v-col>
+
+        <v-col class="py-0" cols="12" sm="2">
+          <v-btn color="primary" v-on:click="getRepoPRcant(search)">
+            <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
+          >
+        </v-col>
+      </v-row>
+    </v-container>
+
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"
@@ -56,7 +84,6 @@
 </template>
 
 <script>
-import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
 import {
   matrizConteoPR,
@@ -69,9 +96,10 @@ import {
 } from "../formulas.js";
 
 export default {
-  components: { PRSelector },
   data() {
     return {
+      search: { owner: "twitter", name: "serial" },
+      emptyRules: [(v) => !!v || "Ingrese algun valor"],
       loading: false,
       progress: {
         text: "Cargando",
@@ -181,11 +209,11 @@ export default {
       this.showSnackbar("Archivo CSV Guardado", "success", 4000);
     },
     saveFile() {
-      const data = JSON.stringify(this.pullRequests),
+      const data = this.pullRequestsJSON,
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = "informe" + ".json";
+      a.download = this.search.owner + " - " + this.search.name + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
@@ -549,16 +577,11 @@ export default {
               self.estadisticas
             );
 
-            /*console.log("estadisticasPersona: ", self.estadisticasPersona);
-            console.log("repository: ", self.repository);*/
-
             for (let i = 0; i < self.pullRequests.length; i++) {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
             }
 
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
-            console.log("Estadisticas: ", self.estadisticas);
-            console.log("pullRequests: ", self.pullRequests);
 
             self.show = true;
             self.progress.bar = 0;
