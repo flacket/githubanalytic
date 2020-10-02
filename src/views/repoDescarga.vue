@@ -8,12 +8,40 @@
         :color="snackbar.color"
       >
         {{ snackbar.text }}
-        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+        <v-btn dark text absolute right @click="snackbar.show = false"
+          >Close</v-btn
+        >
       </v-snackbar>
     </div>
-    <h1 class="subheading-1 blue--text">Repositorio</h1>
+    <h1 class="subheading-1 blue--text">Descarga de Repositorios</h1>
+    <v-container>
+      <v-row>
+        <v-col class="py-0" cols="12" sm="3">
+          <v-text-field
+            v-model="search.owner"
+            :rules="emptyRules"
+            label="Usuario / Organización"
+            required
+          ></v-text-field>
+        </v-col>
 
-    <PRSelector v-on:search-pr="getRepoPRcant"></PRSelector>
+        <v-col class="py-0" cols="12" sm="4">
+          <v-text-field
+            v-model="search.name"
+            :rules="emptyRules"
+            label="Repositorio"
+            required
+          ></v-text-field>
+        </v-col>
+
+        <v-col class="py-0" cols="12" sm="2">
+          <v-btn color="primary" v-on:click="getRepoPRcant(search)">
+            <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
+          >
+        </v-col>
+      </v-row>
+    </v-container>
+
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"
@@ -33,113 +61,45 @@
       <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn
     >
 
-    <v-btn v-if="!show && !loading" color="primary" @click.native="btnLoadFile">
-      <v-icon left>mdi-download</v-icon>Cargar json</v-btn
-    >
-
     <div v-if="show">
-      <v-card pa-2 outlined>
-        <h4>Metricas Grupales de Proyecto</h4>
-        <v-row>
-          <v-col sm="12" md="3">
-            <v-layout column>
-              <v-flex>
-                <p>
-                  Participantes:
-                  {{ this.estadisticasPersona.length }}
-                </p>
-              </v-flex>
-              <v-flex>
-                <p>
-                  Cant. Colaboradores:<!--
-                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
-                </p>
-              </v-flex>
-              <v-flex>
-                <p>
-                  PR Merged:<!--
-                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
-                </p>
-              </v-flex>
-              <v-flex>
-                <p>
-                  PR Cerrados:
-                  <!--{{ this.pullRequests.state }}-->
-                </p>
-              </v-flex>
-            </v-layout>
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Cohesión:</h4>
-            <Doughnut :chartData="chartCoheGrupal" />
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Colaboración:</h4>
-            <Doughnut :chartData="chartColabGrupal" />
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Mímica:</h4>
-            <Doughnut :chartData="chartMimicaGrupal" />
-          </v-col>
-          <v-col class="mb-3" sm="2">
-            <h4>Polaridad:</h4>
-            <Doughnut :chartData="chartTonoGrupal" />
-          </v-col>
-        </v-row>
-      </v-card>
-
       <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
-      >
-      <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
-        <v-icon left>mdi-download</v-icon>Cargar json</v-btn
       >
       <v-btn color="primary" v-on:click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
-      <h4 class="mt-4">Tabla de Pull Request</h4>
-      <v-data-table
-        :headers="encabezados"
-        :items="estadisticas"
-        :items-per-page="20"
-        class="elevation-1 mt-2"
-      ></v-data-table>
-      <h4 class="mt-4">Tabla de Personas</h4>
-      <v-data-table
-        :headers="encabezadosPersona"
-        :items="estadisticasPersona"
-        :items-per-page="20"
-        class="elevation-1 mt-2"
-      ></v-data-table>
     </div>
-    <input
-      id="file-upload"
-      type="file"
-      ref="myFile"
-      style="display:none"
-      @change="loadFile"
-    /><br />
+
+    <v-container fluid>
+      <v-textarea
+        class="ma-2"
+        name="input-7-1"
+        outlined
+        label="Label"
+        auto-grow
+        :value="pullRequestsJSON"
+      ></v-textarea>
+    </v-container>
   </div>
 </template>
 
 <script>
-import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
-import Doughnut from "../components/chartjs/Doughnut.vue";
 import {
   matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  duracionPRdias,
+  //duracionPRdias,
   mimicaFormula,
   polaridadFormula,
   getParticipantesRepoStat,
 } from "../formulas.js";
 
 export default {
-  components: { PRSelector, Doughnut },
   data() {
     return {
+      search: { owner: "twitter", name: "serial" },
+      emptyRules: [(v) => !!v || "Ingrese algun valor"],
       loading: false,
       progress: {
         text: "Cargando",
@@ -162,71 +122,11 @@ export default {
       cohesionMatrix: "",
       colabMatrix: "",
       mimicaMatrix: "",
-      encabezados: [
-        { text: "PR#", sortable: false, value: "PR" },
-        { text: "Cohesión Grupal", value: "cohesionGrupal" },
-        { text: "CG Varianza", value: "cohesionGrupalVarianza" },
-        { text: "Colaboración Grupal", value: "colaboracionGrupal" },
-        { text: "Mímica Grupal", value: "mimicaGrupal" },
-        { text: "Polaridad Grupal", value: "tonoGrupal" },
-        { text: "Participantes", value: "participantes" },
-        { text: "Fecha Inicio", value: "fechaInicio" },
-        { text: "Fecha Cierre", value: "fechaCierre" },
-        { text: "Duración Dias", value: "duraccionDias" },
-        { text: "Código Agregado", value: "codigoAdd" },
-        { text: "Código Quitado", value: "codigoRem" },
-        { text: "Total Cambios", value: "sizePR" },
-        { text: "Estado", value: "estado" },
-      ],
-      encabezadosPersona: [
-        { text: "Nombre", sortable: false, value: "nombre" },
-        { text: "Cant. PR Author", value: "CantPRAuthor" },
-        { text: "Cant. PR Participa", value: "CantPRParticipa" },
-        { text: "Cohesión Individual", value: "coheInd" },
-        { text: "Habilidad", value: "habilidad" },
-        { text: "Mimica", value: "mimicaInd" },
-        { text: "Polaridad", value: "tonoInd" },
-      ],
       estadisticasPersona: "",
       pullRequests: [],
       repository: "",
       estadisticas: [],
-      chartCoheGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartColabGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartMimicaGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartTonoGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
+      pullRequestsJSON: "",
     };
   },
   apollo: {
@@ -278,9 +178,6 @@ export default {
           "% Completado";
       }
     },
-    btnLoadFile() {
-      document.getElementById("file-upload").click();
-    },
     csvExport() {
       //Creo el archivo CSV
       const { Parser } = require("json2csv");
@@ -288,14 +185,6 @@ export default {
         "PR",
         "cohesionGrupal",
         "cohesionGrupalVarianza",
-        "colaboracionGrupal",
-        "participantes",
-        "fechaInicio",
-        "fechaCierre",
-        "duraccionDias",
-        "codigoAdd",
-        "codigoRem",
-        "sizePR",
         "estado",
       ];
       const json2csvParser = new Parser({ fields });
@@ -319,55 +208,12 @@ export default {
       }
       this.showSnackbar("Archivo CSV Guardado", "success", 4000);
     },
-    loadFile() {
-      let file = this.$refs.myFile.files[0];
-      if (!file) return;
-      this.show = false;
-      this.loading = true;
-      // Credit: https://stackoverflow.com/a/754398/52160
-      let reader = new FileReader();
-      reader.readAsText(file, "UTF-8");
-      reader.onload = (evt) => {
-        //this.pullRequests = JSON.parse(evt.target.result);
-        let pullReqs = JSON.parse(evt.target.result);
-
-        this.pullRequests = [];
-        pullReqs.forEach((PR) => {
-          if (PR.participants.totalCount > 1) {
-            this.pullRequests.push(PR);
-          }
-        });
-
-        //Calculo la matriz de conteo y estadisticas para cada PR
-        this.estadisticas = [];
-        this.pullRequests.forEach((PR) => {
-          this.countMatrix = matrizConteoPR(PR);
-          this.getEstadisticas(PR);
-        });
-
-        //llamo a crear la tabla de estadisticas de cada persona
-        this.estadisticasPersona = getParticipantesRepoStat(this.estadisticas);
-        //Doy formato a las gráficas
-        this.chartsDataGrupal();
-
-        this.show = true;
-        this.progress.bar = 0;
-        this.loading = false;
-      };
-      reader.onerror = (evt) => {
-        this.showSnackbar(
-          "Error al cargar el archivo: \n" + evt,
-          "error",
-          8000
-        );
-      };
-    },
     saveFile() {
-      const data = JSON.stringify(this.pullRequests),
+      const data = this.pullRequestsJSON,
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = "informe" + ".json";
+      a.download = this.search.owner + " - " + this.search.name + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
@@ -465,82 +311,26 @@ export default {
       coheGrupalVarianza = coheGrupalVarianza / tabla.length;
 
       //Obtengo la duracion del PR en días
-      let duracionDias = duracionPRdias(
-        pullRequest.createdAt,
-        pullRequest.closedAt
-      );
-
-      //Calculo el estado del PR
-      let estado = pullRequest.state;
-      /*switch (pullRequest.state) {
-        case "MERGED": estado = 1;break;
-        case "CLOSED": estado = 0;break;
-        case "OPEN": estado = 0.5;break;}*/
-
-      let author;
-      if (pullRequest.author) author = pullRequest.author.login;
-      else author = "|Usuario Borrado|";
+      //let duracionDias = duracionPRdias(pullRequest.createdAt,pullRequest.closedAt);
 
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
-        PR: pullRequest.number,
         statsIndividuales: tabla,
         cohesionGrupal: cohesionGrupal.toFixed(2),
         cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
         colaboracionGrupal: colabGrupal.toFixed(2),
         mimicaGrupal: mimicaGrupal.toFixed(2),
         tonoGrupal: tonoGrupal.toFixed(2),
-        fechaInicio: duracionDias.createdAt,
-        fechaCierre: duracionDias.closedAt,
-        duraccionDias: duracionDias.diff || "-",
-        codigoAdd: pullRequest.additions,
-        codigoRem: pullRequest.deletions,
-        sizePR: pullRequest.additions + pullRequest.deletions,
-        estado: estado,
-        cohesionMatrix: this.cohesionMatrix,
-        participantes: cantPersonas,
-        autor: author,
+        cohesionMatriz: this.cohesionMatrix,
+        mimicaMatriz: this.mimicaMatrix,
+        colabMatriz: this.colabMatrix,
+        polaridadTabla: polaridad,
+        //fechaInicio: duracionDias.createdAt,
+        //fechaCierre: duracionDias.closedAt,
+        //duraccionDias: duracionDias.diff || "-",
       };
       this.estadisticas.push(estadisticaPR);
-    },
-    chartsDataGrupal() {
-      //Obtengo la cohesión grupal
-      var cant = this.estadisticas.length;
-      let cohesionGrupal = 0;
-      let colabGrupal = 0;
-      let mimicaGrupal = 0;
-      let tonoGrupal = 0;
-
-      for (let i = 0; i < cant; i++) {
-        cohesionGrupal += Number(this.estadisticas[i].cohesionGrupal);
-        colabGrupal += Number(this.estadisticas[i].colaboracionGrupal);
-        mimicaGrupal += Number(this.estadisticas[i].mimicaGrupal);
-        tonoGrupal += Number(this.estadisticas[i].tonoGrupal);
-      }
-      cohesionGrupal = (cohesionGrupal / cant) * 100;
-      colabGrupal = (colabGrupal / cant) * 100;
-      mimicaGrupal = (mimicaGrupal / cant) * 100;
-      tonoGrupal = (tonoGrupal / cant) * 100;
-
-      //Doy formato al valor de CohesionGrupal para el gráfico
-      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + "%";
-      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal;
-      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal;
-      //Doy formato al valor de colabGrupal para el gráfico
-      this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
-      this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
-      this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
-
-      //Doy formato al valor de mimicaGrupal para el gráfico
-      this.chartMimicaGrupal.labels[0] = mimicaGrupal.toFixed(2) + "%";
-      this.chartMimicaGrupal.datasets[0].data[0] = mimicaGrupal;
-      this.chartMimicaGrupal.datasets[0].data[1] = 100 - mimicaGrupal;
-
-      //Doy formato al valor de tonoGrupal para el gráfico
-      this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
-      this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
-      this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
     },
     getRepoPRcant(search) {
       var self = this;
@@ -786,8 +576,12 @@ export default {
             self.estadisticasPersona = getParticipantesRepoStat(
               self.estadisticas
             );
-            //Doy formato a las gráficas
-            self.chartsDataGrupal();
+
+            for (let i = 0; i < self.pullRequests.length; i++) {
+              self.pullRequests[i].estadisticas = self.estadisticas[i];
+            }
+
+            self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
             self.show = true;
             self.progress.bar = 0;

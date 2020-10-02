@@ -15,69 +15,76 @@ moment.locale("es-us");
 export function getParticipantesRepoStat(estadisticasPR) {
   //creo una lista de los Paticipantes de cada PR del repositorio
   let participantesStat = [];
-  estadisticasPR.forEach((PR) => {
-    let estadoPR = PR.estado;
-    PR.tabla.forEach((participante) => {
-      let cantParticipantes = participantesStat.length;
-      let encontrado = false;
-      let i = 0;
-      while (!encontrado && i < cantParticipantes) {
-        if (participantesStat[i].nombre == participante.nombre)
-          encontrado = true;
-        else i++;
-      }
-      if (encontrado) {
-        //agrego stats al participante existente
-        participantesStat[i].coheIndSum += participante.coeInd;
-        participantesStat[i].coheIndTotal++;
-        participantesStat[i].coheInd =
-          participantesStat[i].coheIndSum / participantesStat[i].coheIndTotal++;
-        participantesStat[i].colabIndSum += participante.colabInd;
-        participantesStat[i].colabIndTotal++;
-        participantesStat[i].colabInd =
-          participantesStat[i].colabIndSum /
+  try {
+    estadisticasPR.forEach((PR) => {
+      let estadoPR = PR.estado;
+      PR.statsIndividuales.forEach((participante) => {
+        let cantParticipantes = participantesStat.length;
+        let encontrado = false;
+        let i = 0;
+        while (!encontrado && i < cantParticipantes) {
+          if (participantesStat[i].nombre == participante.nombre)
+            encontrado = true;
+          else i++;
+        }
+        if (encontrado) {
+          //agrego stats al participante existente
+          participantesStat[i].coheIndSum += participante.coeInd;
+          participantesStat[i].coheIndTotal++;
+          participantesStat[i].coheInd =
+            participantesStat[i].coheIndSum /
+            participantesStat[i].coheIndTotal++;
+          participantesStat[i].colabIndSum += participante.colabInd;
           participantesStat[i].colabIndTotal++;
-        participantesStat[i].mimicaIndSum += participante.mimicaInd;
-        participantesStat[i].mimicaIndTotal++;
-        participantesStat[i].mimicaInd =
-          participantesStat[i].mimicaIndSum /
+          participantesStat[i].colabInd =
+            participantesStat[i].colabIndSum /
+            participantesStat[i].colabIndTotal++;
+          participantesStat[i].mimicaIndSum += participante.mimicaInd;
           participantesStat[i].mimicaIndTotal++;
-        participantesStat[i].tonoIndSum += participante.mimicaInd;
-        participantesStat[i].tonoIndTotal++;
-        participantesStat[i].tonoInd =
-          participantesStat[i].tonoIndSum / participantesStat[i].tonoIndTotal++;
-        participantesStat[i].CantPRParticipa++;
-      } else {
-        //agrego stats como participante nuevo
-        var partStat = {
-          nombre: participante.nombre,
-          coheInd: participante.coeInd,
-          coheIndSum: participante.coeInd,
-          coheIndTotal: 1,
-          colabInd: participante.colabInd,
-          colabIndSum: participante.colabInd,
-          colabIndTotal: 1,
-          mimicaInd: participante.mimicaInd,
-          mimicaIndSum: participante.mimicaInd,
-          mimicaIndTotal: 1,
-          tonoInd: participante.tonoInd,
-          tonoIndSum: participante.tonoInd,
-          tonoIndTotal: 1,
-          habilidad: 0,
-          CantPRAuthor: 0,
-          CantPRMerge: 0,
-          CantPRParticipa: 1,
-        };
-        i = participantesStat.push(partStat) - 1;
-      }
-      if (participantesStat[i].nombre == PR.autor) {
-        participantesStat[i].CantPRAuthor++;
-        if (estadoPR == "MERGED") participantesStat[i].CantPRMerge++;
-        participantesStat[i].habilidad =
-          participantesStat[i].CantPRMerge / participantesStat[i].CantPRAuthor;
-      }
+          participantesStat[i].mimicaInd =
+            participantesStat[i].mimicaIndSum /
+            participantesStat[i].mimicaIndTotal++;
+          participantesStat[i].tonoIndSum += participante.mimicaInd;
+          participantesStat[i].tonoIndTotal++;
+          participantesStat[i].tonoInd =
+            participantesStat[i].tonoIndSum /
+            participantesStat[i].tonoIndTotal++;
+          participantesStat[i].CantPRParticipa++;
+        } else {
+          //agrego stats como participante nuevo
+          var partStat = {
+            nombre: participante.nombre,
+            coheInd: participante.coeInd,
+            coheIndSum: participante.coeInd,
+            coheIndTotal: 1,
+            colabInd: participante.colabInd,
+            colabIndSum: participante.colabInd,
+            colabIndTotal: 1,
+            mimicaInd: participante.mimicaInd,
+            mimicaIndSum: participante.mimicaInd,
+            mimicaIndTotal: 1,
+            tonoInd: participante.tonoInd,
+            tonoIndSum: participante.tonoInd,
+            tonoIndTotal: 1,
+            habilidad: 0,
+            CantPRAuthor: 0,
+            CantPRMerge: 0,
+            CantPRParticipa: 1,
+          };
+          i = participantesStat.push(partStat) - 1;
+        }
+        if (participantesStat[i].nombre == PR.autor) {
+          participantesStat[i].CantPRAuthor++;
+          if (estadoPR == "MERGED") participantesStat[i].CantPRMerge++;
+          participantesStat[i].habilidad =
+            participantesStat[i].CantPRMerge /
+            participantesStat[i].CantPRAuthor;
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.log("Error en Formulas.js | getParticipantesRepoStat: ", error);
+  }
   return participantesStat;
 }
 export function habilidadParticipantes(pullRequests) {
