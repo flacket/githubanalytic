@@ -154,6 +154,9 @@ export const GET_REPOS = gql`
     repository(owner: $owner, name: $name) {
       pullRequests(first: 50, before: $beforeCursor, after: $afterCursor) {
         nodes {
+          id
+          number
+          title
           author {
             login
           }
@@ -161,9 +164,7 @@ export const GET_REPOS = gql`
           deletions
           createdAt
           closedAt
-          number
           state
-          title
           url
           body
           reactions(first: $reactions) {
@@ -231,9 +232,9 @@ export const GET_REPOS = gql`
     }
   }
 `;
-/*{"owner": "cdr", 
-"name": "code-server", 
-"endCursor": null,
+/*{"owner": "twitter", 
+"name": "serial", 
+"afterCursor": null,
 "comments": 1,
 "commentsReactions": 1,
 "rvThreads": 1, 

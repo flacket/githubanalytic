@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-center">
+    <div>
       <v-snackbar
         right
         v-model="snackbar.show"
@@ -8,12 +8,10 @@
         :color="snackbar.color"
       >
         {{ snackbar.text }}
-        <v-btn dark text absolute right @click="snackbar.show = false"
-          >Close</v-btn
-        >
+        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
       </v-snackbar>
     </div>
-    <h1 class="subheading-1 blue--text">Descarga de Repositorios</h1>
+    <h1 class="subheading-1 blue--text">Descarga de Pull Request</h1>
     <v-container>
       <v-row>
         <v-col class="py-0" cols="12" sm="3">
@@ -62,24 +60,27 @@
     >
 
     <div v-if="show">
-      <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
+      <h2 class="subheading-1 blue--text">
+        {{ search.owner }} / {{ search.name }}
+      </h2>
+      <v-btn class="ma-2" color="primary" hidden v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
       <v-btn color="primary" v-on:click="saveFile()">
-        <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
+        <v-icon left>mdi-download</v-icon>Guardar json</v-btn
       >
-    </div>
 
-    <v-container fluid>
-      <v-textarea
-        class="ma-2"
-        name="input-7-1"
-        outlined
-        label="Label"
-        auto-grow
-        :value="pullRequestsJSON"
-      ></v-textarea>
-    </v-container>
+      <v-container fluid>
+        <v-textarea
+          class="ma-2"
+          name="input-7-1"
+          outlined
+          label="Lista de Usuarios"
+          auto-grow
+          :value="usersList"
+        ></v-textarea>
+      </v-container>
+    </div>
   </div>
 </template>
 
@@ -98,7 +99,7 @@ import {
 export default {
   data() {
     return {
-      search: { owner: "twitter", name: "serial" },
+      search: { owner: "artsy", name: "" },
       emptyRules: [(v) => !!v || "Ingrese algun valor"],
       loading: false,
       progress: {
@@ -127,6 +128,7 @@ export default {
       repository: "",
       estadisticas: [],
       pullRequestsJSON: "",
+      usersList: [],
     };
   },
   apollo: {
@@ -213,7 +215,7 @@ export default {
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = this.search.owner + " - " + this.search.name + ".json";
+      a.download = this.search.name + " - PRs" + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
@@ -561,9 +563,8 @@ export default {
 
             self.pullRequests = [];
             pullReqs.forEach((PR) => {
-              if (PR.participants.totalCount > 1) {
-                self.pullRequests.push(PR);
-              }
+              //if (PR.participants.totalCount > 1)
+              self.pullRequests.push(PR);
             });
 
             //Calculo la matriz de conteo y estadisticas para cada PR
@@ -572,10 +573,15 @@ export default {
               self.countMatrix = matrizConteoPR(PR);
               self.getEstadisticas(PR);
             });
+
             //llamo a crear la tabla de estadisticas de cada persona
             self.estadisticasPersona = getParticipantesRepoStat(
               self.estadisticas
             );
+            self.usersList = [];
+            self.estadisticasPersona.forEach((persona) => {
+              self.usersList.push(persona.nombre);
+            });
 
             for (let i = 0; i < self.pullRequests.length; i++) {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
@@ -583,6 +589,7 @@ export default {
 
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
+            self.countPRs = [];
             self.show = true;
             self.progress.bar = 0;
             self.loading = false;

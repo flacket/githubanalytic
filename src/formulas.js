@@ -135,7 +135,7 @@ export function duracionPRdias(tcreated, tclosed) {
   //expresarlo como duracion
   let diffDuration = moment.duration(diff);
   //console.log("diffDuration: ", diffDuration);
-  //TODO: mejorar
+  //TODO: mejorar como se viasualiza el tiempo
   diff =
     diffDuration.days() +
     "D:" +
@@ -687,7 +687,6 @@ export function matrizConteoPR(pullRequest) {
           }
         } //reacciones
       } catch (err) {
-        //TODO: this.showSnackbar('Error en Review Comments:' + err.message, 'error', 5000)
         console.log("Error en Review Comments | PR#:", pullRequest.number);
       }
     }); //comentario de cada review

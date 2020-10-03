@@ -789,6 +789,7 @@ export default {
             //Doy formato a las gráficas
             self.chartsDataGrupal();
 
+            self.countPRs = [];
             self.show = true;
             self.progress.bar = 0;
             self.loading = false;
