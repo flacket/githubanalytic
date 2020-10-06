@@ -61,7 +61,7 @@
 
     <div v-if="show">
       <h2 class="subheading-1 blue--text">
-        {{ search.owner }} / {{ search.name }}
+        {{ search.owner }} / {{ search.displayName }}
       </h2>
       <v-btn class="ma-2" color="primary" hidden v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
@@ -99,7 +99,7 @@ import {
 export default {
   data() {
     return {
-      search: { owner: "artsy", name: "" },
+      search: { owner: "artsy", name: "", displayName: "" },
       emptyRules: [(v) => !!v || "Ingrese algun valor"],
       loading: false,
       progress: {
@@ -169,7 +169,7 @@ export default {
       if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
         this.progress.bartotal = 0;
-        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 50) * 2);
+        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 15) * 2);
       } else {
         this.progress.bartotal = this.progress.bartotal + this.progress.bar;
         this.progress.text =
@@ -590,6 +590,7 @@ export default {
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
             self.countPRs = [];
+            self.search.displayName = self.search.name;
             self.show = true;
             self.progress.bar = 0;
             self.loading = false;

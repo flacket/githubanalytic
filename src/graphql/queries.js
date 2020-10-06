@@ -152,7 +152,7 @@ export const GET_REPOS = gql`
     $rvThreadsComments: Int
   ) {
     repository(owner: $owner, name: $name) {
-      pullRequests(first: 50, before: $beforeCursor, after: $afterCursor) {
+      pullRequests(first: 15, before: $beforeCursor, after: $afterCursor) {
         nodes {
           id
           number
