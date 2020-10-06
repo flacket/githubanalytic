@@ -215,7 +215,7 @@ export default {
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = this.search.name + " - PRs" + ".json";
+      a.download = this.search.name + " - pullRequests" + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
