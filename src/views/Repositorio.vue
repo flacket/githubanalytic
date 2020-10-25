@@ -179,7 +179,7 @@ export default {
         { text: "Estado", value: "estado" },
       ],
       encabezadosPersona: [
-        { text: "Nombre", sortable: false, value: "nombre" },
+        { text: "Usuario", sortable: false, value: "login" },
         { text: "Cant. PR Author", value: "CantPRAuthor" },
         { text: "Cant. PR Participa", value: "CantPRParticipa" },
         { text: "Cohesión Individual", value: "coheInd" },
@@ -267,7 +267,7 @@ export default {
       if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
         this.progress.bartotal = 0;
-        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 50) * 2);
+        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 15) * 2);
       } else {
         this.progress.bartotal = this.progress.bartotal + this.progress.bar;
         this.progress.text =
@@ -423,14 +423,14 @@ export default {
           tonoNeg = Math.abs(polaridad[i].negativity);
         if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
 
-        let nombre;
+        let login;
         if (pullRequest.participants.nodes[i])
-          nombre = pullRequest.participants.nodes[i].login;
-        else nombre = "|Usuario Borrado|";
+          login = pullRequest.participants.nodes[i].login;
+        else login = "|Usuario Borrado|";
 
         //creo la tabla con los datos estaditicos
         tabla.push({
-          nombre: nombre,
+          login: login,
           coeInd: coeInd,
           colabInd: colabInd,
           mimicaInd: mimicaInd,

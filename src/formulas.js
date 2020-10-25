@@ -23,7 +23,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
         let encontrado = false;
         let i = 0;
         while (!encontrado && i < cantParticipantes) {
-          if (participantesStat[i].nombre == participante.nombre)
+          if (participantesStat[i].login == participante.login)
             encontrado = true;
           else i++;
         }
@@ -53,7 +53,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
         } else {
           //agrego stats como participante nuevo
           var partStat = {
-            nombre: participante.nombre,
+            login: participante.login,
             coheInd: participante.coeInd,
             coheIndSum: participante.coeInd,
             coheIndTotal: 1,
@@ -73,7 +73,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
           };
           i = participantesStat.push(partStat) - 1;
         }
-        if (participantesStat[i].nombre == PR.autor) {
+        if (participantesStat[i].login == PR.autor) {
           participantesStat[i].CantPRAuthor++;
           if (estadoPR == "MERGED") participantesStat[i].CantPRMerge++;
           participantesStat[i].habilidad =
@@ -97,8 +97,7 @@ export function habilidadParticipantes(pullRequests) {
       var index = -1;
       for (var p = 0; p < habilidadLista.length; p++) {
         if (
-          habilidadLista[p].nombre ==
-          pullRequests[i].participants.nodes[j].login
+          habilidadLista[p].login == pullRequests[i].participants.nodes[j].login
         ) {
           index = p;
         }
@@ -106,7 +105,7 @@ export function habilidadParticipantes(pullRequests) {
       //si no esta incluido lo agrego
       if (index == -1) {
         let newpersona = {
-          nombre: pullRequests[i].participants.nodes[j].login,
+          login: pullRequests[i].participants.nodes[j].login,
           cantAutor: 0,
           cantMerge: 0,
         };
@@ -421,7 +420,7 @@ export function polaridadFormula(cantPersonas, pullRequest) {
 export function matrizConteoPR(pullRequest) {
   //busco cantidad de participantes
   let cantPersonas = pullRequest.participants.totalCount;
-  //y almaceno el nombre de cada participante
+  //y almaceno el login de cada participante
   let participants = new Array();
   pullRequest.participants.nodes.forEach(function(element) {
     participants.push(element.login);

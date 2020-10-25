@@ -171,6 +171,7 @@ export const GET_REPOS = gql`
             totalCount
             nodes {
               user {
+                id
                 login
               }
             }
@@ -178,6 +179,7 @@ export const GET_REPOS = gql`
           participants(first: $participants) {
             totalCount
             nodes {
+              id
               login
             }
           }
@@ -193,6 +195,7 @@ export const GET_REPOS = gql`
                 totalCount
                 nodes {
                   user {
+                    id
                     login
                   }
                 }
@@ -214,6 +217,7 @@ export const GET_REPOS = gql`
                     totalCount
                     nodes {
                       user {
+                        id
                         login
                       }
                     }

@@ -271,14 +271,15 @@ export default {
           tonoNeg = Math.abs(polaridad[i].negativity);
         if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
 
-        let nombre;
-        if (pullRequest.participants.nodes[i])
-          nombre = pullRequest.participants.nodes[i].login;
-        else nombre = "|Usuario Borrado|";
-
-        //creo la tabla con los datos estaditicos
+        let login, id;
+        if (pullRequest.participants.nodes[i]) {
+          login = pullRequest.participants.nodes[i].login;
+          id = pullRequest.participants.nodes[i].id;
+        } else login = "|Usuario Borrado|";
+        //creola tabla con los datos estaditicos
         tabla.push({
-          nombre: nombre,
+          id: id,
+          login: login,
           coeInd: coeInd,
           colabInd: colabInd,
           mimicaInd: mimicaInd,
@@ -304,13 +305,13 @@ export default {
       mimicaGrupal = mimicaGrupal / tabla.length;
       tonoGrupal = tonoGrupal / tabla.length;
 
-      //Obtengo la varianza de cohesión
+      /*Obtengo la varianza de cohesión
       let coheGrupalVarianza = 0;
       tabla.forEach((item) => {
         coheGrupalVarianza +=
           (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
       });
-      coheGrupalVarianza = coheGrupalVarianza / tabla.length;
+      coheGrupalVarianza = coheGrupalVarianza / tabla.length;*/
 
       //Obtengo la duracion del PR en días
       //let duracionDias = duracionPRdias(pullRequest.createdAt,pullRequest.closedAt);
@@ -319,8 +320,8 @@ export default {
       let estadisticaPR = {
         //TODO:id: index,
         statsIndividuales: tabla,
+        matrizInteracciones: this.countMatrix,
         cohesionGrupal: cohesionGrupal.toFixed(2),
-        cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
         colaboracionGrupal: colabGrupal.toFixed(2),
         mimicaGrupal: mimicaGrupal.toFixed(2),
         tonoGrupal: tonoGrupal.toFixed(2),
@@ -580,12 +581,35 @@ export default {
             );
             self.usersList = [];
             self.estadisticasPersona.forEach((persona) => {
-              self.usersList.push(persona.nombre);
+              self.usersList.push(persona.login);
             });
 
             for (let i = 0; i < self.pullRequests.length; i++) {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
             }
+
+            var listaParticipantesRepo = [];
+            try {
+              self.estadisticas.forEach((PR) => {
+                PR.statsIndividuales.forEach((participante) => {
+                  let cantParticipantes = listaParticipantesRepo.length;
+                  let encontrado = true;
+                  let i = 0;
+                  while (encontrado && i < cantParticipantes) {
+                    if (listaParticipantesRepo[i] == participante.id)
+                      encontrado = false;
+                    else i++;
+                  }
+                  if (encontrado) {
+                    //agrego stats como participante nuevo
+                    listaParticipantesRepo.push(participante.id);
+                  }
+                });
+              });
+            } catch (error) {
+              console.log("Error creando listaParticipantesRepo. ", error);
+            }
+            self.pullRequests.push(listaParticipantesRepo);
 
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
