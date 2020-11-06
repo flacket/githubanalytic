@@ -12,8 +12,10 @@
       </v-snackbar>
     </div>
     <h1 class="subheading-1 blue--text">Repositorio</h1>
-
-    <PRSelector v-on:search-pr="getRepoPRcant"></PRSelector>
+    <PRSelector
+      v-on:search-pr="getRepoPRcant"
+      v-bind:hideNumber="true"
+    ></PRSelector>
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"

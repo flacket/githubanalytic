@@ -10,7 +10,10 @@
       <v-btn dark text @click="snackbar.show = false">Close</v-btn>
     </v-snackbar>
     <h1 class="subheading-1 blue--text">Pull Request</h1>
-    <PRSelector v-on:search-pr="refreshQuery"></PRSelector>
+    <PRSelector
+      v-on:search-pr="refreshQuery"
+      v-bind:hideNumber="false"
+    ></PRSelector>
     <v-progress-linear
       v-if="$apollo.loading"
       indeterminate

@@ -12,34 +12,10 @@
       </v-snackbar>
     </div>
     <h1 class="subheading-1 blue--text">Descarga de Pull Request</h1>
-    <v-container>
-      <v-row>
-        <v-col class="py-0" cols="12" sm="3">
-          <v-text-field
-            v-model="search.owner"
-            :rules="emptyRules"
-            label="Usuario / Organización"
-            required
-          ></v-text-field>
-        </v-col>
-
-        <v-col class="py-0" cols="12" sm="4">
-          <v-text-field
-            v-model="search.name"
-            :rules="emptyRules"
-            label="Repositorio"
-            required
-          ></v-text-field>
-        </v-col>
-
-        <v-col class="py-0" cols="12" sm="2">
-          <v-btn color="primary" v-on:click="getRepoPRcant(search)">
-            <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
-          >
-        </v-col>
-      </v-row>
-    </v-container>
-
+    <PRSelector
+      v-on:search-pr="getRepoPRcant"
+      v-bind:hideNumber="true"
+    ></PRSelector>
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
       v-if="loading"
@@ -61,7 +37,7 @@
 
     <div v-if="show">
       <h2 class="subheading-1 blue--text">
-        {{ search.owner }} / {{ search.displayName }}
+        {{ search.owner }} / {{ search.name }}
       </h2>
       <v-btn class="ma-2" color="primary" hidden v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
@@ -85,6 +61,7 @@
 </template>
 
 <script>
+import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
 import {
   matrizConteoPR,
@@ -97,9 +74,10 @@ import {
 } from "../formulas.js";
 
 export default {
+  components: { PRSelector },
   data() {
     return {
-      search: { owner: "artsy", name: "", displayName: "" },
+      search: { owner: "", name: "" },
       emptyRules: [(v) => !!v || "Ingrese algun valor"],
       loading: false,
       progress: {
@@ -347,6 +325,7 @@ export default {
           name: search.name,
         })
         .then(() => {
+          self.search = search;
           self.progress.totalPR = self.getPRcant.totalCount;
           self.progressbar();
           self.countQuery(search);
@@ -614,7 +593,6 @@ export default {
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
             self.countPRs = [];
-            self.search.displayName = self.search.name;
             self.show = true;
             self.progress.bar = 0;
             self.loading = false;
