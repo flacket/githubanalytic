@@ -47,24 +47,26 @@ export const GET_REPO = gql`
   query getRepo($owner: String!, $name: String!, $number: Int!) {
     repository(owner: $owner, name: $name) {
       pullRequest(number: $number) {
+        id
+        number
+        title
         author {
           login
           avatarUrl
         }
         additions
         deletions
-        body
-        bodyHTML
         createdAt
         closedAt
-        number
         state
-        title
         url
+        body
+        bodyHTML
         reactions(first: 100) {
           totalCount
           nodes {
             user {
+              id
               login
             }
           }
@@ -72,6 +74,7 @@ export const GET_REPO = gql`
         participants(first: 100) {
           totalCount
           nodes {
+            id
             login
             ################################
             location
@@ -90,30 +93,6 @@ export const GET_REPO = gql`
             ################################
           }
         }
-        reviewThreads(first: 50) {
-          nodes {
-            comments(first: 20) {
-              totalCount
-              nodes {
-                body
-                bodyHTML
-                author {
-                  login
-                  avatarUrl
-                }
-                createdAt
-                reactions(first: 15) {
-                  totalCount
-                  nodes {
-                    user {
-                      login
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
         comments(first: 100) {
           nodes {
             body
@@ -127,7 +106,33 @@ export const GET_REPO = gql`
               totalCount
               nodes {
                 user {
+                  id
                   login
+                }
+              }
+            }
+          }
+        }
+        reviewThreads(first: 50) {
+          nodes {
+            comments(first: 20) {
+              totalCount
+              nodes {
+                body
+                bodyHTML
+                createdAt
+                author {
+                  login
+                  avatarUrl
+                }
+                reactions(first: 15) {
+                  totalCount
+                  nodes {
+                    user {
+                      id
+                      login
+                    }
+                  }
                 }
               }
             }
@@ -209,10 +214,10 @@ export const GET_REPOS = gql`
                 totalCount
                 nodes {
                   body
+                  createdAt
                   author {
                     login
                   }
-                  createdAt
                   reactions(first: 20) {
                     totalCount
                     nodes {
