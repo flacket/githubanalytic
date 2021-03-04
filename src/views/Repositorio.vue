@@ -105,14 +105,61 @@
         :items="estadisticas"
         :items-per-page="20"
         class="elevation-1 mt-2"
-      ></v-data-table>
+      >
+      <template v-slot:[`item.cohesionGrupal`]="{ item }">
+        <v-progress-linear :value="item.cohesionGrupal*100" height="25">
+          <strong>{{ (item.cohesionGrupal*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.colaboracionGrupal`]="{ item }">
+        <v-progress-linear :value="item.colaboracionGrupal*100" height="25">
+          <strong>{{ (item.colaboracionGrupal*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.mimicaGrupal`]="{ item }">
+        <v-progress-linear :value="item.mimicaGrupal*100" height="25">
+          <strong>{{ (item.mimicaGrupal*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.tonoGrupal`]="{ item }">
+        <v-progress-linear :value="item.tonoGrupal*100" height="25">
+          <strong>{{ (item.tonoGrupal*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.estado`]="{ item }">
+      <v-chip :color="getColor(item.estado)" dark>
+        {{ item.estado }}
+      </v-chip>
+      </template>
+      </v-data-table>
       <h4 class="mt-4">Tabla de Personas</h4>
       <v-data-table
         :headers="encabezadosPersona"
         :items="estadisticasPersona"
         :items-per-page="20"
         class="elevation-1 mt-2"
-      ></v-data-table>
+      >
+      <template v-slot:[`item.coheInd`]="{ item }">
+        <v-progress-linear :value="item.coheInd*100" height="25">
+          <strong>{{ (item.coheInd*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.habilidad`]="{ item }">
+        <v-progress-linear :value="item.habilidad*100" height="25">
+          <strong>{{ (item.habilidad*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.mimicaInd`]="{ item }">
+        <v-progress-linear :value="item.mimicaInd*100" height="25">
+          <strong>{{ (item.mimicaInd*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template> 
+      <template v-slot:[`item.tonoInd`]="{ item }">
+        <v-progress-linear :value="item.tonoInd*100" height="25">
+          <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
+        </v-progress-linear>
+      </template>
+      </v-data-table>
     </div>
     <input
       id="file-upload"
@@ -182,8 +229,10 @@ export default {
       ],
       encabezadosPersona: [
         { text: "Usuario", sortable: false, value: "login" },
-        { text: "Cant. PR Author", value: "CantPRAuthor" },
-        { text: "Cant. PR Participa", value: "CantPRParticipa" },
+        { text: "Cant. PR Author", value: "cantPRAuthor" },
+        { text: "Cant. PR Participa", value: "cantPRParticipa" },
+        //{ text: "Mensajes Enviados", value: "msjEnviados" },
+        //{ text: "Mensajes Recibidos", value: "msjRecibidos" },
         { text: "Cohesión Individual", value: "coheInd" },
         { text: "Habilidad", value: "habilidad" },
         { text: "Mimica", value: "mimicaInd" },
@@ -265,6 +314,11 @@ export default {
       this.snackbar.timeout = timeout;
       this.snackbar.show = true;
     },
+    getColor (estado) {
+        if (estado == "MERGED") return '#6f42c1'
+        else if (estado == "CLOSED") return '#d73a49'
+        else return '#28a745'
+      },
     progressbar() {
       if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
@@ -501,6 +555,7 @@ export default {
         sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
+        countMatrix: this.countMatrix,
         participantes: cantPersonas,
         autor: author,
       };

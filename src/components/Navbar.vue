@@ -69,7 +69,7 @@ export default {
         //{ icon: 'home', text: 'Inicio', route: '/' },
         { icon: "list_alt", text: "Pull Request", route: "/pullrequest" },
         { icon: "timeline", text: "Repositorio", route: "/repositorio" },
-        { icon: "mdi-download", text: "RepoDescarga", route: "/repodescarga" },
+        //{ icon: "mdi-download", text: "RepoDescarga", route: "/repodescarga" },
         //{ icon: "person", text: "Participantes", route: "/userstats" },
         { icon: "help", text: "Acerca de", route: "/acerca" },
       ],

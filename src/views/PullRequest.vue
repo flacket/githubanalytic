@@ -87,17 +87,9 @@
           </v-col>
           <!--<v-col sm="12" md="5">
             <h4>Mimica:</h4>
-            <v-select
-              @change="chartDataMimica"
-              v-model="participante"
-              :items="participantes"
-              label="Participante"
-              item-text="nombre"
-              item-value="pos"
-              return-object
-              dense
-              :hint="`${participante.nombre}, ${participante.pos}`"
-            ></v-select>
+            <v-select @change="chartDataMimica" v-model="participante" :items="participantes"
+              label="Participante" item-text="nombre" item-value="pos" return-object dense
+              :hint="`${participante.nombre}, ${participante.pos}`"></v-select>
             <RadarChart :chartData="chartMimica" />
           </v-col>-->
         </v-row>
@@ -110,7 +102,18 @@
               :items="estadisticas"
               :items-per-page="20"
               class="elevation-1 mt-2"
-            ></v-data-table>
+            >
+            <template v-slot:[`item.mimicaInd`]="{ item }">
+              <v-progress-linear :value="item.mimicaInd*100" height="25">
+                <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
+              </v-progress-linear>
+            </template>
+            <template v-slot:[`item.tonoInd`]="{ item }">
+              <v-progress-linear :value="item.tonoInd*100" height="25">
+                <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
+              </v-progress-linear>
+            </template>
+            </v-data-table>
           </v-col>
         </v-row>
         <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
@@ -356,16 +359,6 @@ export default {
         this.chartDataCohe();
         this.chartDataColab();
 
-        /*let pos = 0;
-        this.repository.pullRequest.participants.nodes.forEach(item => {
-          this.participantes.push({
-            nombre: item.login,
-            pos: pos
-          });
-          pos++;
-        });
-        this.participante = this.participantes[0];
-        this.chartDataMimica();*/
         this.show = true;
       } catch (error) {
         console.log("Error en EstadisticasPR-Haciendo la tabla: ", error);

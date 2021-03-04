@@ -14,42 +14,34 @@ moment.locale("es-us");
 }*/
 export function getParticipantesRepoStat(estadisticasPR) {
   //creo una lista de los Paticipantes de cada PR del repositorio
-  let participantesStat = [];
+  let pStat = [];
   try {
     estadisticasPR.forEach((PR) => {
       let estadoPR = PR.estado;
       PR.statsIndividuales.forEach((participante) => {
-        let cantParticipantes = participantesStat.length;
+        let cantParticipantes = pStat.length;
         let encontrado = false;
         let i = 0;
         while (!encontrado && i < cantParticipantes) {
-          if (participantesStat[i].login == participante.login)
+          if (pStat[i].login == participante.login)
             encontrado = true;
           else i++;
         }
         if (encontrado) {
           //agrego stats al participante existente
-          participantesStat[i].coheIndSum += participante.coeInd;
-          participantesStat[i].coheIndTotal++;
-          participantesStat[i].coheInd =
-            participantesStat[i].coheIndSum /
-            participantesStat[i].coheIndTotal++;
-          participantesStat[i].colabIndSum += participante.colabInd;
-          participantesStat[i].colabIndTotal++;
-          participantesStat[i].colabInd =
-            participantesStat[i].colabIndSum /
-            participantesStat[i].colabIndTotal++;
-          participantesStat[i].mimicaIndSum += participante.mimicaInd;
-          participantesStat[i].mimicaIndTotal++;
-          participantesStat[i].mimicaInd =
-            participantesStat[i].mimicaIndSum /
-            participantesStat[i].mimicaIndTotal++;
-          participantesStat[i].tonoIndSum += participante.mimicaInd;
-          participantesStat[i].tonoIndTotal++;
-          participantesStat[i].tonoInd =
-            participantesStat[i].tonoIndSum /
-            participantesStat[i].tonoIndTotal++;
-          participantesStat[i].CantPRParticipa++;
+          pStat[i].coheIndSum += participante.coeInd;
+          pStat[i].coheIndTotal++;
+          pStat[i].coheInd = pStat[i].coheIndSum / pStat[i].coheIndTotal++;
+          pStat[i].colabIndSum += participante.colabInd;
+          pStat[i].colabIndTotal++;
+          pStat[i].colabInd = pStat[i].colabIndSum / pStat[i].colabIndTotal++;
+          pStat[i].mimicaIndSum += participante.mimicaInd;
+          pStat[i].mimicaIndTotal++;
+          pStat[i].mimicaInd = pStat[i].mimicaIndSum / pStat[i].mimicaIndTotal++;
+          pStat[i].tonoIndSum += participante.mimicaInd;
+          pStat[i].tonoIndTotal++;
+          pStat[i].tonoInd = pStat[i].tonoIndSum / pStat[i].tonoIndTotal++;
+          pStat[i].cantPRParticipa++;
         } else {
           //agrego stats como participante nuevo
           var partStat = {
@@ -67,25 +59,25 @@ export function getParticipantesRepoStat(estadisticasPR) {
             tonoIndSum: participante.tonoInd,
             tonoIndTotal: 1,
             habilidad: 0,
-            CantPRAuthor: 0,
-            CantPRMerge: 0,
-            CantPRParticipa: 1,
+            cantPRAuthor: 0,
+            cantPRMerge: 0,
+            cantPRParticipa: 1
           };
-          i = participantesStat.push(partStat) - 1;
+          i = pStat.push(partStat) - 1;
         }
-        if (participantesStat[i].login == PR.autor) {
-          participantesStat[i].CantPRAuthor++;
-          if (estadoPR == "MERGED") participantesStat[i].CantPRMerge++;
-          participantesStat[i].habilidad =
-            participantesStat[i].CantPRMerge /
-            participantesStat[i].CantPRAuthor;
+        if (pStat[i].login == PR.autor) {
+          pStat[i].cantPRAuthor++;
+          if (estadoPR == "MERGED") pStat[i].cantPRMerge++;
+          pStat[i].habilidad =
+            pStat[i].cantPRMerge /
+            pStat[i].cantPRAuthor;
         }
       });
     });
   } catch (error) {
     console.log("Error en Formulas.js | getParticipantesRepoStat: ", error);
   }
-  return participantesStat;
+  return pStat;
 }
 export function habilidadParticipantes(pullRequests) {
   //creo una lista de los Paticipantes de cada PR del repositorio
