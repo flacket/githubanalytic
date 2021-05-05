@@ -10,7 +10,7 @@
   "dependencies": {
     "@playlyfe/gql": "^2.6.2",
     "apollo-boost": "^0.4.9",
-    "chart.js": "^2.9.4",
+    "chart.js": "^3.2.1",
     "core-js": "^3.9.1",
     "doc-similarity": "0.0.1",
     "eslint-plugin-graphql": "^4.0.0",
