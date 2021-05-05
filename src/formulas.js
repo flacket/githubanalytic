@@ -412,10 +412,10 @@ export function polaridadFormula(cantPersonas, pullRequest) {
 export function matrizConteoPR(pullRequest) {
   //busco cantidad de participantes
   let cantPersonas = pullRequest.participants.totalCount;
-  //y almaceno el login de cada participante
+  //y almaceno el id de cada participante
   let participants = new Array();
   pullRequest.participants.nodes.forEach(function(element) {
-    participants.push(element.login);
+    participants.push(element.id);
   });
   //crear matriz NxN (con ceros)
   var countMatrix = new Array(cantPersonas);
@@ -433,7 +433,10 @@ export function matrizConteoPR(pullRequest) {
     let encontrado = false;
     let e = 1; //salteo el participante de la pos[0], no se va a autorreaccionar
     while (!encontrado) {
-      if (participants[e] == element.user.login) {
+      try {
+        console.log("PR#: ", pullRequest.number);
+      if (participants[e] == element.user.id) {
+        console.log("PR#: ", pullRequest.number, "  |  User.id: ",element.user.id);
         //console.log('Reacciona 1er comment: ', participants[e])
         //este participante le reacciono al creador del PR
         countMatrix[e][0]++;
@@ -442,6 +445,9 @@ export function matrizConteoPR(pullRequest) {
         encontrado = true;
       }
       e++;
+      } catch (err) {
+        console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la busqueda de reacciones al primer comentario | ", err);
+      }
     }
   });
   //console.log('----- COMMENTS -----')
@@ -451,6 +457,8 @@ export function matrizConteoPR(pullRequest) {
   var lastCommentAuthor = null;
   //Contar Cometarios
   pullRequest.comments.nodes.forEach(function(element) {
+    try {
+    if (element.author){//verifico que no sea una cuenta borrada
     //verifico si el comentario esta antes de la fecha de cierre
     if (element.createdAt < pullRequest.closedAt || !pullRequest.closedAt) {
       //console.log('--------------------')
@@ -462,7 +470,7 @@ export function matrizConteoPR(pullRequest) {
       var commentNoValido = false;
       if (
         lastCommentAuthor != null &&
-        lastCommentAuthor == element.author.login
+        lastCommentAuthor == element.author.id
       ) {
         // comenta el mismo del comentario anterior
         let momentDate = moment(element.createdAt, "YYYY-MM-DDTHH:mm:ssZ");
@@ -471,7 +479,7 @@ export function matrizConteoPR(pullRequest) {
           (ComentDate.getTime() - lastCommentDate.getTime()) / 1000;
         //console.log('Minutos:', timeLapsed/60)
         //console.log('lastCommentAuthor:', lastCommentAuthor)
-        //console.log('Author:', element.author.login)
+        //console.log('Author:', element.author.id)
         if (lastCommentBody == element.body || timeLapsed < 900) {
           //el comentario se repite o fecha es menor a 15 min
           commentNoValido = true;
@@ -482,10 +490,12 @@ export function matrizConteoPR(pullRequest) {
       let momDate = moment(element.createdAt, "YYYY-MM-DDTHH:mm:ssZ");
       lastCommentDate = momDate.toDate();
       lastCommentBody = element.body;
-      lastCommentAuthor = element.author.login;
+      //lastCommentAuthor = element.author.id;
+      if (element.author.id) lastCommentAuthor = element.author.id;
+      else lastCommentAuthor = "|Usuario Borrado|";
       //busco el participante que hizo el comentario
       while (!encontrado) {
-        if (participants[c] == element.author.login) {
+        if (participants[c] == element.author.id) {
           encontrado = true;
           //este participante ha hecho un comentario
           //Busco si el comentario menciona (@) algun participante
@@ -523,7 +533,7 @@ export function matrizConteoPR(pullRequest) {
             let j = 0;
             while (!enc) {
               if (
-                participants[j] == element.reactions.nodes[index].user.login
+                participants[j] == element.reactions.nodes[index].user.id
               ) {
                 //este participante le reacciono al creador del PR
                 enc = true;
@@ -545,12 +555,16 @@ export function matrizConteoPR(pullRequest) {
               j++;
             }
           } //reaccion comentarios
-        } else if (c == cantPersonas) {
+        } else if (c == (cantPersonas-1)) {
           encontrado = true;
         }
         c++;
       } //while encontrado
     }
+  }
+  } catch (err) {
+    console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la sección comentarios | ", err);
+  }
   }); //contar comentarios
   //console.log('----- REVIEWS -----')
   //contar reviews
@@ -565,14 +579,14 @@ export function matrizConteoPR(pullRequest) {
       //busco el index del comentarista
       var encontrado = false;
       var c = 0;
-      var posicion;
+      var posicion = 0;
       try {
         while (!encontrado) {
-          if (participants[c] == reviewComment.author.login) {
+          if (participants[c] == reviewComment.author.id) {
             encontrado = true;
             //este participante ha hecho un comentario, se guarda su posicion
             posicion = c;
-          } else if (c == cantPersonas) {
+          } else if (c == (cantPersonas-1)) {
             encontrado = true;
           }
           c++;
@@ -589,7 +603,7 @@ export function matrizConteoPR(pullRequest) {
         }
         if (add) {
           //Agrego el comentarista al array
-          var data = { name: reviewComment.author.login, pos: posicion };
+          var data = { name: reviewComment.author.id, pos: posicion };
           reviewArray.push(data);
         }
         //NOTE: PROBAR SI ESTA PARTE SE PUEDE MEZCLAR CON EL "NOTE" DE ARRIBA
@@ -612,7 +626,7 @@ export function matrizConteoPR(pullRequest) {
         var commentNoValido = false;
         if (
           lastCommentAuthor != null &&
-          lastCommentAuthor == reviewComment.author.login
+          lastCommentAuthor == reviewComment.author.id
         ) {
           // comenta el mismo del comentario anterior
           let momentDate = moment(
@@ -624,7 +638,7 @@ export function matrizConteoPR(pullRequest) {
             (ComentDate.getTime() - lastCommentDate.getTime()) / 1000;
           //console.log('Minutos:', timeLapsed/60)
           //console.log('lastCommentAuthor:', lastCommentAuthor)
-          //console.log('Author:', reviewComment.author.login)
+          //console.log('Author:', reviewComment.author.id)
           if (lastCommentBody == reviewComment.body || timeLapsed < 900) {
             //el comentario se repite o fecha es menor a 15 min
             commentNoValido = true;
@@ -635,7 +649,7 @@ export function matrizConteoPR(pullRequest) {
         let momDate = moment(reviewComment.createdAt, "YYYY-MM-DDTHH:mm:ssZ");
         lastCommentDate = momDate.toDate();
         lastCommentBody = reviewComment.body;
-        lastCommentAuthor = reviewComment.author.login;
+        lastCommentAuthor = reviewComment.author.id;
         //si es el primer comentario del review
         if (reviewArray.length == 1) {
           //el comentario va para el creador del PR
@@ -664,9 +678,9 @@ export function matrizConteoPR(pullRequest) {
           //busco la posicion en la matriz del que reacciona
           while (!enc) {
             if (
-              participants[j] == reviewComment.reactions.nodes[index].user.login
+              participants[j] == reviewComment.reactions.nodes[index].user.id
             ) {
-              //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.login)
+              //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.id)
               //este participante le reacciono al creador del PR
               countMatrix[j][posicion]++;
               enc = true;
@@ -674,11 +688,11 @@ export function matrizConteoPR(pullRequest) {
               //  { enc = true }
               //j++
             } else j++;
-            if (j == cantPersonas) enc = true;
+            if (j == (cantPersonas-1)) enc = true;
           }
         } //reacciones
       } catch (err) {
-        console.log("Error en Review Comments | PR#:", pullRequest.number);
+        console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la sección Review Comentarios | ", err);
       }
     }); //comentario de cada review
   }); //contar reviews
