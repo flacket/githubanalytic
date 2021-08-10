@@ -1,4 +1,5 @@
-import moment from "moment";
+import moment from "moment"
+import {polarity} from "polarity"
 moment.locale("es-us");
 /*export function listaParticipantesRepo(pullRequests) {
   //creo una lista de los Paticipantes de cada PR del repositorio
@@ -393,7 +394,6 @@ export function polaridadFormula(cantPersonas, pullRequest) {
   let listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
   let polarityTable = new Array();
   try {
-    let polarity = require("polarity");
     for (let i = 0; i < cantPersonas; i++) {
       //reemplazo caracteres indeseados
       let str = listaComm[i].replace(/"/g, " ");
@@ -428,15 +428,14 @@ export function matrizConteoPR(pullRequest) {
   //Primer Cometario
   for (i = 1; i < cantPersonas; i++) {
     countMatrix[0][i]++;
+    
   }
   pullRequest.reactions.nodes.forEach(function(element) {
     let encontrado = false;
     let e = 1; //salteo el participante de la pos[0], no se va a autorreaccionar
     while (!encontrado) {
       try {
-        console.log("PR#: ", pullRequest.number);
       if (participants[e] == element.user.id) {
-        console.log("PR#: ", pullRequest.number, "  |  User.id: ",element.user.id);
         //console.log('Reacciona 1er comment: ', participants[e])
         //este participante le reacciono al creador del PR
         countMatrix[e][0]++;
