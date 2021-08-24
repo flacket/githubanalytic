@@ -7,6 +7,7 @@
             v-model="search.owner"
             :rules="emptyRules"
             label="Usuario / Organización"
+            placeholder="ej: twitter"
             required
           ></v-text-field>
         </v-col>
@@ -16,6 +17,7 @@
             v-model="search.name"
             :rules="emptyRules"
             label="Repositorio"
+            placeholder="ej: serial"
             required
           ></v-text-field>
         </v-col>
@@ -26,6 +28,7 @@
             :rules="emptyRules"
             label="Pull Request #"
             required
+            placeholder="ej: 23"
             :disabled="hideNumber"
           ></v-text-field>
         </v-col>

@@ -23,6 +23,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
         let cantParticipantes = pStat.length;
         let encontrado = false;
         let i = 0;
+        let rol = "participante"
         while (!encontrado && i < cantParticipantes) {
           if (pStat[i].login == participante.login)
             encontrado = true;
@@ -47,6 +48,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
           //agrego stats como participante nuevo
           var partStat = {
             login: participante.login,
+            rol: rol,
             coheInd: participante.coeInd,
             coheIndSum: participante.coeInd,
             coheIndTotal: 1,
@@ -68,6 +70,7 @@ export function getParticipantesRepoStat(estadisticasPR) {
         }
         if (pStat[i].login == PR.autor) {
           pStat[i].cantPRAuthor++;
+          pStat[i].rol = "colaborador"
           if (estadoPR == "MERGED") pStat[i].cantPRMerge++;
           pStat[i].habilidad =
             pStat[i].cantPRMerge /

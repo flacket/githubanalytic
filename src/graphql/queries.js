@@ -295,6 +295,21 @@ export const REPOSITORY_PRS = gql`
   }
 `;
 
+export const ORG_MEMBERS = gql`
+query getOrgMembers($login: String!){
+  organization(login: $login) {
+    membersWithRole(first: 100) {
+      nodes {
+        isSiteAdmin
+        isEmployee
+        login
+        id
+      }
+    }
+  }
+}
+`;
+
 export const RATE_LIMIT = gql`
   query rateLimit {
     rateLimit {

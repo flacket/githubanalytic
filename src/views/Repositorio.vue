@@ -139,6 +139,11 @@
         :items-per-page="20"
         class="elevation-1 mt-2"
       >
+      <template v-slot:[`item.rol`]="{ item }">
+      <v-chip :color="getColor(item.rol)" dark>
+        {{ item.rol }}
+      </v-chip>
+      </template>
       <template v-slot:[`item.coheInd`]="{ item }">
         <v-progress-linear :value="item.coheInd*100" height="25">
           <strong>{{ (item.coheInd*100).toFixed(2) }}%</strong>
@@ -173,7 +178,7 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
+import { GET_REPOS, REPOSITORY_PRS} from "../graphql/queries.js";
 import Doughnut from "../components/chartjs/Doughnut.vue";
 import {
   matrizConteoPR,
@@ -229,6 +234,7 @@ export default {
       ],
       encabezadosPersona: [
         { text: "Usuario", sortable: false, value: "login" },
+        { text: "Rol", value: "rol" },
         { text: "Cant. PR Author", value: "cantPRAuthor" },
         { text: "Cant. PR Participa", value: "cantPRParticipa" },
         //{ text: "Mensajes Enviados", value: "msjEnviados" },
@@ -315,10 +321,16 @@ export default {
       this.snackbar.show = true;
     },
     getColor (estado) {
-        if (estado == "MERGED") return '#6f42c1'
-        else if (estado == "CLOSED") return '#d73a49'
-        else return '#28a745'
-      },
+      switch(estado) {
+        case "MERGED": return '#6f42c1'
+        case "CLOSED": return '#d73a49'
+        case "OPEN": return '#d73a49'
+        case "participante": return '#8fc2f5'
+        case "colaborador": return '#489bec'
+        case "miembro": return '#0653a0'
+        default: return '#999999'
+      }
+    },
     progressbar() {
       if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
