@@ -178,7 +178,7 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-import { GET_REPOS, REPOSITORY_PRS} from "../graphql/queries.js";
+import { GET_REPOS, REPOSITORY_PRS, ORG_MEMBERS } from "../graphql/queries.js";
 import Doughnut from "../components/chartjs/Doughnut.vue";
 import {
   matrizConteoPR,
@@ -195,6 +195,7 @@ export default {
   data() {
     return {
       loading: false,
+      search: "",
       progress: {
         text: "Cargando",
         bar: 0,
@@ -212,6 +213,7 @@ export default {
       cancel: true,
       getPR: "",
       countPRs: [],
+      OrgMembers: "",
       countMatrix: "",
       cohesionMatrix: "",
       colabMatrix: "",
@@ -290,8 +292,8 @@ export default {
     getPR: {
       query: GET_REPOS,
       variables: {
-        owner: "flacket",
-        name: "githubanalytic",
+        owner: "microsoft",
+        name: "vscode",
         reactions: 1,
         participants: 1,
         comments: 1,
@@ -304,10 +306,17 @@ export default {
     getPRcant: {
       query: REPOSITORY_PRS,
       variables: {
-        owner: "flacket",
-        name: "githubanalytic",
+        owner: "microsoft",
+        name: "vscode",
       },
       update: (data) => data.repository.pullRequests,
+    },
+    getOrgMembers: {
+      query: ORG_MEMBERS,
+      variables: {
+        owner: "microsoft",
+      },
+      update: (data) => data.organization.membersWithRole.nodes,
     },
   },
   mounted: function() {
@@ -397,30 +406,18 @@ export default {
       reader.readAsText(file, "UTF-8");
       reader.onload = (evt) => {
         //this.pullRequests = JSON.parse(evt.target.result);
-        let pullReqs = JSON.parse(evt.target.result);
-
+        let repo = JSON.parse(evt.target.result);
+        this.search = {
+          owner: repo.owner,
+          name: repo.name
+        }
         this.pullRequests = [];
-        pullReqs.forEach((PR) => {
+        repo.pullRequests.forEach((PR) => {
           if (PR.participants.totalCount > 1) {
             this.pullRequests.push(PR);
           }
         });
-
-        //Calculo la matriz de conteo y estadisticas para cada PR
-        this.estadisticas = [];
-        this.pullRequests.forEach((PR) => {
-          this.countMatrix = matrizConteoPR(PR);
-          this.getEstadisticas(PR);
-        });
-
-        //llamo a crear la tabla de estadisticas de cada persona
-        this.estadisticasPersona = getParticipantesRepoStat(this.estadisticas);
-        //Doy formato a las gráficas
-        this.chartsDataGrupal();
-
-        this.show = true;
-        this.progress.bar = 0;
-        this.loading = false;
+        this.setAnalytics(this.search);
       };
       reader.onerror = (evt) => {
         this.showSnackbar(
@@ -431,11 +428,17 @@ export default {
       };
     },
     saveFile() {
-      const data = JSON.stringify(this.pullRequests),
+      //Agrego la lista de pullrequests a la Organizacion
+      const repo ={
+        owner: this.search.owner,
+        name: this.search.name,
+        pullRequests: this.pullRequests
+      }
+      const data = JSON.stringify(repo),
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = "informe" + ".json";
+      a.download = this.search.owner + " - " + this.search.name + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
@@ -617,6 +620,7 @@ export default {
       if (!this.$apollo.skipAll) {
         this.$apollo.skipAll = false;
       }
+      this.search = search;
       this.$apollo.queries.getPRcant
         .refetch({
           owner: search.owner,
@@ -844,28 +848,44 @@ export default {
                 self.pullRequests.push(PR);
               }
             });
-
-            //Calculo la matriz de conteo y estadisticas para cada PR
-            self.estadisticas = [];
-            self.pullRequests.forEach((PR) => {
-              self.countMatrix = matrizConteoPR(PR);
-              self.getEstadisticas(PR);
-            });
-            //llamo a crear la tabla de estadisticas de cada persona
-            self.estadisticasPersona = getParticipantesRepoStat(
-              self.estadisticas
-            );
-            //Doy formato a las gráficas
-            self.chartsDataGrupal();
-
-            self.countPRs = [];
-            self.show = true;
-            self.progress.bar = 0;
-            self.loading = false;
-            self.showSnackbar("Análisis Finalizado", "success", 4000);
+            self.setAnalytics(search);
           }
         });
     }, //getFullPR
+    setAnalytics(search){
+      var self = this;
+      //Calculo la matriz de conteo y estadisticas para cada PR
+      self.estadisticas = [];
+      self.pullRequests.forEach((PR) => {
+        self.countMatrix = matrizConteoPR(PR);
+        self.getEstadisticas(PR);
+      });
+
+      if (!self.$apollo.skipAll) {
+        self.$apollo.skipAll = false;
+      }
+      self.$apollo.queries.getOrgMembers
+      .refetch({
+        owner: search.owner
+      })
+      .then(() => {
+        self.OrgMembers = self.getOrgMembers;
+        
+        //llamo a crear la tabla de estadisticas de cada persona
+        self.estadisticasPersona = getParticipantesRepoStat(
+          self.estadisticas, self.OrgMembers
+        );
+        //Doy formato a las gráficas
+        self.chartsDataGrupal();
+
+        self.countPRs = [];
+        self.show = true;
+        self.progress.bar = 0;
+        self.loading = false;
+        
+        self.showSnackbar("Análisis Finalizado", "success", 4000);
+      });
+    }
   },
 };
 </script>

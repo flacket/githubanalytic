@@ -296,8 +296,8 @@ export const REPOSITORY_PRS = gql`
 `;
 
 export const ORG_MEMBERS = gql`
-query getOrgMembers($login: String!){
-  organization(login: $login) {
+query getOrgMembers($owner: String!){
+  organization(login: $owner) {
     membersWithRole(first: 100) {
       nodes {
         isSiteAdmin

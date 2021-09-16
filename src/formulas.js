@@ -13,7 +13,7 @@ moment.locale("es-us");
   });
   return habilidadLista;
 }*/
-export function getParticipantesRepoStat(estadisticasPR) {
+export function getParticipantesRepoStat(estadisticasPR, orgMembers) {
   //creo una lista de los Paticipantes de cada PR del repositorio
   let pStat = [];
   try {
@@ -76,6 +76,19 @@ export function getParticipantesRepoStat(estadisticasPR) {
             pStat[i].cantPRMerge /
             pStat[i].cantPRAuthor;
         }
+
+        try {
+            orgMembers.forEach(member => {
+              //console.log("pStat[i].login: ", pStat[i].login);
+              //console.log("-member.login: ", member.login);
+              if (pStat[i].login == member.login) {
+                //console.log("---es miembro---");
+                pStat[i].rol = "miembro"
+              }
+            });
+          }catch (error) {
+            console.log("Error en Formulas.js | SetOrgMembers: ", error);
+          }
       });
     });
   } catch (error) {
