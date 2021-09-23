@@ -536,8 +536,6 @@ export default {
             //Agrego informacion de IDs faltantes en el PR
             this.agregarID(this.repository.pullRequest);
             //Llamo a hacer el conteo de Interacciones
-            
-            console.log("check id: ", this.repository.pullRequest);
             this.countMatrix = matrizConteoPR(this.repository.pullRequest);
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();
