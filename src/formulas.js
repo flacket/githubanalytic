@@ -452,7 +452,7 @@ export function matrizConteoPR(pullRequest) {
     while (!encontrado) {
       try {
       if (participants[e] == element.user.id) {
-        console.log('Reacciona 1er comment: ', participants[e])
+        //console.log('Reacciona 1er comment: ', participants[e])
         //este participante le reacciono al creador del PR
         countMatrix[e][0]++;
         encontrado = true;
@@ -465,7 +465,7 @@ export function matrizConteoPR(pullRequest) {
       }
     }
   });
-  console.log('----- COMMENTS -----')
+  //console.log('----- COMMENTS -----')
   //variables para revisar si repite comentario
   var lastCommentBody;
   var lastCommentDate;
@@ -476,7 +476,6 @@ export function matrizConteoPR(pullRequest) {
     //if (element.author){//verifico que no sea una cuenta borrada
     //verifico si el comentario esta antes de la fecha de cierre
     if (element.createdAt < pullRequest.closedAt || !pullRequest.closedAt) {
-      console.log('--------------------')
       //console.log('FechaCom: ', element.createdAt)
       let encontrado = false ;
       let c = 0;
@@ -507,7 +506,6 @@ export function matrizConteoPR(pullRequest) {
       if (element.author.id) lastCommentAuthor = element.author.id;
       else lastCommentAuthor = "|Usuario Borrado|";
       //busco el participante que hizo el comentario
-      console.log('encontrado: ', encontrado, ' - C: ', c , ' - autor: ', element.author.id);
       while (!encontrado && (c < cantPersonas)) {
         if (participants[c] == element.author.id) {
           encontrado = true;
@@ -519,7 +517,7 @@ export function matrizConteoPR(pullRequest) {
               //el comentario menciona esta persona
               if (c != i) {
                 //si no es el que comenta
-                console.log('Comenta: ', participants[c], ' a @' + participants[i]);
+                //console.log('Comenta: ', participants[c], ' a @' + participants[i]);
                 countMatrix[c][i]++;
                 arrobaBandera = true;
               }
@@ -529,7 +527,7 @@ export function matrizConteoPR(pullRequest) {
             //el comentario va para todos (no @ a nadie)
             if (!commentNoValido) {
               //el comentario no esta repetido
-              console.log('Comenta: ', participants[c], ' a Todos');
+              //console.log('Comenta: ', participants[c], ' a Todos');
               for (i = 0; i < cantPersonas; i++) {
                 if (c != i)
                   //si no es el que comenta
@@ -557,7 +555,7 @@ export function matrizConteoPR(pullRequest) {
                   else i++;
                 }
                 if (!yaReacciono) {
-                  console.log('  -Reacciona: ', participants[j])
+                  //console.log('  -Reacciona: ', participants[j])
                   reactionArray.push(participants[j]);
                   countMatrix[j][c]++;
                 }
@@ -575,7 +573,7 @@ export function matrizConteoPR(pullRequest) {
     console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la sección comentarios | ", err);
   }
   }); //contar comentarios
-  console.log('----- REVIEWS -----')
+  //console.log('----- REVIEWS -----')
   //contar reviews
   pullRequest.reviewThreads.nodes.forEach(function(element) {
     //este array va a mantener las personas que comentaron en el review
@@ -583,7 +581,6 @@ export function matrizConteoPR(pullRequest) {
     var reviewArray = new Array();
     //reinicio la variable para revisar si repite reviews
     lastCommentAuthor = null;
-    console.log('---')
     element.comments.nodes.forEach(function(reviewComment) {
       //busco el index del comentarista
       var encontrado = false;
@@ -623,7 +620,7 @@ export function matrizConteoPR(pullRequest) {
             //el comentario menciona esta persona
             //si no es el que comenta y no va a ser contado (en reviewArray)
             if (c != i && !reviewArray.includes(participants[i])) {
-              console.log('Comenta: ', participants[posicion], ' a @', participants[i])
+              //console.log('Comenta: ', participants[posicion], ' a @', participants[i])
               countMatrix[c][i]++;
               arrobaBandera = true;
             }
@@ -637,10 +634,7 @@ export function matrizConteoPR(pullRequest) {
           lastCommentAuthor == reviewComment.author.id
         ) {
           // comenta el mismo del comentario anterior
-          let momentDate = moment(
-            reviewComment.createdAt,
-            "YYYY-MM-DDTHH:mm:ssZ"
-          );
+          let momentDate = moment(reviewComment.createdAt,"YYYY-MM-DDTHH:mm:ssZ");
           let ComentDate = momentDate.toDate();
           let timeLapsed =
             (ComentDate.getTime() - lastCommentDate.getTime()) / 1000;
@@ -668,13 +662,13 @@ export function matrizConteoPR(pullRequest) {
             //solo si no hay gente arrobada, y el comentario no esta repetido
             for (i = 0; i < reviewArray.length; i++) {
               if (posicion != reviewArray[i].pos) {
-                console.log('Comenta: ', participants[posicion], ' | (no@)Hacia: ', participants[reviewArray[i].pos])
+                //console.log('Comenta: ', participants[posicion], ' | (no@)Hacia: ', participants[reviewArray[i].pos])
                 countMatrix[posicion][reviewArray[i].pos]++;
               }
             }
           }
         }
-        console.log('Review Comments - Reactions:')
+        //console.log('Review Comments - Reactions:')
         //reacciones al comentarios
         for (
           var index = 0;
@@ -688,7 +682,7 @@ export function matrizConteoPR(pullRequest) {
             if (
               participants[j] == reviewComment.reactions.nodes[index].user.id
             ) {
-              console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.id)
+              //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.id)
               //este participante le reacciono al creador del PR
               countMatrix[j][posicion]++;
               enc = true;
