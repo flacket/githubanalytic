@@ -94,6 +94,7 @@ export const GET_REPO = gql`
           }
         }
         comments(first: 100) {
+          totalCount
           nodes {
             body
             bodyHTML
@@ -114,6 +115,7 @@ export const GET_REPO = gql`
           }
         }
         reviewThreads(first: 50) {
+          totalCount
           nodes {
             comments(first: 20) {
               totalCount
@@ -158,6 +160,7 @@ export const GET_REPOS = gql`
   ) {
     repository(owner: $owner, name: $name) {
       pullRequests(first: 15, before: $beforeCursor, after: $afterCursor) {
+        totalCount
         nodes {
           id
           number

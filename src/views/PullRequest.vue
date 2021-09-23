@@ -459,6 +459,67 @@ export default {
         console.log("Error en chartDataMimica: ", error);
       }
     },
+    agregarID(pullRequest) {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      try {
+        //agregamos id al autor del PR
+        if (pullRequest.author) {
+          let encontrado = false;
+          let index = 0;
+          while (!encontrado) {
+            if (pullRequest.participants.nodes[index].login == pullRequest.author.login) {
+              pullRequest.author.id = pullRequest.participants.nodes[index].id;
+              encontrado = true;
+            } else if (index == pullRequest.participants.totalCount) {
+              encontrado = true;
+            }
+            index++;
+          }
+        } else {
+          pullRequest.author = {login: "|Usuario Borrado|", id: 0};
+        }
+        //agregamos id a los autores de Comentarios
+        for (let c = 0; c < pullRequest.comments.totalCount; c++) {
+          if (pullRequest.comments.nodes[c].author) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (pullRequest.participants.nodes[index].login == pullRequest.comments.nodes[c].author.login) {
+                pullRequest.comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
+                encontrado = true;
+              } else if (index == pullRequest.participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          } else {
+            pullRequest.comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+          }
+        }
+        //agregamos id a los autores de Reviews
+        for (let i = 0; i < pullRequest.reviewThreads.totalCount; i++) {
+          for (let c = 0; c < pullRequest.reviewThreads.nodes[i].comments.totalCount; c++) {
+            if (pullRequest.reviewThreads.nodes[i].comments.nodes[c].author) {
+              let encontrado = false;
+              let index = 0;
+              while (!encontrado) {
+                if (pullRequest.participants.nodes[index].login == pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                  pullRequest.reviewThreads.nodes[i].comments.nodes[c].author.id = pullRequest.participants.nodes[index].id;
+                  encontrado = true;
+                } else if (index == pullRequest.participants.totalCount) {
+                  encontrado = true;
+                }
+                index++;
+              }
+            } else {
+              pullRequest.reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+            }
+          }
+        }
+      } catch (error) {
+        console.log("Error en agregarID: ", error);
+      }
+    },
     refreshQuery(search) {
       this.show = false;
       if (!this.$apollo.skipAll) {
@@ -472,7 +533,11 @@ export default {
         })
         .then(() => {
           if (this.repository.pullRequest.participants.totalCount > 1) {
+            //Agrego informacion de IDs faltantes en el PR
+            this.agregarID(this.repository.pullRequest);
             //Llamo a hacer el conteo de Interacciones
+            
+            console.log("check id: ", this.repository.pullRequest);
             this.countMatrix = matrizConteoPR(this.repository.pullRequest);
             //LLamo a generar las estadisticas en base al conteo
             this.estadisticasPR();

@@ -417,6 +417,7 @@ export default {
             this.pullRequests.push(PR);
           }
         });
+        this.agregarID();
         this.setAnalytics(this.search);
       };
       reader.onerror = (evt) => {
@@ -613,6 +614,69 @@ export default {
       this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
       this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
       this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
+    },
+    agregarID() {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      try {
+        for (let r = 0; r < this.pullRequests.length; r++) {
+          //agregamos id al autor del PR
+          if (this.pullRequests[r].author) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
+                this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
+                encontrado = true;
+              } else if (index == this.pullRequests[r].participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          } else {
+            this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
+          }
+          //agregamos id a los autores de Comentarios
+          for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
+            let encontrado = false;
+            let index = 0;
+            if (this.pullRequests[r].comments.nodes[c].author) {
+              while (!encontrado) {
+                if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
+                  this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                  encontrado = true;
+                } else if (index == this.pullRequests[r].participants.totalCount) {
+                  encontrado = true;
+                }
+                index++;
+              }
+            } else {
+              this.pullRequests[r].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+            }
+          }
+          //agregamos id a los autores de Reviews
+          for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
+            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
+              let encontrado = false;
+              let index = 0;
+              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
+                while (!encontrado) {
+                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                    encontrado = true;
+                  } else if (index == this.pullRequests[r].participants.totalCount) {
+                    encontrado = true;
+                  }
+                  index++;
+                }
+              } else {
+                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.log("Error en agregarID: ", error);
+      }
     },
     getRepoPRcant(search) {
       var self = this;
@@ -848,6 +912,8 @@ export default {
                 self.pullRequests.push(PR);
               }
             });
+            //Agrego información de IDs faltantes en los PR
+            self.agregarID();
             self.setAnalytics(search);
           }
         });
