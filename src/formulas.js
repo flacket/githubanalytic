@@ -138,25 +138,19 @@ export function duracionPRdias(tcreated, tclosed) {
   //Obtengo la duracion del PR en días
   let createdAt = moment(tcreated);
   let closedAt = moment(tclosed);
-  // get the difference between the moments
-  let diff = closedAt.diff(createdAt);
   //expresarlo como duracion
-  let diffDuration = moment.duration(diff);
-  //console.log("diffDuration: ", diffDuration);
-  //TODO: mejorar como se viasualiza el tiempo
-  diff =
-    diffDuration.days() +
-    "D:" +
-    diffDuration.hours() +
-    "H:" +
-    diffDuration.minutes() +
-    "M";
+  let diffDuration = moment.duration(closedAt.diff(createdAt));
+  let diffHours = diffDuration.asHours();
+
+  //viejo visualizador de tiempo
+  //diff = diffDuration.days() + "D:" + diffDuration.hours() + "H:" + diffDuration.minutes() + "M";
+
   //eliminar ceros para evitar errores en operaciones
-  if (diff == 0) diff = 1;
+  if (diffHours < 1) diffHours = 1;
   let duraciondias = {
     createdAt: createdAt.format("DD/MM/YY"),
     closedAt: closedAt.format("DD/MM/YY"),
-    diff: diff,
+    diff: Math.floor(diffHours),
   };
   return duraciondias;
 }

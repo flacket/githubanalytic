@@ -234,7 +234,7 @@ export default {
         { text: "Participantes", value: "participantes" },
         { text: "Fecha Inicio", value: "fechaInicio" },
         { text: "Fecha Cierre", value: "fechaCierre" },
-        { text: "Duración Dias", value: "duraccionDias" },
+        { text: "Duración Horas", value: "duraccionDias" },
         { text: "Código Agregado", value: "codigoAdd" },
         { text: "Código Quitado", value: "codigoRem" },
         { text: "Total Cambios", value: "sizePR" },
