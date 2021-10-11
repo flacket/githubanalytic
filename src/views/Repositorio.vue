@@ -47,26 +47,32 @@
             <v-layout column>
               <v-flex>
                 <p>
-                  Participantes:
-                  {{ this.estadisticasPersona.length }}
+                  Miembros: {{ this.datosRepo.miembros }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  Cant. Colaboradores:<!--
-                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
+                  Colaboradores: {{ this.datosRepo.colaboradores }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  PR Merged:<!--
-                  {{this.pullRequests.additions + this.pullRequests.deletions}}-->
+                  Participantes: {{ this.datosRepo.participantes }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
-                  PR Cerrados:
-                  <!--{{ this.pullRequests.state }}-->
+                  PR Merged: {{ this.datosRepo.PRmerged }}
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  PR Cerrados: {{ this.datosRepo.PRclosed }}
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  PR Total: {{ this.datosRepo.PRtotal }}
                 </p>
               </v-flex>
             </v-layout>
@@ -250,6 +256,14 @@ export default {
       pullRequests: [],
       repository: "",
       estadisticas: [],
+      datosRepo: {
+        participantes: 0,
+        miembros: 0,
+        colaboradores: 0,
+        PRmerged: 0,
+        PRclosed: 0,
+        PRtotal: 0,
+      },
       chartCoheGrupal: {
         labels: [],
         datasets: [
@@ -401,6 +415,14 @@ export default {
       if (!file) return;
       this.show = false;
       this.loading = true;
+      this.datosRepo = {
+        participantes: 0,
+        miembros: 0,
+        colaboradores: 0,
+        PRmerged: 0,
+        PRclosed: 0,
+        PRtotal: 0,
+      };
       // Credit: https://stackoverflow.com/a/754398/52160
       let reader = new FileReader();
       reader.readAsText(file, "UTF-8");
@@ -703,6 +725,14 @@ export default {
       //Por cada 50 Pull Request almacena el maximo de datos que hay que traer
       this.show = false;
       this.loading = true;
+      this.datosRepo = {
+        participantes: 0,
+        miembros: 0,
+        colaboradores: 0,
+        PRmerged: 0,
+        PRclosed: 0,
+        PRtotal: 0,
+      };
       this.estadisticas = [];
       this.pullRequests = "";
       var self = this;
@@ -941,10 +971,38 @@ export default {
         self.estadisticasPersona = getParticipantesRepoStat(
           self.estadisticas, self.OrgMembers
         );
+
+        //Calculo las estadisticas generales del tablero principal
+        self.estadisticasPersona.forEach((persona) => {
+          switch(persona.rol) {
+            case "miembro":
+              self.datosRepo.miembros++;
+              break;
+            case "colaborador":
+              self.datosRepo.colaboradores++;
+              break;
+            default:
+              self.datosRepo.participantes++;
+          }
+        });
+
+        self.estadisticas.forEach((PR) => {
+          switch(PR.estado) {
+            case "MERGED":
+              self.datosRepo.PRmerged++;
+              break;
+            case "CLOSED":
+              self.datosRepo.PRclosed++;
+              break;
+          }
+        });
+        self.datosRepo.PRtotal = self.datosRepo.PRclosed + self.datosRepo.PRmerged;
+
         //Doy formato a las gráficas
         self.chartsDataGrupal();
 
         self.countPRs = [];
+
         self.show = true;
         self.progress.bar = 0;
         self.loading = false;
