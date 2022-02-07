@@ -5,6 +5,7 @@ import vuetify from './plugins/vuetify'
 import {createProvider} from './vue-apollo'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import firebaseApp from './FirebaseApp'
+import "firebase/compat/auth";
 
 Vue.config.productionTip = false
 
