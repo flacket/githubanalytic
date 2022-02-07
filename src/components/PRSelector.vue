@@ -33,7 +33,7 @@
           ></v-text-field>
         </v-col>
         <v-col class="py-0" cols="12" sm="2">
-          <v-btn color="primary" v-on:click="$emit('search-pr', search)">
+          <v-btn color="primary" rounded v-on:click="$emit('search-pr', search)">
             <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
           >
         </v-col>

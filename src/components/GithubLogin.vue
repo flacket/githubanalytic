@@ -1,10 +1,10 @@
 <template>
   <div>
-    <v-btn v-if="!isLoggedIn" @click="githubLogin" color="primary white--text">
+    <v-btn v-if="!isLoggedIn" @click="githubLogin" color="primary white--text" rounded>
       <v-icon left>{{ ghIcon }}</v-icon
       >Iniciar Sesión
     </v-btn>
-    <v-btn v-if="isLoggedIn" @click="githublogout" color="primary white--text">
+    <v-btn v-if="isLoggedIn" @click="githublogout" color="primary white--text" rounded>
       Cerrar Sesión
     </v-btn>
   </div>
@@ -12,8 +12,8 @@
 
 <script>
 import firebaseApp from "../FirebaseApp";
-import firebase from "firebase/app";
-import "firebase/auth";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
 import { mdiGithub } from "@mdi/js";
 
 export default {
@@ -32,12 +32,14 @@ export default {
     async githubLogin() {
       var provider = new firebase.auth.GithubAuthProvider();
       provider.addScope("repo");
+      console.log("provider creado");
       var result = null;
       await firebaseApp
         .auth()
         .signInWithPopup(provider)
         .then(function(result) {
           // This gives you a GitHub Access Token. You can use it to access the GitHub API.
+          console.log("then creado");
           var token = result.credential.accessToken;
           // The signed-in user info.
           var user = result.user.displayName;

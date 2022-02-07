@@ -8,7 +8,7 @@
         :color="snackbar.color"
       >
         {{ snackbar.text }}
-        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+        <v-btn dark rounded text @click="snackbar.show = false">Cerrar</v-btn>
       </v-snackbar>
     </div>
     <h1 class="subheading-1 blue--text">Descarga de Pull Request</h1>
@@ -28,6 +28,7 @@
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn
       class="mb-2"
+      rounded
       :color="colorCancel"
       v-on:click="toggleCancelar"
       v-if="loading"
@@ -39,10 +40,10 @@
       <h2 class="subheading-1 blue--text">
         {{ search.owner }} / {{ search.name }}
       </h2>
-      <v-btn class="ma-2" color="primary" hidden v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded hidden v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
-      <v-btn color="primary" v-on:click="saveFile()">
+      <v-btn color="primary" rounded v-on:click="saveFile()">
         <v-icon left>mdi-download</v-icon>Guardar json</v-btn
       >
 

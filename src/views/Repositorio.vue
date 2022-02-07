@@ -8,7 +8,7 @@
         :color="snackbar.color"
       >
         {{ snackbar.text }}
-        <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+        <v-btn dark rounded text @click="snackbar.show = false">Close</v-btn>
       </v-snackbar>
     </div>
     <h1 class="subheading-1 blue--text">Repositorio</h1>
@@ -28,6 +28,7 @@
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn
       class="mb-2"
+      rounded
       :color="colorCancel"
       v-on:click="toggleCancelar"
       v-if="loading"
@@ -35,14 +36,14 @@
       <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn
     >
 
-    <v-btn v-if="!show && !loading" color="primary" @click.native="btnLoadFile">
+    <v-btn v-if="!show && !loading" color="primary" rounded @click.native="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn
     >
 
     <div v-if="show">
-      <v-card pa-2 outlined>
-        <h4>Metricas Grupales de Proyecto</h4>
-        <v-row>
+      <h4 class="mt-4">Métricas Grupales de Proyecto</h4>
+      <v-card class=" pa-4 rounded-b-xl" outlined>
+        <v-row >
           <v-col sm="12" md="3">
             <v-layout column>
               <v-flex>
@@ -96,13 +97,13 @@
         </v-row>
       </v-card>
 
-      <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
-      <v-btn class="mx-2" color="primary" @click.native="btnLoadFile">
+      <v-btn class="mx-2" color="primary" rounded @click.native="btnLoadFile">
         <v-icon left>mdi-download</v-icon>Cargar json</v-btn
       >
-      <v-btn color="primary" v-on:click="saveFile()">
+      <v-btn color="primary" rounded v-on:click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
       <h4 class="mt-4">Tabla de Pull Request</h4>

@@ -17,7 +17,7 @@
         <p class="mb-5 title font-weight-light">Analíticas de Github</p>
         <p class="subheading font-weight-regular">
           Creado por Facundo Gallardo
-          <br />si estas interesado o tienes dudas puedes
+          <br />si estás interesado o tienes dudas puedes
           <a href="mailto:facundoggallardo@gmail.com" target="_blank"
             >enviarme un correo</a
           >
@@ -25,7 +25,7 @@
       </v-flex>
 
       <v-flex xs12 mb-5>
-        <h2 class="headline-1 font-weight-bold mb-3">Tambien Visita</h2>
+        <h2 class="headline-1 font-weight-bold mb-3">También Visita</h2>
         <v-layout justify-center>
           <a
             v-for="(link, i) in linksImportantes"

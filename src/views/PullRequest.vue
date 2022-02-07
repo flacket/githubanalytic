@@ -7,7 +7,7 @@
       :color="snackbar.color"
     >
       {{ snackbar.text }}
-      <v-btn dark text @click="snackbar.show = false">Close</v-btn>
+      <v-btn dark rounded text @click="snackbar.show = false">Cerrar</v-btn>
     </v-snackbar>
     <h1 class="subheading-1 blue--text">Pull Request</h1>
     <PRSelector
@@ -32,94 +32,92 @@
           #{{ repository.pullRequest.number }}
         </a>
       </h1>
-      <v-container>
-        <v-card pa-2 outlined>
-          <h4>Metricas Grupales del Pull Request</h4>
-          <v-row>
-            <v-col sm="12" md="3">
-              <v-layout column>
-                <v-flex>
-                  <p>
-                    Participantes:
-                    {{ this.repository.pullRequest.participants.totalCount }}
-                  </p>
-                </v-flex>
-                <v-flex>
-                  <p>
-                    Tamaño PR (loc):
-                    {{
-                      this.repository.pullRequest.additions +
-                        this.repository.pullRequest.deletions
-                    }}
-                  </p>
-                </v-flex>
-                <v-flex>
-                  <p>Estado: {{ this.repository.pullRequest.state }}</p>
-                </v-flex>
-              </v-layout>
-            </v-col>
-            <v-col class="mb-3" sm="2">
-              <h4>Cohesión:</h4>
-              <Doughnut :chartData="chartCoheGrupal" />
-            </v-col>
-            <v-col class="mb-3" sm="2">
-              <h4>Colaboración:</h4>
-              <Doughnut :chartData="chartColabGrupal" />
-            </v-col>
-            <v-col class="mb-3" sm="2">
-              <h4>Mímica:</h4>
-              <Doughnut :chartData="chartMimicaGrupal" />
-            </v-col>
-            <v-col class="mb-3" sm="2">
-              <h4>Polaridad:</h4>
-              <Doughnut :chartData="chartTonoGrupal" />
-            </v-col>
-          </v-row>
-        </v-card>
+      <h4 class="mt-4">Métricas Grupales del Pull Request</h4>
+      <v-card class=" pa-4 rounded-b-xl" outlined>
         <v-row>
-          <v-col sm="12" md="5">
-            <h4>Cohesión Individual:</h4>
-            <BarChart :chartData="chartCohe" />
+          <v-col sm="12" md="3">
+            <v-layout column>
+              <v-flex>
+                <p>
+                  Participantes:
+                  {{ this.repository.pullRequest.participants.totalCount }}
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>
+                  Tamaño PR (loc):
+                  {{
+                    this.repository.pullRequest.additions +
+                      this.repository.pullRequest.deletions
+                  }}
+                </p>
+              </v-flex>
+              <v-flex>
+                <p>Estado: {{ this.repository.pullRequest.state }}</p>
+              </v-flex>
+            </v-layout>
           </v-col>
-          <v-col sm="12" md="5">
-            <h4>Colaboración Individual:</h4>
-            <BarChart :chartData="chartColab" />
+          <v-col class="mb-3" sm="2">
+            <h4>Cohesión:</h4>
+            <Doughnut :chartData="chartCoheGrupal" />
           </v-col>
-          <!--<v-col sm="12" md="5">
-            <h4>Mimica:</h4>
-            <v-select @change="chartDataMimica" v-model="participante" :items="participantes"
-              label="Participante" item-text="nombre" item-value="pos" return-object dense
-              :hint="`${participante.nombre}, ${participante.pos}`"></v-select>
-            <RadarChart :chartData="chartMimica" />
-          </v-col>-->
-        </v-row>
-        <v-row>
-          <v-col sm="12" md="12">
-            <h4>Estadísticas de Participantes:</h4>
-            <v-data-table
-              hide-default-footer
-              :headers="encabezados"
-              :items="estadisticas"
-              :items-per-page="20"
-              class="elevation-1 mt-2"
-            >
-            <template v-slot:[`item.mimicaInd`]="{ item }">
-              <v-progress-linear :value="item.mimicaInd*100" height="25">
-                <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
-              </v-progress-linear>
-            </template>
-            <template v-slot:[`item.tonoInd`]="{ item }">
-              <v-progress-linear :value="item.tonoInd*100" height="25">
-                <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
-              </v-progress-linear>
-            </template>
-            </v-data-table>
+          <v-col class="mb-3" sm="2">
+            <h4>Colaboración:</h4>
+            <Doughnut :chartData="chartColabGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Mímica:</h4>
+            <Doughnut :chartData="chartMimicaGrupal" />
+          </v-col>
+          <v-col class="mb-3" sm="2">
+            <h4>Polaridad:</h4>
+            <Doughnut :chartData="chartTonoGrupal" />
           </v-col>
         </v-row>
-        <v-btn class="ma-2" color="primary" v-on:click="csvExport()">
-          <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn
-        >
-      </v-container>
+      </v-card>
+      <v-row class="mt-4">
+        <v-col sm="12" md="6">
+          <h4>Cohesión Individual:</h4>
+          <BarChart :chartData="chartCohe" />
+        </v-col>
+        <v-col sm="12" md="6">
+          <h4>Colaboración Individual:</h4>
+          <BarChart :chartData="chartColab" />
+        </v-col>
+        <!--<v-col sm="12" md="5">
+          <h4>Mimica:</h4>
+          <v-select @change="chartDataMimica" v-model="participante" :items="participantes"
+            label="Participante" item-text="nombre" item-value="pos" return-object dense
+            :hint="`${participante.nombre}, ${participante.pos}`"></v-select>
+          <RadarChart :chartData="chartMimica" />
+        </v-col>-->
+      </v-row>
+      <v-row class="mt-2">
+        <v-col sm="12" md="12">
+          <h4>Estadísticas de Participantes:</h4>
+          <v-data-table
+            hide-default-footer
+            :headers="encabezados"
+            :items="estadisticas"
+            :items-per-page="20"
+            class="elevation-1 mt-2"
+          >
+          <template v-slot:[`item.mimicaInd`]="{ item }">
+            <v-progress-linear :value="item.mimicaInd*100" height="25">
+              <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
+            </v-progress-linear>
+          </template>
+          <template v-slot:[`item.tonoInd`]="{ item }">
+            <v-progress-linear :value="item.tonoInd*100" height="25">
+              <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
+            </v-progress-linear>
+          </template>
+          </v-data-table>
+        </v-col>
+      </v-row>
+      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
+        <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn
+      >
     </div>
   </div>
 </template>
