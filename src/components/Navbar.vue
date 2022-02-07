@@ -6,11 +6,11 @@
       :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer"
     >
-      <v-list dense>
+      <v-list rounded>
         <template v-for="link in links">
           <v-layout v-if="link.heading" :key="link.heading" row align-center>
           </v-layout>
-          <v-list-item v-else :key="link.text" router :to="link.route">
+          <v-list-item v-else :key="link.text" router :to="link.route" color="primary">
             <v-list-item-action>
               <v-icon>{{ link.icon }}</v-icon>
             </v-list-item-action>
