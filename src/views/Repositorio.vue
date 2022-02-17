@@ -567,13 +567,10 @@ export default {
 
       //Calculo el estado del PR
       let estado = pullRequest.state;
-      /*switch (pullRequest.state) {
-        case "MERGED": estado = 1;break;
-        case "CLOSED": estado = 0;break;
-        case "OPEN": estado = 0.5;break;}*/
 
       let author;
-      if (pullRequest.author) author = pullRequest.author.login;
+      if (pullRequest.author
+      ) author = pullRequest.author.login;
       else author = "|Usuario Borrado|";
 
       //Adjunto las estadisticas a los datos del Pull Request

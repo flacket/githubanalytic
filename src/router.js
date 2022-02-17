@@ -6,7 +6,7 @@ import firebaseApp from "./FirebaseApp";
 import Repositorio from "./views/Repositorio.vue";
 import PullRequest from "./views/PullRequest.vue";
 //import UserStats from "./views/UserStats.vue";
-//import repoDescarga from "./views/repoDescarga.vue";
+import repoDescarga from "./views/repoDescarga.vue";
 import Acerca from "./views/Acerca.vue";
 
 Vue.use(Router);
@@ -37,7 +37,7 @@ let router = new Router({
       name: "repositorio",
       component: Repositorio,
     },
-    /*{
+    {
       path: "/repodescarga",
       name: "repodescarga",
       component: repoDescarga,
@@ -45,7 +45,7 @@ let router = new Router({
         requiresAuth: true,
       },
     },
-    {
+    /*{
       path: "/userstats",
       name: "userstats",
       component: UserStats,

@@ -40,7 +40,7 @@
       <h2 class="subheading-1 blue--text">
         {{ search.owner }} / {{ search.name }}
       </h2>
-      <v-btn class="ma-2" color="primary" rounded hidden v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
       <v-btn color="primary" rounded v-on:click="saveFile()">
@@ -63,15 +63,15 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-import { GET_REPOS, REPOSITORY_PRS } from "../graphql/queries.js";
+import { GET_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
 import {
-  matrizConteoPR,
   cohesionFormula,
   colaboracionFormula,
-  //duracionPRdias,
   mimicaFormula,
   polaridadFormula,
-  getParticipantesRepoStat,
+  //duracionPRdias,
+  //matrizConteoPR,
+  //getParticipantesRepoStat,
 } from "../formulas.js";
 
 export default {
@@ -105,6 +105,7 @@ export default {
       estadisticasPersona: "",
       pullRequests: [],
       repository: "",
+      usersData: "",
       estadisticas: [],
       pullRequestsJSON: "",
       usersList: [],
@@ -124,6 +125,13 @@ export default {
         rvThreadsComments: 1,
       },
       update: (data) => data.repository,
+    },
+    usersData: {
+      query: USER_STATS,
+      variables: {
+        owner: "flacket"
+      },
+      update: (data) => data.user,
     },
     getPRcant: {
       query: REPOSITORY_PRS,
@@ -162,16 +170,87 @@ export default {
     csvExport() {
       //Creo el archivo CSV
       const { Parser } = require("json2csv");
+
       const fields = [
-        "PR",
-        "cohesionGrupal",
-        "cohesionGrupalVarianza",
-        "estado",
+        "PR", //numero
+        "Estado", //merged, etc
+        "Participante",
+        "Comentario",
+        "Thumbs_Up",
+        "Thumbs_Down",
+        "Laugh",
+        "Hooray",
+        "Confused",
+        "Heart",
+        "Rocket",
+        "Eyes",
       ];
+
+      let rowsArray = [];
+      //creo la fila para cada elemento del csv
+      this.pullRequests.forEach(PR => {
+        let PRinfo = {
+          PR: PR.number, //numero
+          Estado: PR.state, //merged, etc
+        };
+        PR.comments.nodes.forEach(comment => {
+          //calculo la cantidad de reacciones para cada icono
+          let reactionsArray = new Array(8);
+          for (let i = 0; i < 8; i++) reactionsArray[i] = 0;
+          comment.reactions.nodes.forEach(reaction => {
+            switch (reaction.content) {
+              case "THUMBS_UP":
+                reactionsArray[0]=reactionsArray[0]+1;
+              break;
+              case "THUMBS_DOWN":
+                reactionsArray[1]=reactionsArray[1]+1;
+              break;
+              case "LAUGH":
+                reactionsArray[2]=reactionsArray[2]+1;
+              break;
+              case "HOORAY":
+                reactionsArray[3]=reactionsArray[3]+1;
+              break;
+              case "CONFUSED":
+                reactionsArray[4]=reactionsArray[4]+1;
+              break;
+              case "HEART":
+                reactionsArray[5]=reactionsArray[5]+1;
+              break;
+              case "ROCKET":
+                reactionsArray[6]=reactionsArray[6]+1;
+              break;
+              case "EYES":
+                reactionsArray[7]=reactionsArray[7]+1;
+              break;
+              default:
+                console.log("falta un icono de reaccion en la lista: ", reaction.content);
+              break;
+            }
+          });
+          let row = {
+            PR: PRinfo.PR,
+            Estado: PRinfo.Estado,
+            Participante: comment.author.login,
+            Comentario: comment.body,
+            Thumbs_Up: reactionsArray[0],
+            Thumbs_Down: reactionsArray[1],
+            Laugh: reactionsArray[2],
+            Hooray: reactionsArray[3],
+            Confused: reactionsArray[4],
+            Heart: reactionsArray[5],
+            Rocket: reactionsArray[6],
+            Eyes: reactionsArray[7],
+          };
+          rowsArray.push(row);
+        });
+      });
+      console.log(rowsArray);
+
       const json2csvParser = new Parser({ fields });
-      const csv = json2csvParser.parse(this.estadisticas);
+      const csv = json2csvParser.parse(rowsArray);
       //Exporto ahora el archivo CSV
-      const exportName = "informe" + ".csv" || "export.csv";
+      const exportName = "Repositorio" + ".csv" || "export.csv";
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       if (navigator.msSaveBlob) {
         navigator.msSaveBlob(blob, exportName);
@@ -213,9 +292,9 @@ export default {
         this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
         this.mimicaMatrix = mimicaFormula(cantPersonas, pullRequest);
         var polaridad = polaridadFormula(cantPersonas, pullRequest);
-        //console.log("Habilidad del participante:", listPersonas);
+        //alert("Habilidad del participante:", listPersonas);
       } catch (error) {
-        console.log("Error en EstadisticasPR-Creando formulas: ", error);
+        alert("Error en EstadisticasPR-Creando formulas: ", error);
         this.showSnackbar(
           "Error al generar las estadisticas: " + error,
           "error",
@@ -386,7 +465,7 @@ export default {
             if (item.comments.totalCount > self.countPRs[i].comments) {
               if (item.comments.totalCount > 100) {
                 self.countPRs[i].comments = 100;
-                console.log(
+                alert(
                   "Se superó el limite de la API - Limitado a 100 (PR:",
                   self.countPRs[i],
                   ", comments"
@@ -398,7 +477,7 @@ export default {
             ) {
               if (item.reviewThreads.totalCount > 100) {
                 self.countPRs[i].reviewThreads = 100;
-                console.log(
+                alert(
                   "Se superó el limite de la API - Limitado a 100 (PR:",
                   self.countPRs[i],
                   ", reviewThreads"
@@ -409,7 +488,7 @@ export default {
             if (item.reactions.totalCount > self.countPRs[i].reactions) {
               if (item.reactions.totalCount > 100) {
                 self.countPRs[i].reactions = 100;
-                console.log(
+                alert(
                   "Se superó el limite de la API - Limitado a 100 (PR:",
                   self.countPRs[i],
                   ", reactions"
@@ -419,7 +498,7 @@ export default {
             if (item.participants.totalCount > self.countPRs[i].participants) {
               if (item.participants.totalCount > 100) {
                 self.countPRs[i].participants = 100;
-                console.log(
+                alert(
                   "Se superó el limite de la API - Limitado a 100 (PR:",
                   self.countPRs[i],
                   ", participants"
@@ -460,7 +539,7 @@ export default {
                   ) {
                     if (revThread.comments.totalCount > 100) {
                       self.countPRs[i].reviewThreadsComments = 100;
-                      console.log(
+                      alert(
                         "Se superó el limite de la API - Limitado a 100 (PR:",
                         self.countPRs[i],
                         ", reviewThreadsComments"
@@ -477,14 +556,12 @@ export default {
                   ) {
                     if (comm.reactions.totalCount > 100) {
                       self.countPRs[i].commentsReactions = 100;
-                      console.log(
+                      alert(
                         "Se superó el limite de la API - Limitado a 100 (PR:",
                         self.countPRs[i],
                         ", commentsReactions"
                       );
-                    } else
-                      self.countPRs[i].commentsReactions =
-                        comm.reactions.totalCount;
+                    } else self.countPRs[i].commentsReactions = comm.reactions.totalCount;
                   }
                 });
               });
@@ -548,7 +625,7 @@ export default {
               self.pullRequests.push(PR);
             });
 
-            //Calculo la matriz de conteo y estadisticas para cada PR
+            /*//Calculo la matriz de conteo y estadisticas para cada PR
             self.estadisticas = [];
             self.pullRequests.forEach((PR) => {
               self.countMatrix = matrizConteoPR(PR);
@@ -564,33 +641,48 @@ export default {
               self.usersList.push(persona.login);
             });
 
+            //Agrego las estadisticas al JSON de los PUll Requests
             for (let i = 0; i < self.pullRequests.length; i++) {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
-            }
+            }*/
 
+            //Creo una lista de los participantes del Repositorio
             var listaParticipantesRepo = [];
             try {
-              self.estadisticas.forEach((PR) => {
-                PR.statsIndividuales.forEach((participante) => {
+              self.pullRequests.forEach((PR) => {
+                PR.participants.nodes.forEach((participante) => {
                   let cantParticipantes = listaParticipantesRepo.length;
-                  let encontrado = true;
+                  let noEncontrado = true;
                   let i = 0;
-                  while (encontrado && i < cantParticipantes) {
-                    if (listaParticipantesRepo[i] == participante.id)
-                      encontrado = false;
+                  while (noEncontrado && i < cantParticipantes) {
+                    if (listaParticipantesRepo[i] == participante.login)
+                      noEncontrado = false;
                     else i++;
                   }
-                  if (encontrado) {
+                  if (noEncontrado) {
                     //agrego stats como participante nuevo
-                    listaParticipantesRepo.push(participante.id);
+                    listaParticipantesRepo.push(participante.login);
                   }
                 });
               });
             } catch (error) {
-              console.log("Error creando listaParticipantesRepo. ", error);
+              alert("Error creando listaParticipantesRepo. ", error);
+              self.showSnackbar("Ocurrió un error:" + error, "error", 4000);
             }
-            self.pullRequests.push(listaParticipantesRepo);
 
+            //TODO:Llamo a parsear self.pullRequests para exportarlo en .CSV
+            //console.log(self.pullRequests);
+            //......
+
+            this.usersList = [];
+            listaParticipantesRepo.forEach(participante => {
+              self.usersList.push(participante);
+            });
+
+            //TODO:LLamo a función para armar lista de participantes con sus datos
+            //self.getParticipantsData(listaParticipantesRepo);
+
+            //self.pullRequests.push(listaParticipantesRepo);
             self.pullRequestsJSON = JSON.stringify(self.pullRequests);
 
             self.countPRs = [];
@@ -601,6 +693,46 @@ export default {
           }
         });
     }, //getFullPR
+    getParticipantsData(listaParticipantes) {
+      //Esta funcion genera un JSON con la lista de usuarios
+      //para cada usuario se recopila tambien seguidores, estrellas etc
+      console.log("entra a get participants data");
+      var self = this;
+      listaParticipantes.forEach(participante => {
+        console.log("Participante: ", participante);
+        try{
+        self.$apollo.queries.userStats
+          .refetch({
+            owner: participante,
+          })
+          .then(() => {
+            //TODO:
+            //FIXME:
+            console.log("aka: ", self.usersData);
+        });
+        } catch (err) {
+          alert("Hubo un error al traer lista de participantes: ", err);
+        }
+      });
+
+      /*try{
+        self.$apollo.queries.usersData
+          .refetch({
+            owner: listaParticipantes[0],
+          })
+          .then(() => {
+            //TODO:
+            //FIXME:
+            console.log("aka: ", self.usersData);
+        });
+      } catch (err) {
+        alert("Hubo un error al traer lista de participantes: ", err);
+      }*/
+
+      //self.estadisticasPersona.forEach((persona) => {
+      //  self.usersList.push(persona.login);
+      //});
+    },
   },
 };
 </script>

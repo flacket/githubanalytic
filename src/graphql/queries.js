@@ -178,6 +178,7 @@ export const GET_REPOS = gql`
           reactions(first: $reactions) {
             totalCount
             nodes {
+              content
               user {
                 id
                 login
@@ -202,6 +203,7 @@ export const GET_REPOS = gql`
               reactions(first: $commentsReactions) {
                 totalCount
                 nodes {
+                  content
                   user {
                     id
                     login
@@ -224,6 +226,7 @@ export const GET_REPOS = gql`
                   reactions(first: 20) {
                     totalCount
                     nodes {
+                      content
                       user {
                         id
                         login
@@ -271,15 +274,20 @@ export const USER = gql`
 
 export const USER_STATS = gql`
   query userstats($owner: String!) {
-    repositoryOwner(login: $owner) {
-      repositories(first: 100) {
+    user(login: $owner) {
+      login
+      id
+      followers {
         totalCount
+      }
+      following {
+        totalCount
+      }
+      repositories(orderBy: {field: STARGAZERS, direction: DESC}, first: 50) {
         nodes {
-          watchers(first: 1) {
-            totalCount
-          }
           forkCount
-          stargazers(first: 1) {
+          stargazerCount
+          watchers {
             totalCount
           }
         }
