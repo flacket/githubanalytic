@@ -26,6 +26,9 @@
     ></v-progress-linear>
     <v-divider class="mb-2"></v-divider>
     <!--///////////////////////////////////////////////////////////////////////////////-->
+    <v-btn v-if="!show && !loading" color="primary" rounded v-on:click="btnLoadFile">
+      <v-icon left>mdi-download</v-icon>Cargar json</v-btn
+    >
     <v-btn
       class="mb-2"
       rounded
@@ -43,6 +46,7 @@
       <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
+
       <v-btn color="primary" rounded v-on:click="saveFile()">
         <v-icon left>mdi-download</v-icon>Guardar json</v-btn
       >
@@ -58,6 +62,13 @@
         ></v-textarea>
       </v-container>
     </div>
+    <input
+      id="file-upload"
+      type="file"
+      ref="myFile"
+      style="display:none"
+      @change="loadFile"
+    /><br />
   </div>
 </template>
 
@@ -69,7 +80,7 @@ import {
   colaboracionFormula,
   mimicaFormula,
   polaridadFormula,
-  //duracionPRdias,
+  duracionPRdias,
   //matrizConteoPR,
   //getParticipantesRepoStat,
 } from "../formulas.js";
@@ -174,6 +185,8 @@ export default {
       const fields = [
         "PR", //numero
         "Estado", //merged, etc
+        "duracionDias",
+        "lineasModif",
         "Participante",
         "Comentario",
         "Thumbs_Up",
@@ -184,16 +197,63 @@ export default {
         "Heart",
         "Rocket",
         "Eyes",
+        /*"👍",
+        "👎",
+        "😄",
+        "🎉",
+        "😕",
+        "❤️",
+        "🚀",
+        "👀",*/
       ];
-
       let rowsArray = [];
       //creo la fila para cada elemento del csv
       this.pullRequests.forEach(PR => {
+              //Obtengo la duracion del PR en días
+        let duracionDias = duracionPRdias(
+          PR.createdAt,
+          PR.closedAt
+        );
         let PRinfo = {
           PR: PR.number, //numero
           Estado: PR.state, //merged, etc
+          duracionDias: duracionDias.diff,
+          lineasModif: PR.additions + PR.deletions,
         };
-        PR.comments.nodes.forEach(comment => {
+        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
+        let aux = rowsArray.concat(comments);
+        rowsArray = aux;
+        PR.reviewThreads.nodes.forEach(rv => {
+          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
+          aux = rowsArray.concat(revComments);
+          rowsArray = aux;
+        });
+      });
+
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(rowsArray);
+      //Exporto ahora el archivo CSV
+      const exportName = this.search.owner + " - " + this.search.name + ".csv" || "export.csv";
+      const blob = new Blob([csv], { type: "text/csv;charset=unicode;" });
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, exportName);
+      } else {
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", exportName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+      this.showSnackbar("Archivo CSV Guardado", "success", 4000);
+    },
+    CommentsRow(PRinfo, comments){
+      let commentsArray = [];
+        comments.forEach(comment => {
           //calculo la cantidad de reacciones para cada icono
           let reactionsArray = new Array(8);
           for (let i = 0; i < 8; i++) reactionsArray[i] = 0;
@@ -231,6 +291,8 @@ export default {
           let row = {
             PR: PRinfo.PR,
             Estado: PRinfo.Estado,
+            duracionDias: PRinfo.duracionDias,
+            lineasModif: PRinfo.lineasModif,
             Participante: comment.author.login,
             Comentario: comment.body,
             Thumbs_Up: reactionsArray[0],
@@ -241,32 +303,63 @@ export default {
             Heart: reactionsArray[5],
             Rocket: reactionsArray[6],
             Eyes: reactionsArray[7],
+            /*'👍': reactionsArray[0],
+            '👎': reactionsArray[1],
+            '😄': reactionsArray[2],
+            '🎉': reactionsArray[3],
+            '😕': reactionsArray[4],
+            '❤️': reactionsArray[5],
+            '🚀': reactionsArray[6],
+            '👀': reactionsArray[7],*/
           };
-          rowsArray.push(row);
+          commentsArray.push(row);
         });
-      });
-      console.log(rowsArray);
-
-      const json2csvParser = new Parser({ fields });
-      const csv = json2csvParser.parse(rowsArray);
-      //Exporto ahora el archivo CSV
-      const exportName = "Repositorio" + ".csv" || "export.csv";
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      if (navigator.msSaveBlob) {
-        navigator.msSaveBlob(blob, exportName);
-      } else {
-        const link = document.createElement("a");
-        if (link.download !== undefined) {
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute("download", exportName);
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+        return commentsArray;
+    },
+    btnLoadFile() {
+      document.getElementById("file-upload").click();
+    },
+    loadFile() {
+      let file = this.$refs.myFile.files[0];
+      if (!file) return;
+      this.show = false;
+      this.loading = !this.loading;
+      this.datosRepo = {
+        participantes: 0,
+        miembros: 0,
+        colaboradores: 0,
+        PRmerged: 0,
+        PRclosed: 0,
+        PRtotal: 0,
+      };
+      // Credit: https://stackoverflow.com/a/754398/52160
+      let reader = new FileReader();
+      reader.readAsText(file, "UTF-8");
+      reader.onload = (evt) => {
+        //this.pullRequests = JSON.parse(evt.target.result);
+        let repo = JSON.parse(evt.target.result);
+        this.search = {
+          owner: repo.owner,
+          name: repo.name
         }
-      }
-      this.showSnackbar("Archivo CSV Guardado", "success", 4000);
+        this.pullRequests = [];
+        repo.pullRequests.forEach((PR) => {
+          if (PR.participants.totalCount > 1) {
+            this.pullRequests.push(PR);
+          }
+        });
+        this.show = !this.show;
+        this.loading = !this.loading;
+        //this.agregarID();
+        //this.setAnalytics(this.search);
+      };
+      reader.onerror = (evt) => {
+        this.showSnackbar(
+          "Error al cargar el archivo: \n" + evt,
+          "error",
+          8000
+        );
+      };
     },
     saveFile() {
       const data = this.pullRequestsJSON,
