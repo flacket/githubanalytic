@@ -58,7 +58,7 @@
           outlined
           label="Lista de Usuarios"
           auto-grow
-          :value="usersList"
+          :value="participantsList"
         ></v-textarea>
       </v-container>
     </div>
@@ -74,7 +74,7 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-import { GET_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
+import { DOWN_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
 import {
   cohesionFormula,
   colaboracionFormula,
@@ -115,16 +115,20 @@ export default {
       mimicaMatrix: "",
       estadisticasPersona: "",
       pullRequests: [],
-      repository: "",
+      repository: {
+        stargazers: 0, 
+        forks: 0,
+        watchers: 0,
+        followers: 0,
+      },
       usersData: "",
       estadisticas: [],
-      pullRequestsJSON: "",
-      usersList: [],
+      participantsList: [],
     };
   },
   apollo: {
     getPR: {
-      query: GET_REPOS,
+      query: DOWN_REPOS,
       variables: {
         owner: "flacket",
         name: "githubanalytic",
@@ -183,6 +187,10 @@ export default {
       const { Parser } = require("json2csv");
 
       const fields = [
+        "RepoTotalFollowers",
+        "RepoTotalStargazers",
+        "RepoTotalWatchers",
+        "RepoTotalForks",
         "PR", //numero
         "Estado", //merged, etc
         "duracionDias",
@@ -289,6 +297,10 @@ export default {
             }
           });
           let row = {
+            RepoTotalFollowers: this.repository.followers,
+            RepoTotalStargazers: this.repository.stargazers,
+            RepoTotalWatchers: this.repository.watchers,
+            RepoTotalForks: this.repository.forks,
             PR: PRinfo.PR,
             Estado: PRinfo.Estado,
             duracionDias: PRinfo.duracionDias,
@@ -348,6 +360,9 @@ export default {
             this.pullRequests.push(PR);
           }
         });
+        //LLamo a función para armar lista de participantes con sus datos
+        this.setParticipantsList();
+
         this.show = !this.show;
         this.loading = !this.loading;
         //this.agregarID();
@@ -362,11 +377,17 @@ export default {
       };
     },
     saveFile() {
-      const data = this.pullRequestsJSON,
+      //Agrego la lista de pullrequests a la Organizacion
+      const repo = {
+        owner: this.search.owner,
+        name: this.search.name,
+        pullRequests: this.pullRequests
+      }
+      const data = JSON.stringify(repo),
         blob = new Blob([data], { type: "text/plain" }),
         e = document.createEvent("MouseEvents"),
         a = document.createElement("a");
-      a.download = this.search.name + " - pullRequests" + ".json";
+      a.download = this.search.owner + " - " + this.search.name + ".json";
       a.href = window.URL.createObjectURL(blob);
       a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
       e.initEvent("click", true, false);
@@ -729,54 +750,18 @@ export default {
             self.estadisticasPersona = getParticipantesRepoStat(
               self.estadisticas
             );
-            self.usersList = [];
-            self.estadisticasPersona.forEach((persona) => {
-              self.usersList.push(persona.login);
-            });
 
             //Agrego las estadisticas al JSON de los PUll Requests
             for (let i = 0; i < self.pullRequests.length; i++) {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
             }*/
 
-            //Creo una lista de los participantes del Repositorio
-            var listaParticipantesRepo = [];
-            try {
-              self.pullRequests.forEach((PR) => {
-                PR.participants.nodes.forEach((participante) => {
-                  let cantParticipantes = listaParticipantesRepo.length;
-                  let noEncontrado = true;
-                  let i = 0;
-                  while (noEncontrado && i < cantParticipantes) {
-                    if (listaParticipantesRepo[i] == participante.login)
-                      noEncontrado = false;
-                    else i++;
-                  }
-                  if (noEncontrado) {
-                    //agrego stats como participante nuevo
-                    listaParticipantesRepo.push(participante.login);
-                  }
-                });
-              });
-            } catch (error) {
-              alert("Error creando listaParticipantesRepo. ", error);
-              self.showSnackbar("Ocurrió un error:" + error, "error", 4000);
-            }
-
             //TODO:Llamo a parsear self.pullRequests para exportarlo en .CSV
-            //console.log(self.pullRequests);
+            //console.log(self.pullRequests); //deprecado si funciona la query que ya trae esto
             //......
 
-            this.usersList = [];
-            listaParticipantesRepo.forEach(participante => {
-              self.usersList.push(participante);
-            });
-
             //TODO:LLamo a función para armar lista de participantes con sus datos
-            //self.getParticipantsData(listaParticipantesRepo);
-
-            //self.pullRequests.push(listaParticipantesRepo);
-            self.pullRequestsJSON = JSON.stringify(self.pullRequests);
+            self.setParticipantsList();
 
             self.countPRs = [];
             self.show = true;
@@ -786,6 +771,54 @@ export default {
           }
         });
     }, //getFullPR
+    setParticipantsList(){
+      //Creo una lista de los participantes del Repositorio
+      this.participantsList = [];
+      try {
+        this.pullRequests.forEach((PR) => {
+          PR.participants.nodes.forEach((participante) => {
+            let cantParticipantes = this.participantsList.length;
+            let noEncontrado = true;
+            let i = 0;
+            while (noEncontrado && i < cantParticipantes) {
+              if (this.participantsList[i] == participante.login)
+                noEncontrado = false;
+              else i++;
+            }
+            if (noEncontrado) {
+              //agrego stats como participante nuevo
+              this.participantsList.push(participante.login);
+              this.countRepoStatsFromUser(participante);
+            }
+          });
+        });
+      } catch (error) {
+        console.log(error);
+        alert("Error creando listaParticipantesRepo. ", error);
+        this.showSnackbar("Ocurrió un error:" + error, "error", 4000);
+      }
+    },
+    countRepoStatsFromUser(user){
+      console.log("usuario: ", user.login,
+        " | S: ", this.repository.stargazers, 
+        " | F: ", this.repository.forks,
+        " | W: ", this.repository.watchers,
+        " | Fw: ", this.repository.followers,
+      );
+      user.repositories.nodes.forEach(repo => {
+        this.repository.stargazers += repo.stargazers.totalCount;
+        this.repository.forks += repo.forkCount;
+        this.repository.watchers += repo.watchers.totalCount;
+      });
+      this.repository.followers += user.followers.totalCount;
+      console.log("usuario: ", user.login,
+        " | S: ", this.repository.stargazers, 
+        " | F: ", this.repository.forks,
+        " | W: ", this.repository.watchers,
+        " | Fw: ", this.repository.followers,
+      );
+      console.log("---------");
+    },
     getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios
       //para cada usuario se recopila tambien seguidores, estrellas etc
@@ -796,7 +829,7 @@ export default {
         try{
         self.$apollo.queries.userStats
           .refetch({
-            owner: participante,
+            owner: participante.login,
           })
           .then(() => {
             //TODO:
@@ -807,24 +840,6 @@ export default {
           alert("Hubo un error al traer lista de participantes: ", err);
         }
       });
-
-      /*try{
-        self.$apollo.queries.usersData
-          .refetch({
-            owner: listaParticipantes[0],
-          })
-          .then(() => {
-            //TODO:
-            //FIXME:
-            console.log("aka: ", self.usersData);
-        });
-      } catch (err) {
-        alert("Hubo un error al traer lista de participantes: ", err);
-      }*/
-
-      //self.estadisticasPersona.forEach((persona) => {
-      //  self.usersList.push(persona.login);
-      //});
     },
   },
 };
