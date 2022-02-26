@@ -51,16 +51,47 @@
         <v-icon left>mdi-download</v-icon>Guardar json</v-btn
       >
 
-      <v-container fluid>
-        <v-textarea
-          class="ma-2"
-          name="input-7-1"
-          outlined
-          label="Lista de Usuarios"
-          auto-grow
-          :value="participantsList"
-        ></v-textarea>
-      </v-container>
+      <h4 class="mt-4">Datos del repositorio</h4>
+      <v-card class="d-flex justify-left my-2" flat>
+        <v-card class="pa-2">
+          <p>Seguidores: {{repository.followers}}</p>
+          <p>Estrellas: {{repository.stargazers}}</p>
+          <p>Watchers: {{repository.watchers}}</p>
+          <p>Forks: {{repository.forks}}</p>
+        </v-card>
+
+        <v-card class="ml-4">
+          <v-simple-table fixed-header height="300px">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">Lista de Participantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in participantsList" :key="item">
+                  <td>{{ item }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </v-card>
+      </v-card>
+
+      <h4 class="mt-4">Tabla de Comentarios</h4>
+      <v-data-table
+        :headers="repoListCommentsHeaders"
+        :items="repoListComments"
+        :items-per-page="5"
+        class="elevation-1 mt-2"
+      >
+      <template v-slot:[`item.estado`]="{ item }">
+        <v-chip :color="getColor(item.estado)" dark>
+          {{ item.estado }}
+        </v-chip>
+        </template>
+      </v-data-table>
+
     </div>
     <input
       id="file-upload"
@@ -115,6 +146,23 @@ export default {
       mimicaMatrix: "",
       estadisticasPersona: "",
       pullRequests: [],
+      repoListComments: [],
+      repoListCommentsHeaders: [
+        { text: "PR", value: "PR" }, //numero
+        { text: "Estado", value: "estado" }, //merged, etc
+        { text: "duracionDias", value: "duracionDias" },
+        { text: "lineasModif", value: "lineasModif" },
+        { text: "Participante", value: "participante" },
+        { text: "Comentario", value: "comentario" },
+        { text: "👍", value: "Thumbs_Up" },
+        { text: "👎", value: "Thumbs_Down" },
+        { text: "😄", value: "Laugh" },
+        { text: "🎉", value: "Hooray" },
+        { text: "😕", value: "Confused" },
+        { text: "❤️", value: "Heart" },
+        { text: "🚀", value: "Rocket" },
+        { text: "👀", value: "Eyes" },
+      ],
       repository: {
         stargazers: 0, 
         forks: 0,
@@ -182,11 +230,18 @@ export default {
           "% Completado";
       }
     },
+    getColor (estado) {
+      switch(estado) {
+        case "MERGED": return '#6f42c1'
+        case "CLOSED": return '#d73a49'
+        case "OPEN": return '#d73a49'
+        default: return '#999999'
+      }
+    },
     csvExport() {
       //Creo el archivo CSV
       const { Parser } = require("json2csv");
-
-      const fields = [
+      let header = [
         "RepoTotalFollowers",
         "RepoTotalStargazers",
         "RepoTotalWatchers",
@@ -214,32 +269,8 @@ export default {
         "🚀",
         "👀",*/
       ];
-      let rowsArray = [];
-      //creo la fila para cada elemento del csv
-      this.pullRequests.forEach(PR => {
-              //Obtengo la duracion del PR en días
-        let duracionDias = duracionPRdias(
-          PR.createdAt,
-          PR.closedAt
-        );
-        let PRinfo = {
-          PR: PR.number, //numero
-          Estado: PR.state, //merged, etc
-          duracionDias: duracionDias.diff,
-          lineasModif: PR.additions + PR.deletions,
-        };
-        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
-        let aux = rowsArray.concat(comments);
-        rowsArray = aux;
-        PR.reviewThreads.nodes.forEach(rv => {
-          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
-          aux = rowsArray.concat(revComments);
-          rowsArray = aux;
-        });
-      });
-
-      const json2csvParser = new Parser({ fields });
-      const csv = json2csvParser.parse(rowsArray);
+      const json2csvParser = new Parser({header});
+      const csv = json2csvParser.parse(this.repoListComments);
       //Exporto ahora el archivo CSV
       const exportName = this.search.owner + " - " + this.search.name + ".csv" || "export.csv";
       const blob = new Blob([csv], { type: "text/csv;charset=unicode;" });
@@ -258,6 +289,30 @@ export default {
         }
       }
       this.showSnackbar("Archivo CSV Guardado", "success", 4000);
+    },
+    ListCommentsRow() {
+      //creo la fila para cada elemento del csv
+      this.pullRequests.forEach(PR => {
+              //Obtengo la duracion del PR en días
+        let duracionDias = duracionPRdias(
+          PR.createdAt,
+          PR.closedAt
+        );
+        let PRinfo = {
+          PR: PR.number, //numero
+          estado: PR.state, //merged, etc
+          duracionDias: duracionDias.diff,
+          lineasModif: PR.additions + PR.deletions,
+        };
+        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
+        let aux = this.repoListComments.concat(comments);
+        this.repoListComments = aux;
+        PR.reviewThreads.nodes.forEach(rv => {
+          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
+          aux = this.repoListComments.concat(revComments);
+          this.repoListComments = aux;
+        });
+      });
     },
     CommentsRow(PRinfo, comments){
       let commentsArray = [];
@@ -302,11 +357,11 @@ export default {
             RepoTotalWatchers: this.repository.watchers,
             RepoTotalForks: this.repository.forks,
             PR: PRinfo.PR,
-            Estado: PRinfo.Estado,
+            estado: PRinfo.estado,
             duracionDias: PRinfo.duracionDias,
             lineasModif: PRinfo.lineasModif,
-            Participante: comment.author.login,
-            Comentario: comment.body,
+            participante: comment.author.login,
+            comentario: comment.body,
             Thumbs_Up: reactionsArray[0],
             Thumbs_Down: reactionsArray[1],
             Laugh: reactionsArray[2],
@@ -315,14 +370,6 @@ export default {
             Heart: reactionsArray[5],
             Rocket: reactionsArray[6],
             Eyes: reactionsArray[7],
-            /*'👍': reactionsArray[0],
-            '👎': reactionsArray[1],
-            '😄': reactionsArray[2],
-            '🎉': reactionsArray[3],
-            '😕': reactionsArray[4],
-            '❤️': reactionsArray[5],
-            '🚀': reactionsArray[6],
-            '👀': reactionsArray[7],*/
           };
           commentsArray.push(row);
         });
@@ -362,6 +409,9 @@ export default {
         });
         //LLamo a función para armar lista de participantes con sus datos
         this.setParticipantsList();
+
+        //LLamo a función para armar lista de comentarios
+        this.ListCommentsRow();
 
         this.show = !this.show;
         this.loading = !this.loading;
@@ -756,12 +806,11 @@ export default {
               self.pullRequests[i].estadisticas = self.estadisticas[i];
             }*/
 
-            //TODO:Llamo a parsear self.pullRequests para exportarlo en .CSV
-            //console.log(self.pullRequests); //deprecado si funciona la query que ya trae esto
-            //......
-
-            //TODO:LLamo a función para armar lista de participantes con sus datos
+            //LLamo a función para armar lista de participantes con sus datos
             self.setParticipantsList();
+
+            //LLamo a función para armar lista de comentarios
+            self.ListCommentsRow();
 
             self.countPRs = [];
             self.show = true;
@@ -799,27 +848,14 @@ export default {
       }
     },
     countRepoStatsFromUser(user){
-      console.log("usuario: ", user.login,
-        " | S: ", this.repository.stargazers, 
-        " | F: ", this.repository.forks,
-        " | W: ", this.repository.watchers,
-        " | Fw: ", this.repository.followers,
-      );
       user.repositories.nodes.forEach(repo => {
         this.repository.stargazers += repo.stargazers.totalCount;
         this.repository.forks += repo.forkCount;
         this.repository.watchers += repo.watchers.totalCount;
       });
       this.repository.followers += user.followers.totalCount;
-      console.log("usuario: ", user.login,
-        " | S: ", this.repository.stargazers, 
-        " | F: ", this.repository.forks,
-        " | W: ", this.repository.watchers,
-        " | Fw: ", this.repository.followers,
-      );
-      console.log("---------");
     },
-    getParticipantsData(listaParticipantes) {
+    /*getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios
       //para cada usuario se recopila tambien seguidores, estrellas etc
       console.log("entra a get participants data");
@@ -840,7 +876,7 @@ export default {
           alert("Hubo un error al traer lista de participantes: ", err);
         }
       });
-    },
+    },*/
   },
 };
 </script>
