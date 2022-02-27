@@ -24,7 +24,7 @@
       :value="progress.bartotal"
       stream
     ></v-progress-linear>
-    <v-divider class="mb-2"></v-divider>
+    <v-divider class="my-2"></v-divider>
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn v-if="!show && !loading" color="primary" rounded v-on:click="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn
@@ -260,14 +260,6 @@ export default {
         "Heart",
         "Rocket",
         "Eyes",
-        /*"👍",
-        "👎",
-        "😄",
-        "🎉",
-        "😕",
-        "❤️",
-        "🚀",
-        "👀",*/
       ];
       const json2csvParser = new Parser({header});
       const csv = json2csvParser.parse(this.repoListComments);

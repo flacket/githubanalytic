@@ -24,7 +24,7 @@
       :value="progress.bartotal"
       stream
     ></v-progress-linear>
-    <v-divider class="mb-2"></v-divider>
+    <v-divider class="my-2"></v-divider>
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn
       class="mb-2"
@@ -68,19 +68,19 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <Doughnut :chartData="chartCoheGrupal" />
+            <DoughnutChart :chartData="chartCoheGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <Doughnut :chartData="chartColabGrupal" />
+            <DoughnutChart :chartData="chartColabGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <Doughnut :chartData="chartMimicaGrupal" />
+            <DoughnutChart :chartData="chartMimicaGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <Doughnut :chartData="chartTonoGrupal" />
+            <DoughnutChart :chartData="chartTonoGrupal" />
           </v-col>
         </v-row>
       </v-card>
@@ -174,7 +174,7 @@
 <script>
 import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS, ORG_MEMBERS } from "../graphql/queries.js";
-import Doughnut from "../components/chartjs/Doughnut.vue";
+import DoughnutChart from "../components/chartjs/DoughnutChart.vue";
 import {
   matrizConteoPR,
   cohesionFormula,
@@ -186,7 +186,7 @@ import {
 } from "../formulas.js";
 
 export default {
-  components: { PRSelector, Doughnut },
+  components: { PRSelector, DoughnutChart },
   data() {
     return {
       loading: false,

@@ -19,7 +19,7 @@
       indeterminate
       color="primary"
     ></v-progress-linear>
-    <v-divider class="mb-2"></v-divider>
+    <v-divider class="my-2"></v-divider>
     <!--/////////////////////////////////////////////////////-->
     <div v-if="show">
       <h1 class="headline grey--text">
@@ -59,19 +59,19 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <Doughnut :chartData="chartCoheGrupal" />
+            <DoughnutChart :chartData="chartCoheGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <Doughnut :chartData="chartColabGrupal" />
+            <DoughnutChart :chartData="chartColabGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <Doughnut :chartData="chartMimicaGrupal" />
+            <DoughnutChart :chartData="chartMimicaGrupal" />
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <Doughnut :chartData="chartTonoGrupal" />
+            <DoughnutChart :chartData="chartTonoGrupal" />
           </v-col>
         </v-row>
       </v-card>
@@ -116,8 +116,7 @@
         </v-col>
       </v-row>
       <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
-        <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn
-      >
+        <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn>
     </div>
   </div>
 </template>
@@ -126,7 +125,7 @@
 import PRSelector from "../components/PRSelector";
 //import RadarChart from "../components/chartjs/RadarChart.vue";
 import BarChart from "../components/chartjs/BarChart.vue";
-import Doughnut from "../components/chartjs/Doughnut.vue";
+import DoughnutChart from "../components/chartjs/DoughnutChart.vue";
 import { GET_REPO } from "../graphql/queries.js";
 import {
   matrizConteoPR,
@@ -143,7 +142,7 @@ export default {
     PRSelector,
     //RadarChart,
     BarChart,
-    Doughnut,
+    DoughnutChart,
   },
   data() {
     return {
