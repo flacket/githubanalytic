@@ -178,6 +178,7 @@ export const GET_REPOS = gql`
           reactions(first: $reactions) {
             totalCount
             nodes {
+              content
               user {
                 id
                 login
@@ -202,6 +203,7 @@ export const GET_REPOS = gql`
               reactions(first: $commentsReactions) {
                 totalCount
                 nodes {
+                  content
                   user {
                     id
                     login
@@ -224,6 +226,7 @@ export const GET_REPOS = gql`
                   reactions(first: 20) {
                     totalCount
                     nodes {
+                      content
                       user {
                         id
                         login
@@ -244,6 +247,115 @@ export const GET_REPOS = gql`
     }
   }
 `;
+
+export const DOWN_REPOS = gql`
+  query getRepos(
+    $owner: String!
+    $name: String!
+    $beforeCursor: String
+    $afterCursor: String
+    $reactions: Int
+    $participants: Int
+    $comments: Int
+    $commentsReactions: Int
+    $rvThreads: Int
+    $rvThreadsComments: Int
+  ) {
+    repository(owner: $owner, name: $name) {
+      pullRequests(first: 15, before: $beforeCursor, after: $afterCursor) {
+        totalCount
+        nodes {
+          id
+          number
+          title
+          author {
+            login
+          }
+          additions
+          deletions
+          createdAt
+          closedAt
+          state
+          url
+          body
+          reactions(first: $reactions) {
+            totalCount
+            nodes {
+              content
+            }
+          }
+          participants(first: $participants) {
+            totalCount
+            nodes {
+              id
+              login
+              repositories(orderBy: {field: STARGAZERS, direction: DESC}, first: 30) {
+                nodes {
+                  forkCount
+                  stargazers {
+                    totalCount
+                  }
+                  watchers {
+                    totalCount
+                  }
+                }
+              }
+              followers {
+                totalCount
+              }
+              following {
+                totalCount
+              }
+            }
+          }
+          comments(first: $comments) {
+            totalCount
+            nodes {
+              body
+              createdAt
+              author {
+                login
+              }
+              reactions(first: $commentsReactions) {
+                totalCount
+                nodes {
+                  content
+                }
+              }
+            }
+          }
+          reviewThreads(first: $rvThreads) {
+            totalCount
+            nodes {
+              comments(first: $rvThreadsComments) {
+                totalCount
+                nodes {
+                  body
+                  createdAt
+                  author {
+                    login
+                  }
+                  reactions(first: 20) {
+                    totalCount
+                    nodes {
+                      content
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        pageInfo {
+          startCursor
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`;
+
 /*{"owner": "twitter", 
 "name": "serial", 
 "afterCursor": null,
@@ -271,15 +383,20 @@ export const USER = gql`
 
 export const USER_STATS = gql`
   query userstats($owner: String!) {
-    repositoryOwner(login: $owner) {
-      repositories(first: 100) {
+    user(login: $owner) {
+      login
+      id
+      followers {
         totalCount
+      }
+      following {
+        totalCount
+      }
+      repositories(orderBy: {field: STARGAZERS, direction: DESC}, first: 50) {
         nodes {
-          watchers(first: 1) {
-            totalCount
-          }
           forkCount
-          stargazers(first: 1) {
+          stargazerCount
+          watchers {
             totalCount
           }
         }

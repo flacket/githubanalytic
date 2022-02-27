@@ -89,10 +89,12 @@ export default {
   apollo: {
     repositoryOwner: {
       query: USER_STATS,
+      //TODO: cambiar variable de user.login a user.id
       variables: { owner: "flacket" },
     },
     user: {
       query: USER,
+      //TODO: cambiar variable de user.login a user.id
       variables: { owner: "flacket" },
     },
   },

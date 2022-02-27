@@ -47,34 +47,22 @@
           <v-col sm="12" md="3">
             <v-layout column>
               <v-flex>
-                <p>
-                  Miembros: {{ this.datosRepo.miembros }}
-                </p>
+                <p>Miembros: {{ this.datosRepo.miembros }}</p>
               </v-flex>
               <v-flex>
-                <p>
-                  Colaboradores: {{ this.datosRepo.colaboradores }}
-                </p>
+                <p>Colaboradores: {{ this.datosRepo.colaboradores }}</p>
               </v-flex>
               <v-flex>
-                <p>
-                  Participantes: {{ this.datosRepo.participantes }}
-                </p>
+                <p>Participantes: {{ this.datosRepo.participantes }}</p>
               </v-flex>
               <v-flex>
-                <p>
-                  PR Merged: {{ this.datosRepo.PRmerged }}
-                </p>
+                <p>PR Merged: {{ this.datosRepo.PRmerged }}</p>
               </v-flex>
               <v-flex>
-                <p>
-                  PR Cerrados: {{ this.datosRepo.PRclosed }}
-                </p>
+                <p>PR Cerrados: {{ this.datosRepo.PRclosed }}</p>
               </v-flex>
               <v-flex>
-                <p>
-                  PR Total: {{ this.datosRepo.PRtotal }}
-                </p>
+                <p>PR Total: {{ this.datosRepo.PRtotal }}</p>
               </v-flex>
             </v-layout>
           </v-col>
@@ -567,13 +555,10 @@ export default {
 
       //Calculo el estado del PR
       let estado = pullRequest.state;
-      /*switch (pullRequest.state) {
-        case "MERGED": estado = 1;break;
-        case "CLOSED": estado = 0;break;
-        case "OPEN": estado = 0.5;break;}*/
 
       let author;
-      if (pullRequest.author) author = pullRequest.author.login;
+      if (pullRequest.author
+      ) author = pullRequest.author.login;
       else author = "|Usuario Borrado|";
 
       //Adjunto las estadisticas a los datos del Pull Request
