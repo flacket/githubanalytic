@@ -15,15 +15,15 @@
       </a>
     </h1>
     <v-container v-if="show">
-      <Comment
+      <CommentCard
         v-bind:avatarUrl="repository.pullRequest.author.avatarUrl"
         v-bind:login="repository.pullRequest.author.login"
         v-bind:createdAt="repository.pullRequest.createdAt"
         v-bind:reactCant="repository.pullRequest.reactions.totalCount"
         v-bind:body="repository.pullRequest.bodyHTML"
         ><v-divider></v-divider>
-      </Comment>
-      <Comment
+      </CommentCard>
+      <CommentCard
         v-for="item in repository.pullRequest.comments.nodes"
         v-bind:avatarUrl="item.author.avatarUrl"
         v-bind:login="item.author.login"
@@ -33,14 +33,14 @@
         v-bind:key="item.id"
       >
         <v-divider></v-divider>
-      </Comment>
+      </CommentCard>
       <h1 class="subheading grey--text mt-3">Reviews:</h1>
       <div
         v-for="item in repository.pullRequest.reviewThreads.nodes"
         v-bind:key="item.id"
         class="my-2 ml-4"
       >
-        <Comment
+        <CommentCard
           v-for="com in item.comments.nodes"
           v-bind:avatarUrl="com.author.avatarUrl"
           v-bind:login="com.author.login"
@@ -50,20 +50,20 @@
           v-bind:key="com.id"
         >
           <v-divider></v-divider>
-        </Comment>
+        </CommentCard>
       </div>
     </v-container>
   </div>
 </template>
 
 <script>
-import Comment from "../components/Comment";
+import CommentCard from "../components/CommentCard";
 import PRSelector from "../components/PRSelector";
 import { GET_REPO } from "../graphql/queries.js";
 
 export default {
   components: {
-    Comment,
+    CommentCard,
     PRSelector,
   },
   data() {

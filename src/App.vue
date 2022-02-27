@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <Navbar />
+    <NavigationBar/>
     <v-main>
       <v-container fluid class="ma-2">
         <router-view></router-view>
@@ -10,12 +10,12 @@
 </template>
 
 <script>
-import Navbar from "@/components/Navbar";
+import NavigationBar from "@/components/NavigationBar.vue";
 
 export default {
   name: "App",
   components: {
-    Navbar,
+    NavigationBar,
   },
   data() {
     return {
