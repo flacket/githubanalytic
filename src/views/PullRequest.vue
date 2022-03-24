@@ -59,22 +59,39 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <DoughnutChart :chartData="chartCoheGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartCoheGrupal"
+            >
+              {{ chartCoheGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <DoughnutChart :chartData="chartColabGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartColabGrupal"
+            >
+              {{ chartColabGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <DoughnutChart :chartData="chartMimicaGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartMimicaGrupal"
+            >
+              {{ chartMimicaGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <DoughnutChart :chartData="chartTonoGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartTonoGrupal"
+            >
+              {{ chartTonoGrupal }}%
+            </v-progress-circular>
           </v-col>
         </v-row>
       </v-card>
+
       <v-row class="mt-4">
         <v-col sm="12" md="6">
           <h4>Cohesión Individual:</h4>
@@ -84,13 +101,6 @@
           <h4>Colaboración Individual:</h4>
           <BarChart :chartData="chartColab" />
         </v-col>
-        <!--<v-col sm="12" md="5">
-          <h4>Mimica:</h4>
-          <v-select @change="chartDataMimica" v-model="participante" :items="participantes"
-            label="Participante" item-text="nombre" item-value="pos" return-object dense
-            :hint="`${participante.nombre}, ${participante.pos}`"></v-select>
-          <RadarChart :chartData="chartMimica" />
-        </v-col>-->
       </v-row>
       <v-row class="mt-2">
         <v-col sm="12" md="12">
@@ -115,6 +125,7 @@
           </v-data-table>
         </v-col>
       </v-row>
+
       <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn>
     </div>
@@ -123,9 +134,7 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-//import RadarChart from "../components/chartjs/RadarChart.vue";
 import BarChart from "../components/chartjs/BarChart.vue";
-import DoughnutChart from "../components/chartjs/DoughnutChart.vue";
 import { GET_REPO } from "../graphql/queries.js";
 import {
   matrizConteoPR,
@@ -140,9 +149,7 @@ import {
 export default {
   components: {
     PRSelector,
-    //RadarChart,
     BarChart,
-    DoughnutChart,
   },
   data() {
     return {
@@ -159,42 +166,6 @@ export default {
         text: "Bienvenido a Gitana: Analíticas de Github",
         color: "info",
         timeout: 2500,
-      },
-      chartCoheGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartColabGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartMimicaGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartTonoGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
       },
       chartCohe: {
         labels: [],
@@ -214,6 +185,10 @@ export default {
           },
         ],
       },
+      chartCoheGrupal: 0,
+      chartColabGrupal: 0,
+      chartMimicaGrupal: 0,
+      chartTonoGrupal: 0,
       participante: {},
       participantes: [],
       chartMimica: {
@@ -349,10 +324,7 @@ export default {
           this.estadisticas.push(tabla);
         }
         //Doy formato a las gráficas
-        this.chartDataCoheGrupal();
-        this.chartDataColabGrupal();
-        this.chartDataMimicaGrupal();
-        this.chartDataTonoGrupal();
+        this.chartsCircularGrupal()
         this.chartDataCohe();
         this.chartDataColab();
 
@@ -366,53 +338,30 @@ export default {
         );
       }
     },
-    chartDataCoheGrupal() {
-      //Obtengo la cohesión grupal
+    chartsCircularGrupal() {
+      //Obtengo las estadisticas grupales para las graficas circulares
+      var cant = this.estadisticas.length;
       let cohesionGrupal = 0;
-      this.estadisticas.forEach((item) => {
-        cohesionGrupal += item.coeInd;
-      });
-      cohesionGrupal = (cohesionGrupal / this.estadisticas.length) * 100;
-      //Doy formato al valor de CohesionGrupal para el gráfico
-      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + "%";
-      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal;
-      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal;
-    },
-    chartDataColabGrupal() {
-      //Obtengo la cohesión grupal
       let colabGrupal = 0;
-      this.estadisticas.forEach((item) => {
-        colabGrupal += item.colabInd;
-      });
-      colabGrupal = (colabGrupal / this.estadisticas.length) * 100;
-      //Doy formato al valor de colabGrupal para el gráfico
-      this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
-      this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
-      this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
-    },
-    chartDataMimicaGrupal() {
-      //Obtengo la cohesión grupal
       let mimicaGrupal = 0;
-      this.estadisticas.forEach((item) => {
-        mimicaGrupal += item.mimicaInd;
-      });
-      mimicaGrupal = (mimicaGrupal / this.estadisticas.length) * 100;
-      //Doy formato al valor de colabGrupal para el gráfico
-      this.chartMimicaGrupal.labels[0] = mimicaGrupal.toFixed(2) + "%";
-      this.chartMimicaGrupal.datasets[0].data[0] = mimicaGrupal;
-      this.chartMimicaGrupal.datasets[0].data[1] = 100 - mimicaGrupal;
-    },
-    chartDataTonoGrupal() {
-      //Obtengo la cohesión grupal
       let tonoGrupal = 0;
-      this.estadisticas.forEach((item) => {
-        tonoGrupal += item.tonoInd;
+
+      this.estadisticas.forEach(item => {
+        cohesionGrupal += Number(item.coeInd);
+        colabGrupal += Number(item.colabInd);
+        mimicaGrupal += Number(item.mimicaInd);
+        tonoGrupal += Number(item.tonoInd);
       });
-      tonoGrupal = (tonoGrupal / this.estadisticas.length) * 100;
-      //Doy formato al valor de colabGrupal para el gráfico
-      this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
-      this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
-      this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
+      /*for (let i = 0; i < cant; i++) {
+        cohesionGrupal += Number(this.estadisticas[i].coeInd);
+        colabGrupal += Number(this.estadisticas[i].colabInd);
+        mimicaGrupal += Number(this.estadisticas[i].mimicaInd);
+        tonoGrupal += Number(this.estadisticas[i].tonoInd);
+      }*/
+      this.chartcohesionGrupal = Math.round((cohesionGrupal / cant) * 100);
+      this.chartcolabGrupal = Math.round((colabGrupal / cant) * 100);
+      this.chartmimicaGrupal = Math.round((mimicaGrupal / cant) * 100);
+      this.chartTonoGrupal = Math.round((tonoGrupal / cant) * 100);
     },
     chartDataCohe() {
       //Genera el dataset para armar el grafico de cohesion individual
@@ -436,24 +385,6 @@ export default {
         this.chartColab.datasets[0].data.push(
           (this.estadisticas[i].colabInd * 100).toFixed(2)
         );
-      }
-    },
-    chartDataMimica() {
-      try {
-        //Genera el dataset para armar el grafico de mimica
-        let cantPersonas = this.repository.pullRequest.participants.totalCount;
-        this.chartMimica.labels = [];
-        this.chartMimica.datasets.data = [];
-        for (let i = 0; i < cantPersonas; i++) {
-          if (i != this.participante.pos) {
-            this.chartMimica.labels.push(this.estadisticas[i].nombre);
-            this.chartMimica.datasets[0].data.push(
-              this.mimicaMatrix[this.participante.pos][i]
-            );
-          }
-        }
-      } catch (error) {
-        console.log("Error en chartDataMimica: ", error);
       }
     },
     agregarID(pullRequest) {

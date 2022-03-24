@@ -68,19 +68,35 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <DoughnutChart :chartData="chartCoheGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartCoheGrupal"
+            >
+              {{ chartCoheGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <DoughnutChart :chartData="chartColabGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartColabGrupal"
+            >
+              {{ chartColabGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <DoughnutChart :chartData="chartMimicaGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartMimicaGrupal"
+            >
+              {{ chartMimicaGrupal }}%
+            </v-progress-circular>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <DoughnutChart :chartData="chartTonoGrupal" />
+            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+              :value="chartTonoGrupal"
+            >
+              {{ chartTonoGrupal }}%
+            </v-progress-circular>
           </v-col>
         </v-row>
       </v-card>
@@ -174,7 +190,6 @@
 <script>
 import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS, ORG_MEMBERS } from "../graphql/queries.js";
-import DoughnutChart from "../components/chartjs/DoughnutChart.vue";
 import {
   matrizConteoPR,
   cohesionFormula,
@@ -186,7 +201,7 @@ import {
 } from "../formulas.js";
 
 export default {
-  components: { PRSelector, DoughnutChart },
+  components: { PRSelector },
   data() {
     return {
       loading: false,
@@ -253,42 +268,10 @@ export default {
         PRclosed: 0,
         PRtotal: 0,
       },
-      chartCoheGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartColabGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartMimicaGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
-      chartTonoGrupal: {
-        labels: [],
-        datasets: [
-          {
-            data: [],
-            backgroundColor: ["rgba(0, 71, 255, 1)", "rgba(0, 71, 255, 0.2)"],
-          },
-        ],
-      },
+      chartCoheGrupal: 0,
+      chartColabGrupal: 0,
+      chartMimicaGrupal: 0,
+      chartTonoGrupal: 0,
     };
   },
   apollo: {
@@ -586,7 +569,7 @@ export default {
       this.estadisticas.push(estadisticaPR);
     },
     chartsDataGrupal() {
-      //Obtengo la cohesión grupal
+      //Obtengo las estadisticas grupales para las graficas circulares
       var cant = this.estadisticas.length;
       let cohesionGrupal = 0;
       let colabGrupal = 0;
@@ -599,29 +582,10 @@ export default {
         mimicaGrupal += Number(this.estadisticas[i].mimicaGrupal);
         tonoGrupal += Number(this.estadisticas[i].tonoGrupal);
       }
-      cohesionGrupal = (cohesionGrupal / cant) * 100;
-      colabGrupal = (colabGrupal / cant) * 100;
-      mimicaGrupal = (mimicaGrupal / cant) * 100;
-      tonoGrupal = (tonoGrupal / cant) * 100;
-
-      //Doy formato al valor de CohesionGrupal para el gráfico
-      this.chartCoheGrupal.labels[0] = cohesionGrupal.toFixed(2) + "%";
-      this.chartCoheGrupal.datasets[0].data[0] = cohesionGrupal;
-      this.chartCoheGrupal.datasets[0].data[1] = 100 - cohesionGrupal;
-      //Doy formato al valor de colabGrupal para el gráfico
-      this.chartColabGrupal.labels[0] = colabGrupal.toFixed(2) + "%";
-      this.chartColabGrupal.datasets[0].data[0] = colabGrupal;
-      this.chartColabGrupal.datasets[0].data[1] = 100 - colabGrupal;
-
-      //Doy formato al valor de mimicaGrupal para el gráfico
-      this.chartMimicaGrupal.labels[0] = mimicaGrupal.toFixed(2) + "%";
-      this.chartMimicaGrupal.datasets[0].data[0] = mimicaGrupal;
-      this.chartMimicaGrupal.datasets[0].data[1] = 100 - mimicaGrupal;
-
-      //Doy formato al valor de tonoGrupal para el gráfico
-      this.chartTonoGrupal.labels[0] = tonoGrupal.toFixed(2) + "%";
-      this.chartTonoGrupal.datasets[0].data[0] = tonoGrupal;
-      this.chartTonoGrupal.datasets[0].data[1] = 100 - tonoGrupal;
+      this.chartcohesionGrupal = Math.round((cohesionGrupal / cant) * 100);
+      this.chartcolabGrupal = Math.round((colabGrupal / cant) * 100);
+      this.chartmimicaGrupal = Math.round((mimicaGrupal / cant) * 100);
+      this.chartTonoGrupal = Math.round((tonoGrupal / cant) * 100);
     },
     agregarID() {
       //Esta funcion agrega los ID faltantes al JSON de la consulta
