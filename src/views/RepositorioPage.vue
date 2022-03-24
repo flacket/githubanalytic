@@ -347,7 +347,7 @@ export default {
       if (this.progress.bar == 0) {
         this.progress.text = "Cargando " + this.progress.totalPR + " PR's.";
         this.progress.bartotal = 0;
-        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 15) * 2);
+        this.progress.bar = 100 / (Math.ceil(this.progress.totalPR / 10) * 2);
       } else {
         this.progress.bartotal = this.progress.bartotal + this.progress.bar;
         this.progress.text =
@@ -688,6 +688,7 @@ export default {
     },
     getRepoPRcant(search) {
       var self = this;
+      self.countPRs = [];
       //Hago la consulta
       if (!this.$apollo.skipAll) {
         this.$apollo.skipAll = false;
@@ -767,9 +768,7 @@ export default {
               if (item.comments.totalCount > 100) {
                 self.countPRs[i].comments = 100;
                 console.log(
-                  "Se superó el limite de la API - Limitado a 100 (PR:",
-                  self.countPRs[i],
-                  ", comments"
+                  "Se superó el limite de la API - Limitado a 100 (PR:", self.countPRs[i],", comments"
                 );
               } else self.countPRs[i].comments = item.comments.totalCount;
             }
@@ -779,9 +778,7 @@ export default {
               if (item.reviewThreads.totalCount > 100) {
                 self.countPRs[i].reviewThreads = 100;
                 console.log(
-                  "Se superó el limite de la API - Limitado a 100 (PR:",
-                  self.countPRs[i],
-                  ", reviewThreads"
+                  "Se superó el limite de la API - Limitado a 100 (PR:", self.countPRs[i], ", reviewThreads"
                 );
               } else
                 self.countPRs[i].reviewThreads = item.reviewThreads.totalCount;
@@ -790,9 +787,7 @@ export default {
               if (item.reactions.totalCount > 100) {
                 self.countPRs[i].reactions = 100;
                 console.log(
-                  "Se superó el limite de la API - Limitado a 100 (PR:",
-                  self.countPRs[i],
-                  ", reactions"
+                  "Se superó el limite de la API - Limitado a 100 (PR:", self.countPRs[i], ", reactions"
                 );
               } else self.countPRs[i].reactions = item.reactions.totalCount;
             }
@@ -800,9 +795,7 @@ export default {
               if (item.participants.totalCount > 100) {
                 self.countPRs[i].participants = 100;
                 console.log(
-                  "Se superó el limite de la API - Limitado a 100 (PR:",
-                  self.countPRs[i],
-                  ", participants"
+                  "Se superó el limite de la API - Limitado a 100 (PR:", self.countPRs[i], ", participants"
                 );
               } else
                 self.countPRs[i].participants = item.participants.totalCount;
@@ -841,9 +834,7 @@ export default {
                     if (revThread.comments.totalCount > 100) {
                       self.countPRs[i].reviewThreadsComments = 100;
                       console.log(
-                        "Se superó el limite de la API - Limitado a 100 (PR:",
-                        self.countPRs[i],
-                        ", reviewThreadsComments"
+                        "Se superó el limite de la API - Limitado a 100 (PRº:", self.countPRs[i].number, ", reviewThreadsComments"
                       );
                     } else
                       self.countPRs[i].reviewThreadsComments =
@@ -858,9 +849,7 @@ export default {
                     if (comm.reactions.totalCount > 100) {
                       self.countPRs[i].commentsReactions = 100;
                       console.log(
-                        "Se superó el limite de la API - Limitado a 100 (PR:",
-                        self.countPRs[i],
-                        ", commentsReactions"
+                        "Se superó el limite de la API - Limitado a 100 (PR:", self.countPRs[i], ", commentsReactions"
                       );
                     } else
                       self.countPRs[i].commentsReactions =
@@ -986,8 +975,6 @@ export default {
 
         //Doy formato a las gráficas
         self.chartsDataGrupal();
-
-        self.countPRs = [];
 
         self.show = true;
         self.progress.bar = 0;

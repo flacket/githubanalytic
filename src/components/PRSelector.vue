@@ -47,9 +47,9 @@ export default {
   props: ["hideNumber"],
   data() {
     return {
-      search: { owner: "twitter", name: "serial", number: "" },
+      //search: { owner: "twitter", name: "serial", number: "" },
       //search: { owner: "cdr", name: "code-server", number: "154" },
-      //search: { owner: "", name: "", number: "" },
+      search: { owner: "", name: "", number: "" },
       emptyRules: [(v) => !!v || "Ingrese algun valor"],
     };
   },

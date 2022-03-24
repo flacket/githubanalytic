@@ -46,7 +46,7 @@ export const GET_COMMITCOMMENTS = gql`
 export const GET_REPO = gql`
   query getRepo($owner: String!, $name: String!, $number: Int!) {
     repository(owner: $owner, name: $name) {
-      pullRequest(number: $number) {
+      pullRequest(number: $number) { 
         id
         number
         title
@@ -159,7 +159,7 @@ export const GET_REPOS = gql`
     $rvThreadsComments: Int
   ) {
     repository(owner: $owner, name: $name) {
-      pullRequests(first: 15, before: $beforeCursor, after: $afterCursor) {
+      pullRequests(first: 10, before: $beforeCursor, after: $afterCursor) {
         totalCount
         nodes {
           id
