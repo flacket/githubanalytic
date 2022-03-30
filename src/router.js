@@ -3,11 +3,6 @@ import Router from "vue-router";
 import HomePage from "./views/HomePage.vue";
 import firebaseApp from "./FirebaseApp";
 
-import repoPage from "./views/RepositorioPage.vue";
-import PullRequest from "./views/PullRequest.vue";
-import repoDescarga from "./views/repoDescarga.vue";
-import AcercaPage from "./views/AcercaPage.vue";
-
 Vue.use(Router);
 
 let router = new Router({
@@ -26,7 +21,7 @@ let router = new Router({
     {
       path: "/pullrequest",
       name: "pullrequest",
-      component: PullRequest,
+      component: () => import('./views/PullRequest.vue'),
       meta: {
         requiresAuth: true,
       },
@@ -34,12 +29,12 @@ let router = new Router({
     {
       path: "/repositorio",
       name: "repositorio",
-      component: repoPage,
+      component: () => import('./views/RepositorioPage.vue'),
     },
     {
       path: "/repodescarga",
       name: "repodescarga",
-      component: repoDescarga,
+      component: () => import('./views/repoDescarga.vue'),
       meta: {
         requiresAuth: true,
       },
@@ -47,7 +42,7 @@ let router = new Router({
     {
       path: "/acerca",
       name: "acerca",
-      component: AcercaPage,
+      component: () => import('./views/AcercaPage.vue'),
     },
   ],
 });
