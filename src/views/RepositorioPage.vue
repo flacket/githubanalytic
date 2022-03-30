@@ -827,6 +827,7 @@ export default {
               //Si estan todos los datos, Llamo a la funcion getFullPR.
               if (hasNextPage && self.cancel) self.countQuery(search);
               else {
+                self.pullRequests = [];
                 self.getFullPR(search, 0);
               }
             }); //repository.refetch2*/
@@ -862,25 +863,17 @@ export default {
           commentsReactions: this.countPRs[index].commentsReactions,
         })
         .then(() => {
-          let parser = JSON.stringify(self.getPR.pullRequests.nodes);
-          parser = parser.substring(1, parser.length - 1);
-          self.pullRequests += parser;
+          //self.pullRequests.push(...self.getPR.pullRequests.nodes);
+          self.getPR.pullRequests.nodes.forEach((PR) => {
+          if (PR.participants.totalCount > 1) {
+            self.pullRequests.push(PR);
+          }
+        });
           self.progressbar();
           //Reviso si faltan PRs por agregar a la lista
           if (index < self.countPRs.length - 1) {
-            self.pullRequests += ",";
             self.getFullPR(search, index + 1);
           } else {
-            //Transformo a Objeto la lista de self.pullRequests
-            let aux = "[" + self.pullRequests + "]";
-            let pullReqs = JSON.parse(aux);
-
-            self.pullRequests = [];
-            pullReqs.forEach((PR) => {
-              if (PR.participants.totalCount > 1) {
-                self.pullRequests.push(PR);
-              }
-            });
             //Agrego información de IDs faltantes en los PR
             self.agregarID();
             self.setAnalytics(search);

@@ -727,6 +727,7 @@ export default {
               //Si estan todos los datos, Llamo a la funcion getFullPR.
               if (hasNextPage && self.cancel) self.countQuery(search);
               else {
+                self.pullRequests = [];
                 self.getFullPR(search, 0);
               }
             }); //repository.refetch2*/
@@ -762,45 +763,19 @@ export default {
           commentsReactions: this.countPRs[index].commentsReactions,
         })
         .then(() => {
-          let parser = JSON.stringify(self.getPR.pullRequests.nodes);
-          parser = parser.substring(1, parser.length - 1);
-          self.pullRequests += parser;
+          //self.pullRequests.push(...self.getPR.pullRequests.nodes);
+          self.getPR.pullRequests.nodes.forEach((PR) => {
+          if (PR.participants.totalCount > 1) {
+            self.pullRequests.push(PR);
+          }
+        });
           self.progressbar();
           //Reviso si faltan PRs por agregar a la lista
           if (index < self.countPRs.length - 1) {
-            self.pullRequests += ",";
             self.getFullPR(search, index + 1);
           } else {
-            //Transformo a Objeto la lista de self.pullRequests
-            let aux = "[" + self.pullRequests + "]";
-            let pullReqs = JSON.parse(aux);
-
-            self.pullRequests = [];
-            pullReqs.forEach((PR) => {
-              //if (PR.participants.totalCount > 1)
-              self.pullRequests.push(PR);
-            });
-
-            /*//Calculo la matriz de conteo y estadisticas para cada PR
-            self.estadisticas = [];
-            self.pullRequests.forEach((PR) => {
-              self.countMatrix = matrizConteoPR(PR);
-              self.getEstadisticas(PR);
-            });
-
-            //llamo a crear la tabla de estadisticas de cada persona
-            self.estadisticasPersona = getParticipantesRepoStat(
-              self.estadisticas
-            );
-
-            //Agrego las estadisticas al JSON de los PUll Requests
-            for (let i = 0; i < self.pullRequests.length; i++) {
-              self.pullRequests[i].estadisticas = self.estadisticas[i];
-            }*/
-
             //LLamo a función para armar lista de participantes con sus datos
             self.setParticipantsList();
-
             //LLamo a función para armar lista de comentarios
             self.ListCommentsRow();
 
