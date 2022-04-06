@@ -352,7 +352,7 @@ export default {
             estado: PRinfo.estado,
             duracionDias: PRinfo.duracionDias,
             lineasModif: PRinfo.lineasModif,
-            participante: comment.author.login,
+            participante: comment.author? comment.author.login : "|Usuario Borrado|",
             comentario: comment.body,
             Thumbs_Up: reactionsArray[0],
             Thumbs_Down: reactionsArray[1],
@@ -548,6 +548,79 @@ export default {
         //duraccionDias: duracionDias.diff || "-",
       };
       this.estadisticas.push(estadisticaPR);
+    },
+    agregarID() {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      for (let r = 0; r < this.pullRequests.length; r++) {
+        //agregamos id al autor del PR
+        try {
+          if (this.pullRequests[r].author) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
+                this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
+                encontrado = true;
+              } else if (index < this.pullRequests[r].participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          } else {
+            this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
+        }
+
+        //agregamos id a los autores de Comentarios
+        try {
+          for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
+            let encontrado = false;
+            let index = 0;
+            if (this.pullRequests[r].comments.nodes[c].author) {
+              while (!encontrado) {
+                if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
+                  this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                  encontrado = true;
+                } else if (index < this.pullRequests[r].participants.totalCount) {
+                  encontrado = true;
+                }
+                index++;
+              }
+            } else {
+              this.pullRequests[r].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+            }
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
+        }
+
+        //agregamos id a los autores de Reviews
+        try {
+          for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
+            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
+              let encontrado = false;
+              let index = 0;
+              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
+                while (!encontrado) {
+                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                    encontrado = true;
+                  } else if (index < this.pullRequests[r].participants.totalCount) {
+                    encontrado = true;
+                  }
+                  index++;
+                }
+              } else {
+                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+              }
+            }
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
+        }
+      }
     },
     getRepoPRcant(search) {
       var self = this;
@@ -815,12 +888,15 @@ export default {
       }
     },
     countRepoStatsFromUser(user){
-      user.repositories.nodes.forEach(repo => {
-        this.repository.stargazers += repo.stargazers.totalCount;
-        this.repository.forks += repo.forkCount;
-        this.repository.watchers += repo.watchers.totalCount;
-      });
-      this.repository.followers += user.followers.totalCount;
+      //TODO: FIX: ARREGLAR QUE NO ESTA TRAYENDO LOS REPOSITORIOS
+      if (user.repositories) {
+        user.repositories.nodes.forEach(repo => {
+          this.repository.stargazers += repo.stargazers.totalCount;
+          this.repository.forks += repo.forkCount;
+          this.repository.watchers += repo.watchers.totalCount;
+        });
+        this.repository.followers += user.followers.totalCount;
+      }
     },
     /*getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios

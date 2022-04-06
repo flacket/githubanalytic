@@ -535,31 +535,31 @@ export function matrizConteoPR(pullRequest) {
           for (var index = 0; index < element.reactions.totalCount; index++) {
             let enc = false;
             let j = 0;
-            while (!enc) {
-              if (
-                participants[j] == element.reactions.nodes[index].user.id
-              ) {
-                //este participante le reacciono al creador del PR
-                enc = true;
-                //verificar si no reacciono antes
-                let i = 0;
-                var yaReacciono = false;
-                while (i < reactionArray.length && !yaReacciono) {
-                  if (participants[j] == reactionArray[i]) yaReacciono = true;
-                  else i++;
+            if (element.reactions.nodes[index]) {
+              while (!enc) {
+                if (participants[j] == element.reactions.nodes[index].user.id) {
+                  //este participante le reacciono al creador del PR
+                  enc = true;
+                  //verificar si no reacciono antes
+                  let i = 0;
+                  var yaReacciono = false;
+                  while (i < reactionArray.length && !yaReacciono) {
+                    if (participants[j] == reactionArray[i]) yaReacciono = true;
+                    else i++;
+                  }
+                  if (!yaReacciono) {
+                    //console.log('  -Reacciona: ', participants[j])
+                    reactionArray.push(participants[j]);
+                    countMatrix[j][c]++;
+                  }
+                } else if (j == cantPersonas) {
+                  enc = true;
                 }
-                if (!yaReacciono) {
-                  //console.log('  -Reacciona: ', participants[j])
-                  reactionArray.push(participants[j]);
-                  countMatrix[j][c]++;
-                }
-              } else if (j == cantPersonas) {
-                enc = true;
+                j++;
               }
-              j++;
             }
           } //reaccion comentarios
-        }else c++;
+        } else c++;
       } //while encontrado
     //}
   }
@@ -671,20 +671,20 @@ export function matrizConteoPR(pullRequest) {
         ) {
           let enc = false;
           let j = 0;
-          //busco la posicion en la matriz del que reacciona
-          while (!enc) {
-            if (
-              participants[j] == reviewComment.reactions.nodes[index].user.id
-            ) {
-              //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.id)
-              //este participante le reacciono al creador del PR
-              countMatrix[j][posicion]++;
-              enc = true;
-              //} else if (j == cantPersonas)
-              //  { enc = true }
-              //j++
-            } else j++;
-            if (j == (cantPersonas-1)) enc = true;
+          if (reviewComment.reactions.nodes[index]) {
+            //busco la posicion en la matriz del que reacciona
+            while (!enc) {
+                if (participants[j] == reviewComment.reactions.nodes[index].user.id) {
+                  //console.log(' -Reacciona: ', reviewComment.reactions.nodes[index].user.id)
+                  //este participante le reacciono al creador del PR
+                  countMatrix[j][posicion]++;
+                  enc = true;
+                  //} else if (j == cantPersonas)
+                  //  { enc = true }
+                  //j++
+                } else j++;
+              if (j == (cantPersonas-1)) enc = true;
+            }
           }
         } //reacciones
       } catch (err) {

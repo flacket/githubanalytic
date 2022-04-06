@@ -639,11 +639,10 @@ export default {
             let encontrado = false;
             let index = 0;
             while (!encontrado) {
-              //console.log("index: ", index, " | login: ", this.pullRequests[r].participants.nodes[index].login)
               if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
                 this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
                 encontrado = true;
-              } else if (index == this.pullRequests[r].participants.totalCount) {
+              } else if (index < this.pullRequests[r].participants.totalCount) {
                 encontrado = true;
               }
               index++;
@@ -652,7 +651,7 @@ export default {
             this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
           }
         } catch (error) {
-          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
         }
 
         //agregamos id a los autores de Comentarios
@@ -665,7 +664,7 @@ export default {
                 if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
                   this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
                   encontrado = true;
-                } else if (index == this.pullRequests[r].participants.totalCount) {
+                } else if (index < this.pullRequests[r].participants.totalCount) {
                   encontrado = true;
                 }
                 index++;
@@ -675,7 +674,7 @@ export default {
             }
           }
         } catch (error) {
-          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
         }
 
         //agregamos id a los autores de Reviews
@@ -686,10 +685,13 @@ export default {
               let index = 0;
               if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
                 while (!encontrado) {
+                  //console.log("rev: ", i, "com: ", c, " | login: ", this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login)
+                  //console.log("author: ", this.pullRequests[r].participants.nodes[index].login)
+                  //console.log("id: ", this.pullRequests[r].participants.nodes[index].id)
                   if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
                     this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
                     encontrado = true;
-                  } else if (index == this.pullRequests[r].participants.totalCount) {
+                  } else if (index < this.pullRequests[r].participants.totalCount) {
                     encontrado = true;
                   }
                   index++;
@@ -700,7 +702,7 @@ export default {
             }
           }
         } catch (error) {
-          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
         }
       }
     },
