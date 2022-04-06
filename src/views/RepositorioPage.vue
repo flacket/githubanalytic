@@ -176,6 +176,9 @@
         </v-progress-linear>
       </template>
       </v-data-table>
+      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExportPersonas()">
+        <v-icon left>mdi-file-table</v-icon>Exportar a CSV</v-btn
+      >
     </div>
     <input
       id="file-upload"
@@ -364,7 +367,47 @@ export default {
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(this.estadisticas);
       //Exporto ahora el archivo CSV
-      const exportName = "informe" + ".csv" || "export.csv";
+      const exportName = this.search.owner + " - " + this.search.name + 
+      " - informePRs.csv" || "export.csv";
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      if (navigator.msSaveBlob) {
+        navigator.msSaveBlob(blob, exportName);
+      } else {
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", exportName);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+      this.showSnackbar("Archivo CSV Guardado", "success", 4000);
+    },
+    csvExportPersonas() {
+      //Creo el archivo CSV
+      const { Parser } = require("json2csv");
+      const fields = [
+        "login",
+        "rol",
+        "cantPRAuthor",
+        "cantPRParticipa",
+        "Cohesión Individual",
+        //"msjEnviados",
+        //"msjRecibidos",
+        "coheInd",
+        "habilidad",
+        "mimicaInd",
+        "tonoInd",
+      ];
+
+      const json2csvParser = new Parser({ fields });
+      const csv = json2csvParser.parse(this.estadisticasPersona);
+      //Exporto ahora el archivo CSV
+      const exportName = this.search.owner + " - " + this.search.name + 
+      " - informePersonas.csv" || "export.csv";
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       if (navigator.msSaveBlob) {
         navigator.msSaveBlob(blob, exportName);
@@ -589,13 +632,14 @@ export default {
     },
     agregarID() {
       //Esta funcion agrega los ID faltantes al JSON de la consulta
-      try {
-        for (let r = 0; r < this.pullRequests.length; r++) {
-          //agregamos id al autor del PR
+      for (let r = 0; r < this.pullRequests.length; r++) {
+        //agregamos id al autor del PR
+        try {
           if (this.pullRequests[r].author) {
             let encontrado = false;
             let index = 0;
             while (!encontrado) {
+              //console.log("index: ", index, " | login: ", this.pullRequests[r].participants.nodes[index].login)
               if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
                 this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
                 encontrado = true;
@@ -607,7 +651,12 @@ export default {
           } else {
             this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
           }
-          //agregamos id a los autores de Comentarios
+        } catch (error) {
+          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
+        }
+
+        //agregamos id a los autores de Comentarios
+        try {
           for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
             let encontrado = false;
             let index = 0;
@@ -625,7 +674,12 @@ export default {
               this.pullRequests[r].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
             }
           }
-          //agregamos id a los autores de Reviews
+        } catch (error) {
+          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
+        }
+
+        //agregamos id a los autores de Reviews
+        try {
           for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
             for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
               let encontrado = false;
@@ -645,9 +699,9 @@ export default {
               }
             }
           }
+        } catch (error) {
+          //console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
         }
-      } catch (error) {
-        console.log("Error en agregarID: ", error);
       }
     },
     getRepoPRcant(search) {
