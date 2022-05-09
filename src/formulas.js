@@ -390,8 +390,10 @@ export function mimicaFormula(cantPersonas, pullRequest) {
             listaComm[j],
             docSimilarity.cosineSim
           );
-          mimicaMatrix[i][j] = Math.round(result * 100) / 100;
-          mimicaMatrix[j][i] = mimicaMatrix[i][j];
+          if(!Number.isNaN(result)){
+            mimicaMatrix[i][j] = Math.round(result * 100) / 100;
+            mimicaMatrix[j][i] = mimicaMatrix[i][j];
+          }
         }
       }
     }

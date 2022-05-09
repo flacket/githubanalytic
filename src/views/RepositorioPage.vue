@@ -554,15 +554,17 @@ export default {
       let colabGrupal = 0;
       let mimicaGrupal = 0;
       let tonoGrupal = 0;
+      let cantMimicaNull = 0;
       tabla.forEach((item) => {
         cohesionGrupal += item.coeInd;
         colabGrupal += item.coeInd;
-        mimicaGrupal += item.mimicaInd;
+        if(!Number.isNaN(item.mimicaInd)) mimicaGrupal += item.mimicaInd;
+        else cantMimicaNull++;
         tonoGrupal += item.tonoInd;
       });
       cohesionGrupal = cohesionGrupal / tabla.length;
       colabGrupal = colabGrupal / tabla.length;
-      mimicaGrupal = mimicaGrupal / tabla.length;
+      mimicaGrupal = mimicaGrupal / (tabla.length - cantMimicaNull);
       tonoGrupal = tonoGrupal / tabla.length;
 
       //Obtengo la varianza de cohesión
@@ -618,16 +620,18 @@ export default {
       let colabGrupal = 0;
       let mimicaGrupal = 0;
       let tonoGrupal = 0;
+      let cantMimicaNull = 0;
 
       for (let i = 0; i < cant; i++) {
         cohesionGrupal += Number(this.estadisticas[i].cohesionGrupal);
         colabGrupal += Number(this.estadisticas[i].colaboracionGrupal);
-        mimicaGrupal += Number(this.estadisticas[i].mimicaGrupal);
+        if(!Number.isNaN(this.estadisticas[i].mimicaGrupal)) mimicaGrupal += Number(this.estadisticas[i].mimicaGrupal);
+        else cantMimicaNull++;
         tonoGrupal += Number(this.estadisticas[i].tonoGrupal);
       }
-      this.chartcohesionGrupal = Math.round((cohesionGrupal / cant) * 100);
-      this.chartcolabGrupal = Math.round((colabGrupal / cant) * 100);
-      this.chartmimicaGrupal = Math.round((mimicaGrupal / cant) * 100);
+      this.chartCoheGrupal = Math.round((cohesionGrupal / cant) * 100);
+      this.chartColabGrupal = Math.round((colabGrupal / cant) * 100);
+      this.chartmimicaGrupal = Math.round((mimicaGrupal / (cant - cantMimicaNull)) * 100);
       this.chartTonoGrupal = Math.round((tonoGrupal / cant) * 100);
     },
     agregarID() {
