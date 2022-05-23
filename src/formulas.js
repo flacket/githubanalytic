@@ -1,5 +1,9 @@
-import moment from "moment"
-import {polarity} from "polarity"
+import moment from "moment";docSimilarity
+import {polarity} from "polarity";
+//Importo la funcion del coseno de similaridad
+//https://www.npmjs.com/package/doc-similarity
+import {docSimilarity} from "doc-similarity";
+
 moment.locale("es-us");
 /*export function listaParticipantesRepo(pullRequests) {
   //creo una lista de los Paticipantes de cada PR del repositorio
@@ -203,8 +207,6 @@ export function comunaFormula(participantes) {
     });
     comunaConteo.push(varComuna);
   }
-  //creo una variable con la funcion del coseno de similaridad
-  const docSimilarity = require("doc-similarity");
   //crear matriz NxN de comunalidad
   let comunaMatrix = new Array(cantPersonas);
   for (let n = 0; n < cantPersonas; n++) {
@@ -367,13 +369,10 @@ function listaComentariosParticipante(cantPersonas, pullRequest) {
 export function mimicaFormula(cantPersonas, pullRequest) {
   //Esta funcion crea una matriz con el grado de mimica de los participantes
   //el grado de mimica es la similaridad que hay entre sus comentarios en un PR
-  //https://www.npmjs.com/package/doc-similarity
   var listaComm = listaComentariosParticipante(cantPersonas, pullRequest);
   //crear matriz NxN
   var mimicaMatrix = new Array(cantPersonas);
   try {
-    //creo una variable con la funcion del coseno de similaridad
-    const docSimilarity = require("doc-similarity");
     //crear matriz NxN
     for (let n = 0; n < cantPersonas; n++)
       mimicaMatrix[n] = new Array(cantPersonas);
