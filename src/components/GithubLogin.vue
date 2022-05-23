@@ -1,10 +1,10 @@
 <template>
   <div>
-    <v-btn v-if="!isLoggedIn" @click="githubLogin" color="primary white--text" rounded>
+    <v-btn v-if="!isLoggedIn" color="primary white--text" rounded @click="githubLogin" >
       <v-icon left>{{ ghIcon }}</v-icon
       >Iniciar Sesión
     </v-btn>
-    <v-btn v-if="isLoggedIn" @click="githublogout" color="primary white--text" rounded>
+    <v-btn v-if="isLoggedIn" color="primary white--text" rounded @click="githublogout" >
       Cerrar Sesión
     </v-btn>
   </div>

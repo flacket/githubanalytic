@@ -2,8 +2,8 @@
   <div>
     <div>
       <v-snackbar
-        right
         v-model="snackbar.show"
+        right
         :timeout="snackbar.timeout"
         :color="snackbar.color"
       >
@@ -13,8 +13,8 @@
     </div>
     <h1 class="subheading-1 blue--text">Descarga de Pull Request</h1>
     <PRSelector
-      v-on:search-pr="getRepoPRcant"
-      v-bind:hideNumber="true"
+      hide-number="true"
+      @search-pr="getRepoPRcant"
     ></PRSelector>
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
@@ -26,15 +26,15 @@
     ></v-progress-linear>
     <v-divider class="my-2"></v-divider>
     <!--///////////////////////////////////////////////////////////////////////////////-->
-    <v-btn v-if="!show && !loading" color="primary" rounded v-on:click="btnLoadFile">
+    <v-btn v-if="!show && !loading" color="primary" rounded @click="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn
     >
     <v-btn
+      v-if="loading"
       class="mb-2"
       rounded
       :color="colorCancel"
-      v-on:click="toggleCancelar"
-      v-if="loading"
+      @click="toggleCancelar"
     >
       <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn
     >
@@ -43,11 +43,11 @@
       <h2 class="subheading-1 blue--text">
         {{ search.owner }} / {{ search.name }}
       </h2>
-      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded @click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
 
-      <v-btn color="primary" rounded v-on:click="saveFile()">
+      <v-btn color="primary" rounded @click="saveFile()">
         <v-icon left>mdi-download</v-icon>Guardar json</v-btn
       >
 
@@ -62,7 +62,7 @@
 
         <v-card class="ml-4">
           <v-simple-table fixed-header height="300px">
-            <template v-slot:default>
+            <template #default>
               <thead>
                 <tr>
                   <th class="text-left">Lista de Participantes</th>
@@ -85,7 +85,7 @@
         :items-per-page="5"
         class="elevation-1 mt-2"
       >
-      <template v-slot:[`item.estado`]="{ item }">
+      <template #cell(estado)="item">
         <v-chip :color="getColor(item.estado)" dark>
           {{ item.estado }}
         </v-chip>
@@ -95,8 +95,8 @@
     </div>
     <input
       id="file-upload"
-      type="file"
       ref="myFile"
+      type="file"
       style="display:none"
       @change="loadFile"
     /><br />
@@ -106,6 +106,7 @@
 <script>
 import PRSelector from "../components/PRSelector";
 import { DOWN_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
+import { Parser } from "json2csv";
 import {
   cohesionFormula,
   colaboracionFormula,
@@ -240,7 +241,6 @@ export default {
     },
     csvExport() {
       //Creo el archivo CSV
-      const { Parser } = require("json2csv");
       let header = [
         "RepoTotalFollowers",
         "RepoTotalStargazers",

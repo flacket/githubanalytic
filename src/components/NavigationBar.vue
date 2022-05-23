@@ -2,9 +2,9 @@
   <div id="inspire">
     <v-navigation-drawer
       v-if="isLoggedIn"
-      app
-      :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer"
+      app 
+      :clipped="$vuetify.breakpoint.lgAndUp"
     >
       <v-list rounded>
         <template v-for="link in links">
@@ -78,9 +78,6 @@ export default {
     var user = firebaseApp.auth().currentUser;
     if (user) this.isLoggedIn = true;
     else this.isLoggedIn = false;
-  },
-  props: {
-    source: String,
   },
 };
 </script>

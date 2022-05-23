@@ -2,8 +2,8 @@
   <div>
     <div class="text-center">
       <v-snackbar
-        right
         v-model="snackbar.show"
+        right
         :timeout="snackbar.timeout"
         :color="snackbar.color"
       >
@@ -13,8 +13,8 @@
     </div>
     <h1 class="subheading-1 blue--text">Repositorio</h1>
     <PRSelector
-      v-on:search-pr="getRepoPRcant"
-      v-bind:hideNumber="true"
+      hide-number="true"
+      @search-pr="getRepoPRcant"
     ></PRSelector>
     <p v-if="loading" class="font-weight-light">{{ progress.text }}</p>
     <v-progress-linear
@@ -27,16 +27,16 @@
     <v-divider class="my-2"></v-divider>
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn
+      v-if="loading"
       class="mb-2"
       rounded
       :color="colorCancel"
-      v-on:click="toggleCancelar"
-      v-if="loading"
+      @click="toggleCancelar"
     >
       <v-icon left>mdi-cancel</v-icon>Detener Busqueda</v-btn
     >
 
-    <v-btn v-if="!show && !loading" color="primary" rounded @click.native="btnLoadFile">
+    <v-btn v-if="!show && !loading" color="primary" rounded @click="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn
     >
 
@@ -47,28 +47,29 @@
           <v-col sm="12" md="3">
             <v-layout column>
               <v-flex>
-                <p>Miembros: {{ this.datosRepo.miembros }}</p>
+                <p>Miembros: {{ datosRepo.miembros }}</p>
               </v-flex>
               <v-flex>
-                <p>Colaboradores: {{ this.datosRepo.colaboradores }}</p>
+                <p>Colaboradores: {{ datosRepo.colaboradores }}</p>
               </v-flex>
               <v-flex>
-                <p>Participantes: {{ this.datosRepo.participantes }}</p>
+                <p>Participantes: {{ datosRepo.participantes }}</p>
               </v-flex>
               <v-flex>
-                <p>PR Merged: {{ this.datosRepo.PRmerged }}</p>
+                <p>PR Merged: {{ datosRepo.PRmerged }}</p>
               </v-flex>
               <v-flex>
-                <p>PR Cerrados: {{ this.datosRepo.PRclosed }}</p>
+                <p>PR Cerrados: {{ datosRepo.PRclosed }}</p>
               </v-flex>
               <v-flex>
-                <p>PR Total: {{ this.datosRepo.PRtotal }}</p>
+                <p>PR Total: {{ datosRepo.PRtotal }}</p>
               </v-flex>
             </v-layout>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartCoheGrupal"
             >
               {{ chartCoheGrupal }}%
@@ -76,7 +77,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartColabGrupal"
             >
               {{ chartColabGrupal }}%
@@ -84,7 +86,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartMimicaGrupal"
             >
               {{ chartMimicaGrupal }}%
@@ -92,7 +95,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartTonoGrupal"
             >
               {{ chartTonoGrupal }}%
@@ -101,13 +105,13 @@
         </v-row>
       </v-card>
 
-      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded @click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar CSV</v-btn
       >
-      <v-btn class="mx-2" color="primary" rounded @click.native="btnLoadFile">
+      <v-btn class="mx-2" color="primary" rounded @click="btnLoadFile">
         <v-icon left>mdi-download</v-icon>Cargar json</v-btn
       >
-      <v-btn color="primary" rounded v-on:click="saveFile()">
+      <v-btn color="primary" rounded @click="saveFile()">
         <v-icon left>mdi-upload</v-icon>Guardar json</v-btn
       >
       <h4 class="mt-4">Tabla de Pull Request</h4>
@@ -116,28 +120,28 @@
         :items="estadisticas"
         :items-per-page="20"
         class="elevation-1 mt-2"
-      >
-      <template v-slot:[`item.cohesionGrupal`]="{ item }">
+      >#cell(tonoInd)="item"
+      <template #cell(cohesionGrupal)="item">
         <v-progress-linear :value="item.cohesionGrupal*100" height="25">
           <strong>{{ (item.cohesionGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.colaboracionGrupal`]="{ item }">
+      <template #cell(colaboracionGrupal)="item">
         <v-progress-linear :value="item.colaboracionGrupal*100" height="25">
           <strong>{{ (item.colaboracionGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.mimicaGrupal`]="{ item }">
+      <template #cell(mimicaGrupal)="item">
         <v-progress-linear :value="item.mimicaGrupal*100" height="25">
           <strong>{{ (item.mimicaGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.tonoGrupal`]="{ item }">
+      <template #cell(tonoGrupal)="item">
         <v-progress-linear :value="item.tonoGrupal*100" height="25">
           <strong>{{ (item.tonoGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.estado`]="{ item }">
+      <template #cell(estado)="item">
       <v-chip :color="getColor(item.estado)" dark>
         {{ item.estado }}
       </v-chip>
@@ -150,40 +154,40 @@
         :items-per-page="20"
         class="elevation-1 mt-2"
       >
-      <template v-slot:[`item.rol`]="{ item }">
+      <template #cell(rol)="item">
       <v-chip :color="getColor(item.rol)" dark>
         {{ item.rol }}
       </v-chip>
       </template>
-      <template v-slot:[`item.coheInd`]="{ item }">
+      <template #cell(coheInd)="item">
         <v-progress-linear :value="item.coheInd*100" height="25">
           <strong>{{ (item.coheInd*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.habilidad`]="{ item }">
+      <template #cell(habilidad)="item">
         <v-progress-linear :value="item.habilidad*100" height="25">
           <strong>{{ (item.habilidad*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.mimicaInd`]="{ item }">
+      <template #cell(mimicaInd)="item">
         <v-progress-linear :value="item.mimicaInd*100" height="25">
           <strong>{{ (item.mimicaInd*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template> 
-      <template v-slot:[`item.tonoInd`]="{ item }">
+      <template #cell(tonoInd)="item">
         <v-progress-linear :value="item.tonoInd*100" height="25">
           <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
         </v-progress-linear>
       </template>
       </v-data-table>
-      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExportPersonas()">
+      <v-btn class="ma-2" color="primary" rounded @click="csvExportPersonas()">
         <v-icon left>mdi-file-table</v-icon>Exportar a CSV</v-btn
       >
     </div>
     <input
       id="file-upload"
-      type="file"
       ref="myFile"
+      type="file"
       style="display:none"
       @change="loadFile"
     /><br />
@@ -193,6 +197,7 @@
 <script>
 import PRSelector from "../components/PRSelector";
 import { GET_REPOS, REPOSITORY_PRS, ORG_MEMBERS } from "../graphql/queries.js";
+import { Parser } from "json2csv";
 import {
   matrizConteoPR,
   cohesionFormula,
@@ -349,7 +354,6 @@ export default {
     },
     csvExport() {
       //Creo el archivo CSV
-      const { Parser } = require("json2csv");
       const fields = [
         "PR",
         "cohesionGrupal",
@@ -388,7 +392,6 @@ export default {
     },
     csvExportPersonas() {
       //Creo el archivo CSV
-      const { Parser } = require("json2csv");
       const fields = [
         "login",
         "rol",

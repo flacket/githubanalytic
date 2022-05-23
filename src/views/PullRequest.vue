@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-snackbar
-      right
       v-model="snackbar.show"
+      right
       :timeout="snackbar.timeout"
       :color="snackbar.color"
     >
@@ -10,10 +10,7 @@
       <v-btn dark rounded text @click="snackbar.show = false">Cerrar</v-btn>
     </v-snackbar>
     <h1 class="subheading-1 blue--text">Pull Request</h1>
-    <PRSelector
-      v-on:search-pr="refreshQuery"
-      v-bind:hideNumber="false"
-    ></PRSelector>
+    <PRSelector @search-pr="refreshQuery" />
     <v-progress-linear
       v-if="$apollo.loading"
       indeterminate
@@ -40,26 +37,27 @@
               <v-flex>
                 <p>
                   Participantes:
-                  {{ this.repository.pullRequest.participants.totalCount }}
+                  {{ repository.pullRequest.participants.totalCount }}
                 </p>
               </v-flex>
               <v-flex>
                 <p>
                   Tamaño PR (loc):
                   {{
-                    this.repository.pullRequest.additions +
-                      this.repository.pullRequest.deletions
+                    repository.pullRequest.additions +
+                      repository.pullRequest.deletions
                   }}
                 </p>
               </v-flex>
               <v-flex>
-                <p>Estado: {{ this.repository.pullRequest.state }}</p>
+                <p>Estado: {{ repository.pullRequest.state }}</p>
               </v-flex>
             </v-layout>
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Cohesión:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartCoheGrupal"
             >
               {{ chartCoheGrupal }}%
@@ -67,7 +65,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Colaboración:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartColabGrupal"
             >
               {{ chartColabGrupal }}%
@@ -75,7 +74,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Mímica:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartMimicaGrupal"
             >
               {{ chartMimicaGrupal }}%
@@ -83,7 +83,8 @@
           </v-col>
           <v-col class="mb-3" sm="2">
             <h4>Polaridad:</h4>
-            <v-progress-circular :rotate="-90" :size="90" :width="15" color="primary"
+            <v-progress-circular 
+            :rotate="-90" :size="90" :width="15" color="primary"
               :value="chartTonoGrupal"
             >
               {{ chartTonoGrupal }}%
@@ -95,11 +96,11 @@
       <v-row class="mt-4">
         <v-col sm="12" md="6">
           <h4>Cohesión Individual:</h4>
-          <BarChart :chartData="chartCohe" />
+          <BarChart :chart-data="chartCohe" />
         </v-col>
         <v-col sm="12" md="6">
           <h4>Colaboración Individual:</h4>
-          <BarChart :chartData="chartColab" />
+          <BarChart :chart-data="chartColab" />
         </v-col>
       </v-row>
       <v-row class="mt-2">
@@ -112,12 +113,12 @@
             :items-per-page="20"
             class="elevation-1 mt-2"
           >
-          <template v-slot:[`item.mimicaInd`]="{ item }">
+          <template #cell(mimicaInd)="item">
             <v-progress-linear :value="item.mimicaInd*100" height="25">
               <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
             </v-progress-linear>
           </template>
-          <template v-slot:[`item.tonoInd`]="{ item }">
+          <template #cell(tonoInd)="item">
             <v-progress-linear :value="item.tonoInd*100" height="25">
               <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
             </v-progress-linear>
@@ -126,7 +127,7 @@
         </v-col>
       </v-row>
 
-      <v-btn class="ma-2" color="primary" rounded v-on:click="csvExport()">
+      <v-btn class="ma-2" color="primary" rounded @click="csvExport()">
         <v-icon left>mdi-file-table</v-icon>Exportar Chat</v-btn>
     </div>
   </div>
@@ -136,6 +137,8 @@
 import PRSelector from "../components/PRSelector";
 import BarChart from "../components/chartjs/BarChart.vue";
 import { GET_REPO } from "../graphql/queries.js";
+import { Parser } from "json2csv";
+
 import {
   matrizConteoPR,
   cohesionFormula,
@@ -230,7 +233,6 @@ export default {
     },
     csvExport() {
       //Creo el archivo CSV
-      const { Parser } = require("json2csv");
       const fields = ["Participante", "Comentario", "Fecha"];
 
       const json2csvParser = new Parser({ fields });

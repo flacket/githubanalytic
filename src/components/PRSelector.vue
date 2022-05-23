@@ -33,7 +33,7 @@
           ></v-text-field>
         </v-col>
         <v-col class="py-0" cols="12" sm="2">
-          <v-btn color="primary" rounded v-on:click="$emit('search-pr', search)">
+          <v-btn color="primary" rounded @click="$emit('search-pr', search)">
             <v-icon left>mdi-magnify</v-icon>Buscar</v-btn
           >
         </v-col>
@@ -44,7 +44,13 @@
 
 <script>
 export default {
-  props: ["hideNumber"],
+  props: {
+    hideNumber: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ['search-pr'],
   data() {
     return {
       //search: { owner: "twitter", name: "serial", number: "" },
