@@ -195,7 +195,7 @@
 </template>
 
 <script>
-import PRSelector from "../components/PRSelector";
+import PRSelector from "../components/PRSelector.vue";
 import { GET_REPOS, REPOSITORY_PRS, ORG_MEMBERS } from "../graphql/queries.js";
 import { Parser } from "json2csv";
 import {

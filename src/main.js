@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
-import vuetify from './plugins/vuetify'
-import {createProvider} from './vue-apollo'
+import router from './router.js'
+//import vuetify from './plugins/vuetify'
+//import {createProvider} from './vue-apollo.js'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
-import firebaseApp from './FirebaseApp'
+import firebaseApp from './FirebaseApp.js'
 import "firebase/compat/auth";
 
 Vue.config.productionTip = false
@@ -15,8 +15,8 @@ firebaseApp.auth().onAuthStateChanged(() => {
     /* eslint-disable no-new */
     app = new Vue({
       router,
-      vuetify,
-      apolloProvider: createProvider(),
+      //vuetify,
+      //apolloProvider: createProvider(),
       render: h => h(App)
     }).$mount('#app')
   }

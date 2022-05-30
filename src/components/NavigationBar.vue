@@ -53,8 +53,8 @@
 </template>
 
 <script>
-import firebaseApp from "../FirebaseApp";
-import GithubLogin from "./GithubLogin";
+import firebaseApp from "../FirebaseApp.js";
+import GithubLogin from "./GithubLogin.vue";
 
 export default {
   components: {

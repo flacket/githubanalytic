@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import PRSelector from "../components/PRSelector";
+import PRSelector from "../components/PRSelector.vue";
 import { DOWN_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
 import { Parser } from "json2csv";
 import {

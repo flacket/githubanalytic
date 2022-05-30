@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import GithubLogin from "../components/GithubLogin";
+import GithubLogin from "../components/GithubLogin.vue";
 
 export default {
   components: {

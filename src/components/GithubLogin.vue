@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import firebaseApp from "../FirebaseApp";
+import firebaseApp from "../FirebaseApp.js";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import { mdiGithub } from "@mdi/js";
