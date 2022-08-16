@@ -205,6 +205,13 @@ import {
 
 export default {
   components: { PRSelector },
+  watch: {
+    loading () {
+      console.log('entra a show')
+      if (!this.loading) this.setAnalytics(this.search);
+      
+    },
+  },
   data() {
     return {
       loading: false,
@@ -363,6 +370,15 @@ export default {
         "codigoRem",
         "sizePR",
         "estado",
+        "comentarios",
+        "Thumbs_Up",
+        "Thumbs_Down",
+        "Laugh",
+        "Hooray",
+        "Confused",
+        "Heart",
+        "Rocket",
+        "Eyes",
       ];
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(this.estadisticas);
@@ -455,7 +471,8 @@ export default {
           }
         });
         this.agregarID();
-        this.setAnalytics(this.search);
+        this.loading = false;
+        console.log('fin de carga')
       };
       reader.onerror = (evt) => {
         this.showSnackbar(
@@ -589,6 +606,9 @@ export default {
       ) author = pullRequest.author.login;
       else author = "|Usuario Borrado|";
 
+      //concateno los comentarios
+      let comentarios = this.CommentsRow(pullRequest);
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
@@ -610,8 +630,105 @@ export default {
         countMatrix: this.countMatrix,
         participantes: cantPersonas,
         autor: author,
+        comentarios: comentarios.body,
+        Thumbs_Up: comentarios.Thumbs_Up,
+        Thumbs_Down: comentarios.Thumbs_Down,
+        Laugh: comentarios.Laugh,
+        Hooray: comentarios.Hooray,
+        Confused: comentarios.Confused,
+        Heart: comentarios.Heart,
+        Rocket: comentarios.Rocket,
+        Eyes: comentarios.Eyes,
       };
-      this.estadisticas.push(estadisticaPR);
+      if (comentarios.body != '') this.estadisticas.push(estadisticaPR);
+    },
+    CommentsRow(pr){
+      var fullcomments = {
+        body: "",
+        Thumbs_Up: 0,
+        Thumbs_Down: 0,
+        Laugh: 0,
+        Hooray: 0,
+        Confused: 0,
+        Heart: 0,
+        Rocket: 0,
+        Eyes: 0,
+      };
+      pr.comments.nodes.forEach(comment => {
+        fullcomments.body += comment.body;
+        //Sumo la cantidad de reacciones por emoticon en comentarios
+        comment.reactions.nodes.forEach(reaction => {
+          switch (reaction.content) {
+            case "THUMBS_UP":
+              fullcomments.Thumbs_Up++;
+            break;
+            case "THUMBS_DOWN":
+              fullcomments.Thumbs_Down++;
+            break;
+            case "LAUGH":
+              fullcomments.Laugh++;
+            break;
+            case "HOORAY":
+              fullcomments.Hooray++;
+            break;
+            case "CONFUSED":
+              fullcomments.Confused++;
+            break;
+            case "HEART":
+              fullcomments.Heart++;
+            break;
+            case "ROCKET":
+              fullcomments.Rocket++;
+            break;
+            case "EYES":
+              fullcomments.Eyes++;
+            break;
+            default:
+              console.log("falta un icono de reaccion en la lista: ", reaction.content);
+            break;
+          }
+        });
+
+        pr.reviewThreads.nodes.forEach(rv => {
+          rv.comments.nodes.forEach(commentRv => {
+            //Por cada comentario de los Revievthreads:
+            fullcomments.body += commentRv.body;
+            //Sumo la cantidad de reacciones por emoticon en comentarios de Revievthreads
+            commentRv.reactions.nodes.forEach(reaction => {
+              switch (reaction.content) {
+                case "THUMBS_UP":
+                  fullcomments.Thumbs_Up++;
+                break;
+                case "THUMBS_DOWN":
+                  fullcomments.Thumbs_Down++;
+                break;
+                case "LAUGH":
+                  fullcomments.Laugh++;
+                break;
+                case "HOORAY":
+                  fullcomments.Hooray++;
+                break;
+                case "CONFUSED":
+                  fullcomments.Confused++;
+                break;
+                case "HEART":
+                  fullcomments.Heart++;
+                break;
+                case "ROCKET":
+                  fullcomments.Rocket++;
+                break;
+                case "EYES":
+                  fullcomments.Eyes++;
+                break;
+                default:
+                  console.log("falta un icono de reaccion en la lista: ", reaction.content);
+                break;
+              }
+            });
+          });
+        });
+      });
+      return fullcomments;
     },
     chartsDataGrupal() {
       //Obtengo las estadisticas grupales para las graficas circulares
@@ -936,7 +1053,7 @@ export default {
           } else {
             //Agrego información de IDs faltantes en los PR
             self.agregarID();
-            self.setAnalytics(search);
+            self.loading = false;
           }
         });
     }, //getFullPR
@@ -993,10 +1110,8 @@ export default {
         //Doy formato a las gráficas
         self.chartsDataGrupal();
 
-        self.show = true;
         self.progress.bar = 0;
-        self.loading = false;
-        
+        self.show = true;
         self.showSnackbar("Análisis Finalizado", "success", 4000);
       });
     }
