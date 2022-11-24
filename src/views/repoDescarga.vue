@@ -282,91 +282,6 @@ export default {
       }
       this.showSnackbar("Archivo CSV Guardado", "success", 4000);
     },
-    ListCommentsRow() {
-      //creo la fila para cada elemento del csv
-      this.pullRequests.forEach(PR => {
-              //Obtengo la duracion del PR en días
-        let duracionDias = duracionPRdias(
-          PR.createdAt,
-          PR.closedAt
-        );
-        let PRinfo = {
-          PR: PR.number, //numero
-          estado: PR.state, //merged, etc
-          duracionDias: duracionDias.diff,
-          lineasModif: PR.additions + PR.deletions,
-        };
-        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
-        let aux = this.repoListComments.concat(comments);
-        this.repoListComments = aux;
-        PR.reviewThreads.nodes.forEach(rv => {
-          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
-          aux = this.repoListComments.concat(revComments);
-          this.repoListComments = aux;
-        });
-      });
-    },
-    CommentsRow(PRinfo, comments){
-      let commentsArray = [];
-        comments.forEach(comment => {
-          //calculo la cantidad de reacciones para cada icono
-          let reactionsArray = new Array(8);
-          for (let i = 0; i < 8; i++) reactionsArray[i] = 0;
-          comment.reactions.nodes.forEach(reaction => {
-            switch (reaction.content) {
-              case "THUMBS_UP":
-                reactionsArray[0]=reactionsArray[0]+1;
-              break;
-              case "THUMBS_DOWN":
-                reactionsArray[1]=reactionsArray[1]+1;
-              break;
-              case "LAUGH":
-                reactionsArray[2]=reactionsArray[2]+1;
-              break;
-              case "HOORAY":
-                reactionsArray[3]=reactionsArray[3]+1;
-              break;
-              case "CONFUSED":
-                reactionsArray[4]=reactionsArray[4]+1;
-              break;
-              case "HEART":
-                reactionsArray[5]=reactionsArray[5]+1;
-              break;
-              case "ROCKET":
-                reactionsArray[6]=reactionsArray[6]+1;
-              break;
-              case "EYES":
-                reactionsArray[7]=reactionsArray[7]+1;
-              break;
-              default:
-                console.log("falta un icono de reaccion en la lista: ", reaction.content);
-              break;
-            }
-          });
-          let row = {
-            RepoTotalFollowers: this.repository.followers,
-            RepoTotalStargazers: this.repository.stargazers,
-            RepoTotalWatchers: this.repository.watchers,
-            RepoTotalForks: this.repository.forks,
-            PR: PRinfo.PR,
-            estado: PRinfo.estado,
-            duracionDias: PRinfo.duracionDias,
-            lineasModif: PRinfo.lineasModif,
-            participante: comment.author? comment.author.login : "|Usuario Borrado|",
-            comentario: comment.body,
-            Thumbs_Up: reactionsArray[0],
-            Thumbs_Down: reactionsArray[1],
-            Laugh: reactionsArray[2],
-            Hooray: reactionsArray[3],
-            Confused: reactionsArray[4],
-            Heart: reactionsArray[5],
-            Rocket: reactionsArray[6],
-            Eyes: reactionsArray[7],
-          };
-          commentsArray.push(row);
-        });
-        return commentsArray;
-    },
     btnLoadFile() {
       document.getElementById("file-upload").click();
     },
@@ -440,187 +355,6 @@ export default {
       this.cancel = !this.cancel;
       if (this.cancel) this.colorCancel = "error";
       else this.colorCancel = "warning";
-    },
-    getEstadisticas(pullRequest) {
-      try {
-        var cantPersonas = pullRequest.participants.totalCount;
-        this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
-        this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
-        this.mimicaMatrix = mimicaFormula(cantPersonas, pullRequest);
-        var polaridad = polaridadFormula(cantPersonas, pullRequest);
-        //alert("Habilidad del participante:", listPersonas);
-      } catch (error) {
-        alert("Error en EstadisticasPR-Creando formulas: ", error);
-        this.showSnackbar(
-          "Error al generar las estadisticas: " + error,
-          "error",
-          8000
-        );
-      }
-      let tabla = new Array();
-      let coeInd, colabInd, mimicaInd, msjEnviados, msjRecibidos;
-      for (let i = 0; i < cantPersonas; i++) {
-        coeInd = 0;
-        colabInd = 0;
-        mimicaInd = 0;
-        msjEnviados = 0;
-        msjRecibidos = 0;
-        //Cuento los mensajes enviados y recibidos para la persona "i"
-        for (let j = 0; j < cantPersonas; j++) {
-          coeInd += this.cohesionMatrix[i][j];
-          colabInd += this.colabMatrix[i][j];
-          mimicaInd += this.mimicaMatrix[i][j];
-          msjEnviados += this.countMatrix[i][j];
-          msjRecibidos += this.countMatrix[j][i];
-        }
-        //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
-        if (cantPersonas > 1) {
-          coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
-          colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
-          mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
-        }
-        //calculo Polaridad
-        let tonoInd = 0,
-          tonoPos = polaridad[i].positivity,
-          tonoNeg = Math.abs(polaridad[i].negativity);
-        if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
-
-        let login, id;
-        if (pullRequest.participants.nodes[i]) {
-          login = pullRequest.participants.nodes[i].login;
-          id = pullRequest.participants.nodes[i].id;
-        } else login = "|Usuario Borrado|";
-        //creola tabla con los datos estaditicos
-        tabla.push({
-          id: id,
-          login: login,
-          coeInd: coeInd,
-          colabInd: colabInd,
-          mimicaInd: mimicaInd,
-          tonoInd: tonoInd,
-          msjEnviados: msjEnviados,
-          msjRecibidos: msjRecibidos,
-        });
-      }
-
-      //Saco estadisticas de grupo
-      let cohesionGrupal = 0;
-      let colabGrupal = 0;
-      let mimicaGrupal = 0;
-      let tonoGrupal = 0;
-      tabla.forEach((item) => {
-        cohesionGrupal += item.coeInd;
-        colabGrupal += item.coeInd;
-        mimicaGrupal += item.mimicaInd;
-        tonoGrupal += item.tonoInd;
-      });
-      cohesionGrupal = cohesionGrupal / tabla.length;
-      colabGrupal = colabGrupal / tabla.length;
-      mimicaGrupal = mimicaGrupal / tabla.length;
-      tonoGrupal = tonoGrupal / tabla.length;
-
-      /*Obtengo la varianza de cohesión
-      let coheGrupalVarianza = 0;
-      tabla.forEach((item) => {
-        coheGrupalVarianza +=
-          (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
-      });
-      coheGrupalVarianza = coheGrupalVarianza / tabla.length;*/
-
-      //Obtengo la duracion del PR en días
-      //let duracionDias = duracionPRdias(pullRequest.createdAt,pullRequest.closedAt);
-
-      //Adjunto las estadisticas a los datos del Pull Request
-      let estadisticaPR = {
-        //TODO:id: index,
-        statsIndividuales: tabla,
-        matrizInteracciones: this.countMatrix,
-        cohesionGrupal: cohesionGrupal.toFixed(2),
-        colaboracionGrupal: colabGrupal.toFixed(2),
-        mimicaGrupal: mimicaGrupal.toFixed(2),
-        tonoGrupal: tonoGrupal.toFixed(2),
-        cohesionMatriz: this.cohesionMatrix,
-        mimicaMatriz: this.mimicaMatrix,
-        colabMatriz: this.colabMatrix,
-        polaridadTabla: polaridad,
-        //fechaInicio: duracionDias.createdAt,
-        //fechaCierre: duracionDias.closedAt,
-        //duraccionDias: duracionDias.diff || "-",
-      };
-      this.estadisticas.push(estadisticaPR);
-    },
-    agregarID() {
-      //Esta funcion agrega los ID faltantes al JSON de la consulta
-      for (let r = 0; r < this.pullRequests.length; r++) {
-        //agregamos id al autor del PR
-        try {
-          if (this.pullRequests[r].author) {
-            let encontrado = false;
-            let index = 0;
-            while (!encontrado) {
-              if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
-                this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
-                encontrado = true;
-              } else if (index < this.pullRequests[r].participants.totalCount) {
-                encontrado = true;
-              }
-              index++;
-            }
-          } else {
-            this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
-          }
-        } catch (error) {
-          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
-        }
-
-        //agregamos id a los autores de Comentarios
-        try {
-          for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
-            let encontrado = false;
-            let index = 0;
-            if (this.pullRequests[r].comments.nodes[c].author) {
-              while (!encontrado) {
-                if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
-                  this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
-                  encontrado = true;
-                } else if (index < this.pullRequests[r].participants.totalCount) {
-                  encontrado = true;
-                }
-                index++;
-              }
-            } else {
-              this.pullRequests[r].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
-            }
-          }
-        } catch (error) {
-          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
-        }
-
-        //agregamos id a los autores de Reviews
-        try {
-          for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
-            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
-              let encontrado = false;
-              let index = 0;
-              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
-                while (!encontrado) {
-                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
-                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
-                    encontrado = true;
-                  } else if (index < this.pullRequests[r].participants.totalCount) {
-                    encontrado = true;
-                  }
-                  index++;
-                }
-              } else {
-                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
-              }
-            }
-          }
-        } catch (error) {
-          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
-        }
-      }
     },
     getRepoPRcant(search) {
       var self = this;
@@ -860,6 +594,287 @@ export default {
           }
         });
     }, //getFullPR
+    agregarID() {
+      //Esta funcion agrega los ID faltantes al JSON de la consulta
+      for (let r = 0; r < this.pullRequests.length; r++) {
+        //agregamos id al autor del PR
+        try {
+          if (this.pullRequests[r].author) {
+            let encontrado = false;
+            let index = 0;
+            while (!encontrado) {
+              if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
+                this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
+                encontrado = true;
+              } else if (index < this.pullRequests[r].participants.totalCount) {
+                encontrado = true;
+              }
+              index++;
+            }
+          } else {
+            this.pullRequests[r].author = {login: "|Usuario Borrado|", id: 0};
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
+        }
+
+        //agregamos id a los autores de Comentarios
+        try {
+          for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
+            let encontrado = false;
+            let index = 0;
+            if (this.pullRequests[r].comments.nodes[c].author) {
+              while (!encontrado) {
+                if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
+                  this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                  encontrado = true;
+                } else if (index < this.pullRequests[r].participants.totalCount) {
+                  encontrado = true;
+                }
+                index++;
+              }
+            } else {
+              this.pullRequests[r].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+            }
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Comentarios: ", error);
+        }
+
+        //agregamos id a los autores de Reviews
+        try {
+          for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
+            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
+              let encontrado = false;
+              let index = 0;
+              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
+                while (!encontrado) {
+                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
+                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                    encontrado = true;
+                  } else if (index < this.pullRequests[r].participants.totalCount) {
+                    encontrado = true;
+                  }
+                  index++;
+                }
+              } else {
+                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+              }
+            }
+          }
+        } catch (error) {
+          console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autores de Reviews: ", error);
+        }
+      }
+    },
+    //-------------------//
+    getEstadisticas(pullRequest) {
+      try {
+        var cantPersonas = pullRequest.participants.totalCount;
+        this.cohesionMatrix = cohesionFormula(cantPersonas, this.countMatrix);
+        this.colabMatrix = colaboracionFormula(cantPersonas, this.countMatrix);
+        this.mimicaMatrix = mimicaFormula(cantPersonas, pullRequest);
+        var polaridad = polaridadFormula(cantPersonas, pullRequest);
+        //alert("Habilidad del participante:", listPersonas);
+      } catch (error) {
+        alert("Error en EstadisticasPR-Creando formulas: ", error);
+        this.showSnackbar(
+          "Error al generar las estadisticas: " + error,
+          "error",
+          8000
+        );
+      }
+      let tabla = new Array();
+      let coeInd, colabInd, mimicaInd, msjEnviados, msjRecibidos;
+      for (let i = 0; i < cantPersonas; i++) {
+        coeInd = 0;
+        colabInd = 0;
+        mimicaInd = 0;
+        msjEnviados = 0;
+        msjRecibidos = 0;
+        //Cuento los mensajes enviados y recibidos para la persona "i"
+        for (let j = 0; j < cantPersonas; j++) {
+          coeInd += this.cohesionMatrix[i][j];
+          colabInd += this.colabMatrix[i][j];
+          mimicaInd += this.mimicaMatrix[i][j];
+          msjEnviados += this.countMatrix[i][j];
+          msjRecibidos += this.countMatrix[j][i];
+        }
+        //Me aseguro que hayan mas de 2 personas para calcular las cohesiónes
+        if (cantPersonas > 1) {
+          coeInd = Math.round((coeInd / (cantPersonas - 1)) * 100) / 100;
+          colabInd = Math.round((colabInd / cantPersonas) * 100) / 100;
+          mimicaInd = Math.round((mimicaInd / cantPersonas) * 100) / 100;
+        }
+        //calculo Polaridad
+        let tonoInd = 0,
+          tonoPos = polaridad[i].positivity,
+          tonoNeg = Math.abs(polaridad[i].negativity);
+        if (tonoPos + tonoNeg > 0) tonoInd = tonoPos / (tonoPos + tonoNeg);
+
+        let login, id;
+        if (pullRequest.participants.nodes[i]) {
+          login = pullRequest.participants.nodes[i].login;
+          id = pullRequest.participants.nodes[i].id;
+        } else login = "|Usuario Borrado|";
+
+        //creola tabla con los datos estaditicos
+        tabla.push({
+          id: id,
+          login: login,
+          coeInd: coeInd,
+          colabInd: colabInd,
+          mimicaInd: mimicaInd,
+          tonoInd: tonoInd,
+          msjEnviados: msjEnviados,
+          msjRecibidos: msjRecibidos,
+        });
+      }
+
+      //Saco estadisticas de grupo
+      let cohesionGrupal = 0;
+      let colabGrupal = 0;
+      let mimicaGrupal = 0;
+      let tonoGrupal = 0;
+      let cantMimicaNull = 0;
+      tabla.forEach((item) => {
+        cohesionGrupal += item.coeInd;
+        colabGrupal += item.coeInd;
+        if(!Number.isNaN(item.mimicaInd)) mimicaGrupal += item.mimicaInd;
+        else cantMimicaNull++;
+        tonoGrupal += item.tonoInd;
+      });
+      cohesionGrupal = cohesionGrupal / tabla.length;
+      colabGrupal = colabGrupal / tabla.length;
+      mimicaGrupal = mimicaGrupal / (tabla.length - cantMimicaNull);
+      tonoGrupal = tonoGrupal / tabla.length;
+
+      /*Obtengo la varianza de cohesión
+      let coheGrupalVarianza = 0;
+      tabla.forEach((item) => {
+        coheGrupalVarianza +=
+          (item.coeInd - cohesionGrupal) * (item.coeInd - cohesionGrupal);
+      });
+      coheGrupalVarianza = coheGrupalVarianza / tabla.length;*/
+
+      //Obtengo la duracion del PR en días
+      let duracionDias = duracionPRdias(
+        pullRequest.createdAt,
+        pullRequest.closedAt
+      );
+
+      //Calculo el estado del PR
+      let estado = pullRequest.state;
+
+      //Adjunto las estadisticas a los datos del Pull Request
+      let estadisticaPR = {
+        //TODO:id: index,
+        PR: pullRequest.number,
+        estado: estado,
+
+        statsIndividuales: tabla,
+        matrizInteracciones: this.countMatrix,
+        cohesionGrupal: cohesionGrupal.toFixed(2),
+        //cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
+        colaboracionGrupal: colabGrupal.toFixed(2),
+        mimicaGrupal: mimicaGrupal.toFixed(2),
+        tonoGrupal: tonoGrupal.toFixed(2),
+        cohesionMatriz: this.cohesionMatrix,
+        mimicaMatriz: this.mimicaMatrix,
+        colabMatriz: this.colabMatrix,
+        polaridadTabla: polaridad,
+
+        fechaInicio: duracionDias.createdAt,
+        fechaCierre: duracionDias.closedAt,
+        duraccionDias: duracionDias.diff || "-",
+      };
+      this.estadisticas.push(estadisticaPR);
+    },
+    CommentsRow(PRinfo, comments){
+      let commentsArray = [];
+        comments.forEach(comment => {
+          //calculo la cantidad de reacciones para cada icono
+          let reactionsArray = new Array(8);
+          for (let i = 0; i < 8; i++) reactionsArray[i] = 0;
+          comment.reactions.nodes.forEach(reaction => {
+            switch (reaction.content) {
+              case "THUMBS_UP":
+                reactionsArray[0]=reactionsArray[0]+1;
+              break;
+              case "THUMBS_DOWN":
+                reactionsArray[1]=reactionsArray[1]+1;
+              break;
+              case "LAUGH":
+                reactionsArray[2]=reactionsArray[2]+1;
+              break;
+              case "HOORAY":
+                reactionsArray[3]=reactionsArray[3]+1;
+              break;
+              case "CONFUSED":
+                reactionsArray[4]=reactionsArray[4]+1;
+              break;
+              case "HEART":
+                reactionsArray[5]=reactionsArray[5]+1;
+              break;
+              case "ROCKET":
+                reactionsArray[6]=reactionsArray[6]+1;
+              break;
+              case "EYES":
+                reactionsArray[7]=reactionsArray[7]+1;
+              break;
+              default:
+                console.log("falta un icono de reaccion en la lista: ", reaction.content);
+              break;
+            }
+          });
+          let row = {
+            RepoTotalFollowers: this.repository.followers,
+            RepoTotalStargazers: this.repository.stargazers,
+            RepoTotalWatchers: this.repository.watchers,
+            RepoTotalForks: this.repository.forks,
+            PR: PRinfo.PR,
+            estado: PRinfo.estado,
+            duracionDias: PRinfo.duracionDias,
+            lineasModif: PRinfo.lineasModif,
+            participante: comment.author? comment.author.login : "|Usuario Borrado|",
+            comentario: comment.body,
+            Thumbs_Up: reactionsArray[0],
+            Thumbs_Down: reactionsArray[1],
+            Laugh: reactionsArray[2],
+            Hooray: reactionsArray[3],
+            Confused: reactionsArray[4],
+            Heart: reactionsArray[5],
+            Rocket: reactionsArray[6],
+            Eyes: reactionsArray[7],
+          };
+          commentsArray.push(row);
+        });
+        return commentsArray;
+    },
+    ListCommentsRow() {
+      //creo la fila para cada elemento del csv
+      this.pullRequests.forEach(PR => {
+              //Obtengo la duracion del PR en días
+        let duracionDias = duracionPRdias(
+          PR.createdAt,
+          PR.closedAt
+        );
+        let PRinfo = {
+          PR: PR.number, //numero
+          estado: PR.state, //merged, etc
+          duracionDias: duracionDias.diff,
+          lineasModif: PR.additions + PR.deletions,
+        };
+        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
+        let aux = this.repoListComments.concat(comments);
+        this.repoListComments = aux;
+        PR.reviewThreads.nodes.forEach(rv => {
+          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
+          aux = this.repoListComments.concat(revComments);
+          this.repoListComments = aux;
+        });
+      });
+    },
     setParticipantsList(){
       //Creo una lista de los participantes del Repositorio
       this.participantsList = [];

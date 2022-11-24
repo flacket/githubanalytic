@@ -175,6 +175,7 @@ export const GET_REPOS = gql`
           state
           url
           body
+          bodyHTML
           reactions(first: $reactions) {
             totalCount
             nodes {
@@ -192,10 +193,11 @@ export const GET_REPOS = gql`
               login
             }
           }
-          comments(first: $comments) {
+          comments(first: $comments, orderBy: {field: UPDATED_AT, direction: ASC}) {
             totalCount
             nodes {
               body
+              bodyHTML
               createdAt
               author {
                 login
@@ -219,6 +221,7 @@ export const GET_REPOS = gql`
                 totalCount
                 nodes {
                   body
+                  bodyHTML
                   createdAt
                   author {
                     login
@@ -249,7 +252,7 @@ export const GET_REPOS = gql`
 `;
 
 export const DOWN_REPOS = gql`
-  query getRepos(
+  query downRepos(
     $owner: String!
     $name: String!
     $beforeCursor: String
@@ -308,7 +311,7 @@ export const DOWN_REPOS = gql`
               }
             }
           }
-          comments(first: $comments) {
+          comments(first: $comments, orderBy: {field: UPDATED_AT, direction: ASC}) {
             totalCount
             nodes {
               body
