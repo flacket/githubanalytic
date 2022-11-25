@@ -281,6 +281,7 @@ export const DOWN_REPOS = gql`
           state
           url
           body
+          bodyHTML
           reactions(first: $reactions) {
             totalCount
             nodes {
@@ -315,6 +316,7 @@ export const DOWN_REPOS = gql`
             totalCount
             nodes {
               body
+              bodyHTML
               createdAt
               author {
                 login
@@ -323,6 +325,10 @@ export const DOWN_REPOS = gql`
                 totalCount
                 nodes {
                   content
+                  user {
+                    id
+                    login
+                  }
                 }
               }
             }
@@ -334,6 +340,7 @@ export const DOWN_REPOS = gql`
                 totalCount
                 nodes {
                   body
+                  bodyHTML
                   createdAt
                   author {
                     login
@@ -342,6 +349,10 @@ export const DOWN_REPOS = gql`
                     totalCount
                     nodes {
                       content
+                      user {
+                        id
+                        login
+                      }
                     }
                   }
                 }

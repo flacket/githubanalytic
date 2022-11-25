@@ -681,9 +681,6 @@ export function matrizConteoPR(pullRequest) {
                   //este participante le reacciono al creador del PR
                   countMatrix[j][posicion]++;
                   enc = true;
-                  //} else if (j == cantPersonas)
-                  //  { enc = true }
-                  //j++
                 } else j++;
               if (j == (cantPersonas-1)) enc = true;
             }
