@@ -310,19 +310,22 @@ export default {
         }
         this.pullRequests = [];
         repo.pullRequests.forEach((PR) => {
-          if (PR.participants.totalCount > 1) {
             this.pullRequests.push(PR);
-          }
         });
+
         //LLamo a función para armar lista de participantes con sus datos
         this.setParticipantsList();
+        console.log(this.participantsList.length)
+        this.progress.totalPR = this.participantsList.length;
+        //busco los datos de cada participante en una funcion recursiva,
+        //los datos son (segudores, seguidos, estrellas y forks de repos)
+        this.getParticipantsData(this.participantsList);
 
         //LLamo a función para armar lista de comentarios
         this.ListCommentsRow();
-
-        this.show = !this.show;
-        this.loading = !this.loading;
-        //this.agregarID();
+        
+        this.agregarID();
+        
         //this.setAnalytics(this.search);
       };
       reader.onerror = (evt) => {
@@ -570,17 +573,17 @@ export default {
           commentsReactions: this.countPRs[index].commentsReactions,
         })
         .then(() => {
-          //self.pullRequests.push(...self.getPR.pullRequests.nodes);
           self.getPR.pullRequests.nodes.forEach((PR) => {
-          if (PR.participants.totalCount > 1) {
-            self.pullRequests.push(PR);
-          }
-        });
+            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); } 
+            else { console.log("then. Se saltea el PR Nº: ", PR.number); }
+          });
           self.progressbar();
           //Reviso si faltan PRs por agregar a la lista
           if (index < self.countPRs.length - 1) {
             self.getFullPR(search, index + 1);
           } else {
+            //Agrego información de IDs faltantes en los PR
+            self.agregarID();
             //LLamo a función para armar lista de participantes con sus datos
             self.setParticipantsList();
             //LLamo a función para armar lista de comentarios
@@ -766,27 +769,39 @@ export default {
       //Calculo el estado del PR
       let estado = pullRequest.state;
 
+      let author;
+      if (pullRequest.author
+      ) author = pullRequest.author.login;
+      else author = "|Usuario Borrado|";
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
         PR: pullRequest.number,
-        estado: estado,
-
         statsIndividuales: tabla,
-        matrizInteracciones: this.countMatrix,
+
+        fechaInicio: duracionDias.createdAt,
+        fechaCierre: duracionDias.closedAt,
+        duraccionDias: duracionDias.diff || "-",
+        codigoAdd: pullRequest.additions,
+        codigoRem: pullRequest.deletions,
+        sizePR: pullRequest.additions + pullRequest.deletions,
+        estado: estado,
+        participantes: cantPersonas,
+        autor: author,
+
         cohesionGrupal: cohesionGrupal.toFixed(2),
         //cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
         colaboracionGrupal: colabGrupal.toFixed(2),
         mimicaGrupal: mimicaGrupal.toFixed(2),
         tonoGrupal: tonoGrupal.toFixed(2),
+
+        matrizInteracciones: this.countMatrix,
         cohesionMatriz: this.cohesionMatrix,
         mimicaMatriz: this.mimicaMatrix,
         colabMatriz: this.colabMatrix,
         polaridadTabla: polaridad,
 
-        fechaInicio: duracionDias.createdAt,
-        fechaCierre: duracionDias.closedAt,
-        duraccionDias: duracionDias.diff || "-",
       };
       this.estadisticas.push(estadisticaPR);
     },
@@ -854,11 +869,13 @@ export default {
     ListCommentsRow() {
       //creo la fila para cada elemento del csv
       this.pullRequests.forEach(PR => {
-              //Obtengo la duracion del PR en días
+        
+        //Obtengo la duracion del PR en días
         let duracionDias = duracionPRdias(
           PR.createdAt,
           PR.closedAt
         );
+
         let PRinfo = {
           PR: PR.number, //numero
           estado: PR.state, //merged, etc
@@ -892,7 +909,7 @@ export default {
             if (noEncontrado) {
               //agrego stats como participante nuevo
               this.participantsList.push(participante.login);
-              this.countRepoStatsFromUser(participante);
+              //this.countRepoStatsFromUser(participante);
             }
           });
         });
@@ -906,35 +923,52 @@ export default {
       //TODO: FIX: ARREGLAR QUE NO ESTA TRAYENDO LOS REPOSITORIOS
       if (user.repositories) {
         user.repositories.nodes.forEach(repo => {
-          this.repository.stargazers += repo.stargazers.totalCount;
+          this.repository.stargazers += repo.stargazerCount;
           this.repository.forks += repo.forkCount;
           this.repository.watchers += repo.watchers.totalCount;
         });
         this.repository.followers += user.followers.totalCount;
       }
     },
-    /*getParticipantsData(listaParticipantes) {
+    getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios
       //para cada usuario se recopila tambien seguidores, estrellas etc
-      console.log("entra a get participants data");
-      var self = this;
-      listaParticipantes.forEach(participante => {
-        console.log("Participante: ", participante);
+      console.log(listaParticipantes);
+      if(listaParticipantes.length != 0){
         try{
-        self.$apollo.queries.userStats
+          if (!this.$apollo.skipAll) {
+            this.$apollo.skipAll = false;
+          }
+          //quito el primer usuario de la lista
+          let userLogin = listaParticipantes.shift();
+          this.$apollo.queries.usersData
           .refetch({
-            owner: participante.login,
+            owner: userLogin,
           })
           .then(() => {
-            //TODO:
-            //FIXME:
-            console.log("aka: ", self.usersData);
-        });
+            //actualizo la barra de progreso
+            if (this.progress.bar == 0) {
+              this.progress.text = "Buscando datos de " + this.progress.totalPR + " Usuarios.";
+              this.progress.bartotal = 0;
+              this.progress.bar = 100 / (Math.ceil (this.progress.totalPR));
+            } else {
+              this.progress.bartotal = this.progress.bartotal + this.progress.bar;
+              this.progress.text =
+                "Buscando datos de " + this.progress.totalPR + " Usuarios. " +
+                Math.floor(this.progress.bartotal) + "% Completado";
+            }
+            console.log("aka: ", this.usersData);
+            this.getParticipantsData(listaParticipantes);
+          });
         } catch (err) {
-          alert("Hubo un error al traer lista de participantes: ", err);
+          console.log("Hubo un error al descargar datos del participante: ", 
+          listaParticipantes[0] , " | Error: ", err);
         }
-      });
-    },*/
+      } else {
+        this.show = !this.show;
+        this.loading = !this.loading;
+      }
+    },
   },
 };
 </script>

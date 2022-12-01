@@ -293,23 +293,6 @@ export const DOWN_REPOS = gql`
             nodes {
               id
               login
-              repositories(orderBy: {field: STARGAZERS, direction: DESC}, first: 30) {
-                nodes {
-                  forkCount
-                  stargazers {
-                    totalCount
-                  }
-                  watchers {
-                    totalCount
-                  }
-                }
-              }
-              followers {
-                totalCount
-              }
-              following {
-                totalCount
-              }
             }
           }
           comments(first: $comments, orderBy: {field: UPDATED_AT, direction: ASC}) {

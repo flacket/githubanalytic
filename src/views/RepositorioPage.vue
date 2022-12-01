@@ -465,13 +465,10 @@ export default {
         }
         this.pullRequests = [];
         repo.pullRequests.forEach((PR) => {
-          if (PR.participants.totalCount > 1) {
             this.pullRequests.push(PR);
-          }
         });
         this.agregarID();
-        this.loading = false;
-        console.log('fin de carga')
+        this.loading = !this.loading;
       };
       reader.onerror = (evt) => {
         this.showSnackbar(
@@ -717,12 +714,10 @@ export default {
           commentsReactions: this.countPRs[index].commentsReactions,
         })
         .then(() => {
-          //self.pullRequests.push(...self.getPR.pullRequests.nodes);
           self.getPR.pullRequests.nodes.forEach((PR) => {
-          if (PR.participants.totalCount > 1) {
-            self.pullRequests.push(PR);
-          }
-        });
+            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); } 
+            else { console.log("then. Se saltea el PR Nº: ", PR.number); }
+          });
           self.progressbar();
           //Reviso si faltan PRs por agregar a la lista
           if (index < self.countPRs.length - 1) {
@@ -789,9 +784,6 @@ export default {
               let index = 0;
               if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
                 while (!encontrado) {
-                  //console.log("rev: ", i, "com: ", c, " | login: ", this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login)
-                  //console.log("author: ", this.pullRequests[r].participants.nodes[index].login)
-                  //console.log("id: ", this.pullRequests[r].participants.nodes[index].id)
                   if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
                     this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
                     encontrado = true;
@@ -929,12 +921,8 @@ export default {
         fechaInicio: duracionDias.createdAt,
         fechaCierre: duracionDias.closedAt,
         duraccionDias: duracionDias.diff || "-",
-        codigoAdd: pullRequest.additions,
-        codigoRem: pullRequest.deletions,
-        sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
-        countMatrix: this.countMatrix,
         participantes: cantPersonas,
         autor: author,
         comentarios: comentarios.body,
