@@ -69,8 +69,8 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in participantsList" :key="item">
-                  <td>{{ item }}</td>
+                <tr v-for="item in usersDataList" :key="item">
+                  <td>{{ item.login }}</td>
                 </tr>
               </tbody>
             </template>
@@ -170,6 +170,7 @@ export default {
         followers: 0,
       },
       usersData: "",
+      usersDataList: [],
       estadisticas: [],
       participantsList: [],
     };
@@ -315,7 +316,8 @@ export default {
 
         //LLamo a función para armar lista de participantes con sus datos
         this.setParticipantsList();
-        console.log(this.participantsList.length)
+
+        //inicio la barra de progreso para mostrar la carga de datos de usuarios
         this.progress.totalPR = this.participantsList.length;
         //busco los datos de cada participante en una funcion recursiva,
         //los datos son (segudores, seguidos, estrellas y forks de repos)
@@ -323,8 +325,6 @@ export default {
 
         //LLamo a función para armar lista de comentarios
         this.ListCommentsRow();
-        
-        this.agregarID();
         
         //this.setAnalytics(this.search);
       };
@@ -341,6 +341,7 @@ export default {
       const repo = {
         owner: this.search.owner,
         name: this.search.name,
+        usersDataList: this.usersDataList,
         pullRequests: this.pullRequests
       }
       const data = JSON.stringify(repo),
@@ -909,7 +910,6 @@ export default {
             if (noEncontrado) {
               //agrego stats como participante nuevo
               this.participantsList.push(participante.login);
-              //this.countRepoStatsFromUser(participante);
             }
           });
         });
@@ -919,21 +919,9 @@ export default {
         this.showSnackbar("Ocurrió un error:" + error, "error", 4000);
       }
     },
-    countRepoStatsFromUser(user){
-      //TODO: FIX: ARREGLAR QUE NO ESTA TRAYENDO LOS REPOSITORIOS
-      if (user.repositories) {
-        user.repositories.nodes.forEach(repo => {
-          this.repository.stargazers += repo.stargazerCount;
-          this.repository.forks += repo.forkCount;
-          this.repository.watchers += repo.watchers.totalCount;
-        });
-        this.repository.followers += user.followers.totalCount;
-      }
-    },
     getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios
       //para cada usuario se recopila tambien seguidores, estrellas etc
-      console.log(listaParticipantes);
       if(listaParticipantes.length != 0){
         try{
           if (!this.$apollo.skipAll) {
@@ -957,7 +945,32 @@ export default {
                 "Buscando datos de " + this.progress.totalPR + " Usuarios. " +
                 Math.floor(this.progress.bartotal) + "% Completado";
             }
-            console.log("aka: ", this.usersData);
+
+            //organizo los datos del usuario
+            this.usersData.followers = this.usersData.followers.totalCount;
+            this.usersData.following = this.usersData.following.totalCount;
+            this.usersData.forkCount = 0;
+            this.usersData.stargazerCount = 0;
+            this.usersData.watchers = 0;
+            let repositoriesCount = 0;
+            this.usersData.repositories.nodes.forEach((repo) => {
+              repositoriesCount++;
+              this.usersData.forkCount = this.usersData.forkCount + repo.forkCount;
+              this.usersData.stargazerCount = this.usersData.stargazerCount + repo.stargazerCount;
+              this.usersData.watchers = this.usersData.watchers + repo.watchers.totalCount;
+              //sumo a nivel repositorio
+              this.repository.forks += repo.forkCount;
+              this.repository.stargazers += repo.stargazerCount;
+              this.repository.watchers += repo.watchers.totalCount;
+            });
+            this.usersData.repositories = repositoriesCount;
+
+            this.repository.followers += this.usersData.followers;
+            this.repository.following += this.usersData.following;
+            //guardo los datos del usuario en la lista
+            this.usersDataList.push(this.usersData);
+
+            //llamo recursivamente a buscar el siguiente participante
             this.getParticipantsData(listaParticipantes);
           });
         } catch (err) {
