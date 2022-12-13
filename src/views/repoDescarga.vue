@@ -69,7 +69,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in usersDataList" :key="item">
+                <tr v-for="item in usersDataList" :key="item.login">
                   <td>{{ item.login }}</td>
                 </tr>
               </tbody>
@@ -112,7 +112,7 @@ import {
   mimicaFormula,
   polaridadFormula,
   duracionPRdias,
-  //matrizConteoPR,
+  matrizConteoPR,
   //getParticipantesRepoStat,
 } from "../formulas.js";
 
@@ -154,6 +154,7 @@ export default {
         { text: "lineasModif", value: "lineasModif" },
         { text: "Participante", value: "participante" },
         { text: "Comentario", value: "comentario" },
+        { text: "Fecha", value: "fechaComment" },
         { text: "👍", value: "Thumbs_Up" },
         { text: "👎", value: "Thumbs_Down" },
         { text: "😄", value: "Laugh" },
@@ -243,16 +244,35 @@ export default {
       //Creo el archivo CSV
       const { Parser } = require("json2csv");
       let header = [
+        "Repository",
         "RepoTotalFollowers",
         "RepoTotalStargazers",
         "RepoTotalWatchers",
         "RepoTotalForks",
         "PR", //numero
+        "PRAutor",
+        "cantParticipantes",
         "Estado", //merged, etc
         "duracionDias",
         "lineasModif",
+
         "Participante",
         "Comentario",
+        "fechaComment",
+        "followers",
+        "following",
+        "repositories",
+        "forkCount",
+        "stargazerCount",
+        "watchers",
+
+        "coeInd",
+        "colabInd",
+        "mimicaInd",
+        "tonoInd",
+        "msjEnviados",
+        "msjRecibidos",
+
         "Thumbs_Up",
         "Thumbs_Down",
         "Laugh",
@@ -287,6 +307,10 @@ export default {
       document.getElementById("file-upload").click();
     },
     loadFile() {
+      if (!this.$apollo.skipAll) {
+        this.$apollo.skipAll = false;
+      }
+      
       let file = this.$refs.myFile.files[0];
       if (!file) return;
       this.show = false;
@@ -314,19 +338,31 @@ export default {
             this.pullRequests.push(PR);
         });
 
-        //LLamo a función para armar lista de participantes con sus datos
-        this.setParticipantsList();
+        //reviso si ya esta completa la lista de usuarios con sus datos
+        if(repo.usersDataList.length != 0) {
+          this.usersDataList = repo.usersDataList;
+          //LLamo a función para armar lista de comentarios
+          this.ListCommentsRow();
+          this.show = !this.show;
+          this.loading = !this.loading;
 
-        //inicio la barra de progreso para mostrar la carga de datos de usuarios
-        this.progress.totalPR = this.participantsList.length;
-        //busco los datos de cada participante en una funcion recursiva,
-        //los datos son (segudores, seguidos, estrellas y forks de repos)
-        this.getParticipantsData(this.participantsList);
-
-        //LLamo a función para armar lista de comentarios
-        this.ListCommentsRow();
-        
-        //this.setAnalytics(this.search);
+          this.repository.followers = repo.followers;
+          this.repository.stargazers = repo.stargazers;
+          this.repository.watchers = repo.watchers;
+          this.repository.forks = repo.forks;
+        } else {
+          this.repository.followers = 0;
+          this.repository.stargazers = 0;
+          this.repository.watchers = 0;
+          this.repository.forks = 0;
+          //LLamo a función para armar lista de participantes con sus datos
+          this.setParticipantsList();
+          //inicio la barra de progreso para mostrar la carga de datos de usuarios
+          this.progress.totalPR = this.participantsList.length;
+          //busco los datos de cada participante en una funcion recursiva,
+          //los datos son (segudores, seguidos, estrellas y forks de repos)
+          this.getParticipantsData(this.participantsList);
+        }
       };
       reader.onerror = (evt) => {
         this.showSnackbar(
@@ -342,7 +378,11 @@ export default {
         owner: this.search.owner,
         name: this.search.name,
         usersDataList: this.usersDataList,
-        pullRequests: this.pullRequests
+        pullRequests: this.pullRequests,
+        followers: this.repository.followers,
+        stargazers: this.repository.stargazers,
+        watchers: this.repository.watchers,
+        forks: this.repository.forks,
       }
       const data = JSON.stringify(repo),
         blob = new Blob([data], { type: "text/plain" }),
@@ -586,9 +626,9 @@ export default {
             //Agrego información de IDs faltantes en los PR
             self.agregarID();
             //LLamo a función para armar lista de participantes con sus datos
-            self.setParticipantsList();
+            //self.setParticipantsList();
             //LLamo a función para armar lista de comentarios
-            self.ListCommentsRow();
+            //self.ListCommentsRow();
 
             self.countPRs = [];
             self.show = true;
@@ -610,7 +650,7 @@ export default {
               if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
                 this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
                 encontrado = true;
-              } else if (index < this.pullRequests[r].participants.totalCount) {
+              } else if (index == this.pullRequests[r].participants.totalCount-1) {
                 encontrado = true;
               }
               index++;
@@ -621,7 +661,6 @@ export default {
         } catch (error) {
           console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
         }
-
         //agregamos id a los autores de Comentarios
         try {
           for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
@@ -632,7 +671,7 @@ export default {
                 if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
                   this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
                   encontrado = true;
-                } else if (index < this.pullRequests[r].participants.totalCount) {
+                } else if (index == this.pullRequests[r].participants.totalCount-1) {
                   encontrado = true;
                 }
                 index++;
@@ -648,21 +687,21 @@ export default {
         //agregamos id a los autores de Reviews
         try {
           for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
-            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
+            for (let cr = 0; cr < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; cr++) {
               let encontrado = false;
               let index = 0;
-              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
+              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author) {
                 while (!encontrado) {
-                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
-                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author.login) {
+                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author.id = this.pullRequests[r].participants.nodes[index].id
                     encontrado = true;
-                  } else if (index < this.pullRequests[r].participants.totalCount) {
+                  } else if (index == this.pullRequests[r].participants.totalCount-1) {
                     encontrado = true;
                   }
                   index++;
                 }
               } else {
-                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author = {login: "|Usuario Borrado|", id: 0};
               }
             }
           }
@@ -681,12 +720,10 @@ export default {
         var polaridad = polaridadFormula(cantPersonas, pullRequest);
         //alert("Habilidad del participante:", listPersonas);
       } catch (error) {
-        alert("Error en EstadisticasPR-Creando formulas: ", error);
+        console.log("Error al generar las estadisticas para el PullRequest Nº: ", pullRequest.number);
         this.showSnackbar(
-          "Error al generar las estadisticas: " + error,
-          "error",
-          8000
-        );
+          "Error al generar las estadisticas para el PullRequest Nº: " + pullRequest.number,
+          "error", 8000);
       }
       let tabla = new Array();
       let coeInd, colabInd, mimicaInd, msjEnviados, msjRecibidos;
@@ -779,17 +816,17 @@ export default {
       let estadisticaPR = {
         //TODO:id: index,
         PR: pullRequest.number,
-        statsIndividuales: tabla,
-
-        fechaInicio: duracionDias.createdAt,
-        fechaCierre: duracionDias.closedAt,
-        duraccionDias: duracionDias.diff || "-",
-        codigoAdd: pullRequest.additions,
-        codigoRem: pullRequest.deletions,
-        sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
+        duracionDias: duracionDias.diff || "-",
+        lineasModif: pullRequest.additions + pullRequest.deletions,
         participantes: cantPersonas,
         autor: author,
+
+        statsIndividuales: tabla,
+        fechaInicio: duracionDias.createdAt,
+        fechaCierre: duracionDias.closedAt,
+        codigoAdd: pullRequest.additions,
+        codigoRem: pullRequest.deletions,
 
         cohesionGrupal: cohesionGrupal.toFixed(2),
         //cohesionGrupalVarianza: coheGrupalVarianza.toFixed(2),
@@ -804,11 +841,34 @@ export default {
         polaridadTabla: polaridad,
 
       };
-      this.estadisticas.push(estadisticaPR);
+      return(estadisticaPR);
     },
-    CommentsRow(PRinfo, comments){
+    ListCommentsRow() {
+      try {
+        //creo la fila para cada elemento del csv
+        this.pullRequests.forEach(PR => {
+          //Obtengo la duracion del PR en días
+          this.countMatrix = matrizConteoPR(PR);
+          let estadisticaPR = this.getEstadisticas(PR);
+          let comments = this.CommentsRow(estadisticaPR, PR.comments.nodes);
+          let aux = this.repoListComments.concat(comments);
+          this.repoListComments = aux;
+          PR.reviewThreads.nodes.forEach(rv => {
+            let revComments = this.CommentsRow(estadisticaPR, rv.comments.nodes);
+            aux = this.repoListComments.concat(revComments);
+            this.repoListComments = aux;
+          });
+        });
+      } catch (error) {
+        console.log("Ocurrió un error en la funcion ListCommentsRow: ", error);
+        this.showSnackbar("Ocurrió un error en la funcion ListCommentsRow:" + error, "error", 4000);
+      }
+
+    },
+    CommentsRow(estadisticaPR, comments){
       let commentsArray = [];
-        comments.forEach(comment => {
+      comments.forEach(comment => {
+        try{
           //calculo la cantidad de reacciones para cada icono
           let reactionsArray = new Array(8);
           for (let i = 0; i < 8; i++) reactionsArray[i] = 0;
@@ -843,17 +903,70 @@ export default {
               break;
             }
           });
-          let row = {
+
+          //busco la estadisitica del usuario que comentó
+
+          let userStats;
+          let userData;
+          if (comment.author) {
+            let encontrado = false;
+            let i = 0;
+            while (!encontrado && i < estadisticaPR.statsIndividuales.length) {
+              if (estadisticaPR.statsIndividuales[i].id == comment.author.id) {
+                userStats = estadisticaPR.statsIndividuales[i];
+                encontrado = true;
+              }
+              else i++;
+            }
+
+            encontrado = false;
+            i = 0;
+            while (!encontrado && i < this.usersDataList.length) {
+              if (this.usersDataList[i].id == comment.author.id) {
+                userData = this.usersDataList[i];
+                encontrado = true;
+              }
+              else i++;
+            }
+          }else {
+            comment.author.login = "|Usuario Borrado|";
+          }
+
+          //Limpio el comentario
+          var comentario = this.cleanComment(comment.bodyHTML);
+          let row;
+          
+          row = {
+            Repository: this.search.owner,
             RepoTotalFollowers: this.repository.followers,
             RepoTotalStargazers: this.repository.stargazers,
             RepoTotalWatchers: this.repository.watchers,
             RepoTotalForks: this.repository.forks,
-            PR: PRinfo.PR,
-            estado: PRinfo.estado,
-            duracionDias: PRinfo.duracionDias,
-            lineasModif: PRinfo.lineasModif,
-            participante: comment.author? comment.author.login : "|Usuario Borrado|",
-            comentario: comment.body,
+            PR: estadisticaPR.PR,
+            PRAutor: estadisticaPR.autor,
+            cantParticipantes: estadisticaPR.participantes,
+            estado: estadisticaPR.estado,
+            duracionDias: estadisticaPR.duracionDias,
+            lineasModif: estadisticaPR.lineasModif,
+
+            participante: comment.author.login,
+            accountType: comment.author.__typename,
+            comentario: comentario,
+            fechaComment: comment.createdAt,
+            followers: userData.followers,
+            following: userData.following,
+            repositories: userData.repositories,
+            forkCount: userData.forkCount,
+            stargazerCount: userData.stargazerCount,
+            watchers: userData.watchers,
+
+            coeInd: userStats.coeInd,
+            colabInd: userStats.colabInd,
+            mimicaInd: userStats.mimicaInd,
+            tonoInd: userStats.tonoInd,
+            msjEnviados: userStats.msjEnviados,
+            msjRecibidos: userStats.msjRecibidos,
+
             Thumbs_Up: reactionsArray[0],
             Thumbs_Down: reactionsArray[1],
             Laugh: reactionsArray[2],
@@ -864,34 +977,52 @@ export default {
             Eyes: reactionsArray[7],
           };
           commentsArray.push(row);
-        });
-        return commentsArray;
-    },
-    ListCommentsRow() {
-      //creo la fila para cada elemento del csv
-      this.pullRequests.forEach(PR => {
-        
-        //Obtengo la duracion del PR en días
-        let duracionDias = duracionPRdias(
-          PR.createdAt,
-          PR.closedAt
-        );
-
-        let PRinfo = {
-          PR: PR.number, //numero
-          estado: PR.state, //merged, etc
-          duracionDias: duracionDias.diff,
-          lineasModif: PR.additions + PR.deletions,
-        };
-        let comments = this.CommentsRow(PRinfo, PR.comments.nodes);
-        let aux = this.repoListComments.concat(comments);
-        this.repoListComments = aux;
-        PR.reviewThreads.nodes.forEach(rv => {
-          let revComments = this.CommentsRow(PRinfo, rv.comments.nodes);
-          aux = this.repoListComments.concat(revComments);
-          this.repoListComments = aux;
-        });
+        } catch (err) {
+          console.log("Hubo un error al crear fila de comentario en PR: ", estadisticaPR.PR,
+          " | User: ", comment.author.login,
+          " | UserType: ", comment.author.__typename,
+          " | comentario: ", comentario,
+          " | Error: ", err);
+        }
       });
+      return commentsArray;
+    },
+    cleanComment(comment) {
+      try {
+        comment = comment.replace(/<li>?/g, '');
+        comment = comment.replace(/<\/li>?/g, '');
+        // create a new dov container
+        var div = document.createElement('div');
+        // assing your HTML to div's innerHTML
+        div.innerHTML = comment;
+
+        var tags = [ 'div', 'code', 'blockquote', 'table', 'g-emoji', 'span']
+        for (let i = 0; i < tags.length; i++) {
+          // get all <a> elements from div
+          let elements = div.getElementsByTagName(tags[i]);
+          // remove all <a> elements
+          while (elements[0])
+            elements[0].parentNode.removeChild(elements[0])
+        }
+
+        tags = [ 'a', 'p', 'strong', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'input', 'em', 'ol', 'ul' ] // 'ul' 
+        for (let i = 0; i < tags.length; i++) {
+          let elements = div.getElementsByTagName(tags[i]);
+          while(elements.length) {
+            var parent = elements[0].parentNode;
+            while(elements[0].firstChild) {
+              parent.insertBefore(elements[0].firstChild, elements[0]);
+            }
+            parent.removeChild(elements[0]);
+          }
+        }
+
+        // get div's innerHTML into a new variable
+        comment = div.innerHTML.replace(/&amp;/g, "&");
+        return comment;
+      } catch (err) {
+        console.log("Hubo un error al limpiar comentario: ", err);
+      }
     },
     setParticipantsList(){
       //Creo una lista de los participantes del Repositorio
@@ -914,19 +1045,15 @@ export default {
           });
         });
       } catch (error) {
-        console.log(error);
-        alert("Error creando listaParticipantesRepo. ", error);
-        this.showSnackbar("Ocurrió un error:" + error, "error", 4000);
+        console.log("Ocurrió un error creando lista de participantes:", error);
+        this.showSnackbar("Ocurrió un error creando lista de participantes:" + error, "error", 4000);
       }
     },
     getParticipantsData(listaParticipantes) {
       //Esta funcion genera un JSON con la lista de usuarios
       //para cada usuario se recopila tambien seguidores, estrellas etc
       if(listaParticipantes.length != 0){
-        try{
-          if (!this.$apollo.skipAll) {
-            this.$apollo.skipAll = false;
-          }
+        try {
           //quito el primer usuario de la lista
           let userLogin = listaParticipantes.shift();
           this.$apollo.queries.usersData
@@ -978,6 +1105,8 @@ export default {
           listaParticipantes[0] , " | Error: ", err);
         }
       } else {
+        //LLamo a función para armar lista de comentarios
+        this.ListCommentsRow();
         this.show = !this.show;
         this.loading = !this.loading;
       }

@@ -467,7 +467,6 @@ export default {
         repo.pullRequests.forEach((PR) => {
             this.pullRequests.push(PR);
         });
-        this.agregarID();
         this.loading = !this.loading;
       };
       reader.onerror = (evt) => {
@@ -741,7 +740,7 @@ export default {
               if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].author.login) {
                 this.pullRequests[r].author.id = this.pullRequests[r].participants.nodes[index].id;
                 encontrado = true;
-              } else if (index < this.pullRequests[r].participants.totalCount) {
+              } else if (index == this.pullRequests[r].participants.totalCount-1) {
                 encontrado = true;
               }
               index++;
@@ -752,7 +751,6 @@ export default {
         } catch (error) {
           console.log("PR: ", this.pullRequests[r].number, " | Error en agregarID/Autor del PR: ", error);
         }
-
         //agregamos id a los autores de Comentarios
         try {
           for (let c = 0; c < this.pullRequests[r].comments.totalCount; c++) {
@@ -763,7 +761,7 @@ export default {
                 if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].comments.nodes[c].author.login) {
                   this.pullRequests[r].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
                   encontrado = true;
-                } else if (index < this.pullRequests[r].participants.totalCount) {
+                } else if (index == this.pullRequests[r].participants.totalCount-1) {
                   encontrado = true;
                 }
                 index++;
@@ -779,21 +777,21 @@ export default {
         //agregamos id a los autores de Reviews
         try {
           for (let i = 0; i < this.pullRequests[r].reviewThreads.totalCount; i++) {
-            for (let c = 0; c < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; c++) {
+            for (let cr = 0; cr < this.pullRequests[r].reviewThreads.nodes[i].comments.totalCount; cr++) {
               let encontrado = false;
               let index = 0;
-              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author) {
+              if (this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author) {
                 while (!encontrado) {
-                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.login) {
-                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author.id = this.pullRequests[r].participants.nodes[index].id
+                  if (this.pullRequests[r].participants.nodes[index].login == this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author.login) {
+                    this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author.id = this.pullRequests[r].participants.nodes[index].id
                     encontrado = true;
-                  } else if (index < this.pullRequests[r].participants.totalCount) {
+                  } else if (index == this.pullRequests[r].participants.totalCount-1) {
                     encontrado = true;
                   }
                   index++;
                 }
               } else {
-                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[c].author = {login: "|Usuario Borrado|", id: 0};
+                this.pullRequests[r].reviewThreads.nodes[i].comments.nodes[cr].author = {login: "|Usuario Borrado|", id: 0};
               }
             }
           }

@@ -286,6 +286,10 @@ export const DOWN_REPOS = gql`
             totalCount
             nodes {
               content
+              user {
+                id
+                login
+              }
             }
           }
           participants(first: $participants) {

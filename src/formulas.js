@@ -445,20 +445,20 @@ export function matrizConteoPR(pullRequest) {
   pullRequest.reactions.nodes.forEach(function(element) {
     let encontrado = false;
     let e = 1; //salteo el participante de la pos[0], no se va a autorreaccionar
-    while (!encontrado) {
-      try {
-      if (participants[e] == element.user.id) {
-        //console.log('Reacciona 1er comment: ', participants[e])
-        //este participante le reacciono al creador del PR
-        countMatrix[e][0]++;
-        encontrado = true;
-      } else if (e == cantPersonas) {
-        encontrado = true;
+    try {
+      while (!encontrado) {
+        if (participants[e] == element.user.id) {
+          //console.log('Reacciona 1er comment: ', participants[e])
+          //este participante le reacciono al creador del PR
+          countMatrix[e][0]++;
+          encontrado = true;
+        } else if (e == cantPersonas) {
+          encontrado = true;
+        }
+        e++;
       }
-      e++;
-      } catch (err) {
-        console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la busqueda de reacciones al primer comentario | ", err);
-      }
+    } catch (err) {
+      console.log("Error en matrizConteoPR | PR#:", pullRequest.number, " | ", " error en la busqueda de reacciones al primer comentario | ", err);
     }
   });
   //console.log('----- COMMENTS -----')
