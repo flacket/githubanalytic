@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import HomePage from "./views/HomePage.vue";
-import firebaseApp from "./FirebaseApp";
+import firebaseApp from "./FirebaseApp.js";
 
 Vue.use(Router);
 
