@@ -25,6 +25,12 @@
       stream
     ></v-progress-linear>
     <v-divider class="my-2"></v-divider>
+    <v-btn color="primary" rounded v-on:click="downQueries()">
+        <v-icon left>mdi-download</v-icon>Descargar QueryPR</v-btn
+      >
+      <v-btn color="primary" rounded v-on:click="saveQuery()">
+        <v-icon left>mdi-download</v-icon>Guardar Query</v-btn
+      >
     <!--///////////////////////////////////////////////////////////////////////////////-->
     <v-btn v-if="!show && !loading" color="primary" rounded v-on:click="btnLoadFile">
       <v-icon left>mdi-download</v-icon>Cargar json</v-btn
@@ -105,7 +111,7 @@
 
 <script>
 import PRSelector from "../components/PRSelector";
-import { DOWN_REPOS, REPOSITORY_PRS, USER_STATS } from "../graphql/queries.js";
+import { DOWN_REPOS, REPOSITORY_PRS, USER_STATS, GET_QUERY_PR } from "../graphql/queries.js";
 import {
   cohesionFormula,
   colaboracionFormula,
@@ -165,7 +171,7 @@ export default {
         { text: "👀", value: "Eyes" },
       ],
       repository: {
-        stargazers: 0, 
+        stargazers: 0,
         forks: 0,
         watchers: 0,
         followers: 0,
@@ -174,6 +180,321 @@ export default {
       usersDataList: [],
       estadisticas: [],
       participantsList: [],
+      queryPRs: [],
+      orgRepo: [
+      {
+        "org": "andersondanilo",
+        "repo": "CnabPHP"
+    },
+    {
+        "org": "meli-lewis",
+        "repo": "pycaribbean2016"
+    },
+    {
+        "org": "akademikbilisim",
+        "repo": "ab-kurs-kayit"
+    },
+    {
+        "org": "DevsAndGeeks",
+        "repo": "javascript-design-patterns"
+    },
+    {
+        "org": "diogocezar",
+        "repo": "dctb-web-project"
+    },
+    {
+        "org": "femug",
+        "repo": "femug"
+    },
+    {
+        "org": "ProgramacionCompetitivaUFPS",
+        "repo": "Syllabus"
+    },
+    {
+        "org": "alexeimun",
+        "repo": "Openkey"
+    },
+    {
+        "org": "rodrigorgs",
+        "repo": "meuhorario"
+    },
+    {
+        "org": "Luz",
+        "repo": "hexdino"
+    },
+    {
+        "org": "znframework",
+        "repo": "znframework"
+    },
+    {
+        "org": "joaonuno",
+        "repo": "merge-sort-js"
+    },
+    {
+        "org": "dan-atilio",
+        "repo": "Linguagem_C"
+    },
+    {
+        "org": "corani",
+        "repo": "oberon"
+    },
+    {
+        "org": "devmessias",
+        "repo": "quantum-python"
+    },
+    {
+        "org": "msfidelis",
+        "repo": "Kill-Router-"
+    },
+    {
+        "org": "diegonobre",
+        "repo": "plsql-expert"
+    },
+    {
+        "org": "ipalbeniz",
+        "repo": "api-rest-jersey-spring"
+    },
+    {
+        "org": "dadosgovbr",
+        "repo": "catalogos-dados-brasil"
+    },
+    {
+        "org": "mozillazg",
+        "repo": "pinyin-data"
+    },
+    {
+        "org": "janssenlima",
+        "repo": "ZabbixTuner"
+    },
+    {
+        "org": "SnappyDroid",
+        "repo": "SnappyDroid_V1"
+    },
+    {
+        "org": "felinalabs",
+        "repo": "git-conventions"
+    },
+    {
+        "org": "rarolabs",
+        "repo": "templus_models"
+    },
+    {
+        "org": "Casemonstro",
+        "repo": "Oficina-De-Chao"
+    },
+    {
+        "org": "iugu",
+        "repo": "iugu-ruby"
+    },
+    {
+        "org": "esri-es",
+        "repo": "JavascriptAPI"
+    },
+    {
+        "org": "tOOlmaker-equalsp",
+        "repo": "apiStransTHE"
+    },
+    {
+        "org": "wy315700",
+        "repo": "ecustoj"
+    },
+    {
+        "org": "caiopo",
+        "repo": "battleship-vhdl"
+    },
+    {
+        "org": "ClearSkyTeam",
+        "repo": "ClearSky"
+    },
+    {
+        "org": "opensanca",
+        "repo": "trilha-python"
+    },
+    {
+        "org": "fblupi",
+        "repo": "CinemaQuiz"
+    },
+    {
+        "org": "marighella",
+        "repo": "cms"
+    },
+    {
+        "org": "arturomtm",
+        "repo": "nodejskoans"
+    },
+    {
+        "org": "agabel",
+        "repo": "Apollo"
+    },
+    {
+        "org": "miguelfg",
+        "repo": "jpd16-workshop-datatables"
+    },
+    {
+        "org": "coreos",
+        "repo": "go-omaha"
+    },
+    {
+        "org": "ictmanagement",
+        "repo": "redsysHMAC256_API_ASP"
+    },
+    {
+        "org": "kk17",
+        "repo": "CoolCantonese"
+    },
+    {
+        "org": "projectara",
+        "repo": "Android-wiki"
+    },
+    {
+        "org": "zueirafc",
+        "repo": "client-app"
+    },
+    {
+        "org": "socialpullrequest",
+        "repo": "socialpullrequest.github.io"
+    },
+    {
+        "org": "schweller",
+        "repo": "mapa-impeachment"
+    },
+    {
+        "org": "duckma",
+        "repo": "Rest-Client-Demo"
+    },
+    {
+        "org": "suissa",
+        "repo": "SuissaAjudaEu"
+    },
+    {
+        "org": "jagedn",
+        "repo": "UOChrome"
+    },
+    {
+        "org": "topameng",
+        "repo": "tolua_runtime"
+    },
+    {
+        "org": "CobreGratis",
+        "repo": "boletophp"
+    },
+    {
+        "org": "vinicius73",
+        "repo": "awesome-brasil"
+    },
+    {
+        "org": "zetaops",
+        "repo": "ulakbus-development-box"
+    },
+    {
+        "org": "dgiim",
+        "repo": "blog"
+    },
+    {
+        "org": "mircealungu",
+        "repo": "Zeeguu-API-iOS"
+    },
+    {
+        "org": "DaggerES",
+        "repo": "ReloadCam"
+    },
+    {
+        "org": "nazareno",
+        "repo": "diferentonas-server"
+    },
+    {
+        "org": "hxl9654",
+        "repo": "RuiRuiQQ"
+    },
+    {
+        "org": "ifdog",
+        "repo": "WinWebQQ"
+    },
+    {
+        "org": "duk3luk3",
+        "repo": "onion-py"
+    },
+    {
+        "org": "rainliu",
+        "repo": "sip"
+    },
+    {
+        "org": "seyhanp",
+        "repo": "seyhan"
+    },
+    {
+        "org": "arruda",
+        "repo": "github-sem-mimimi"
+    },
+    {
+        "org": "jingle1267",
+        "repo": "AutoScrollTextView"
+    },
+    {
+        "org": "cawa-93",
+        "repo": "Vk-Emoji"
+    },
+    {
+        "org": "jmcerrejon",
+        "repo": "PiKISS"
+    },
+    {
+        "org": "LorhanSohaky",
+        "repo": "BruteForce"
+    },
+    {
+        "org": "bonprosoft",
+        "repo": "labcap"
+    },
+    {
+        "org": "dauer",
+        "repo": "geohash"
+    },
+    {
+        "org": "maykon",
+        "repo": "ManagerTasks"
+    },
+    {
+        "org": "diego-bernardes",
+        "repo": "PyTIJobs"
+    },
+    {
+        "org": "rafael-santiago",
+        "repo": "hefesto"
+    },
+    {
+        "org": "ReactJS-BA",
+        "repo": "meetup-2016-04-05"
+    },
+    {
+        "org": "haivp3010",
+        "repo": "ludo-js-project"
+    },
+    {
+        "org": "nomadsonrails",
+        "repo": "guia-do-trabalho-remoto"
+    },
+    {
+        "org": "hoenirvili",
+        "repo": "EDeC"
+    },
+    {
+        "org": "LibreDTE",
+        "repo": "libredte-webapp"
+    },
+    {
+        "org": "sahibinden",
+        "repo": "angular-router-advanced"
+    },
+    {
+        "org": "Webschool-io",
+        "repo": "be-mean-instagram-angular1-exercises"
+    },
+    {
+        "org": "jeliascosta",
+        "repo": "LIBRASOffice"
+    }
+]
     };
   },
   apollo: {
@@ -205,6 +526,14 @@ export default {
         name: "githubanalytic",
       },
       update: (data) => data.repository.pullRequests,
+    },
+    getQueryPR: {
+      query: GET_QUERY_PR,
+      variables: {
+        owner: "flacket",
+        name: "githubanalytic",
+      },
+      update: (data) => data.repository,
     },
   },
   mounted: function() {
@@ -310,7 +639,7 @@ export default {
       if (!this.$apollo.skipAll) {
         this.$apollo.skipAll = false;
       }
-      
+
       let file = this.$refs.myFile.files[0];
       if (!file) return;
       this.show = false;
@@ -400,6 +729,59 @@ export default {
       if (this.cancel) this.colorCancel = "error";
       else this.colorCancel = "warning";
     },
+
+
+
+
+
+    downQueries(){
+      if (!this.$apollo.skipAll) {
+        this.$apollo.skipAll = false;
+      }
+      this.getQueryPRlist(0, this.orgRepo.length)
+    },
+
+    getQueryPRlist(index, max) {
+      console.log(index, max)
+      if (index < max){
+      try {
+        var self = this;
+        this.$apollo.queries.getQueryPR
+          .refetch({
+            owner: self.orgRepo[index].org,
+            name: self.orgRepo[index].repo,
+          })
+          .then(() => {
+            self.queryPRs.push(self.getQueryPR);
+            self.getQueryPRlist(index+1, max)
+          });
+      } catch (err) {
+        this.showSnackbar(`Repo ${this.self.orgRepo[index].org}/${this.orgRepo[index].repo} no encontrado`, "warning", 2000);
+        console.log(`Repo ${this.self.orgRepo[index].org}/${this.orgRepo[index].repo} no encontrado`)
+        self.getQueryPRlist(index+1, max)
+      }
+
+      } else {
+        this.showSnackbar("Busqueda Terminada", "success", 2000);
+      }
+    },
+
+    saveQuery() {
+      console.log(this.queryPRs)
+      const data = JSON.stringify(this.queryPRs),
+        blob = new Blob([data], { type: "text/plain" }),
+        e = document.createEvent("MouseEvents"),
+        a = document.createElement("a");
+      a.download = "queryPR" + ".json";
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":");
+      e.initEvent("click", true, false);
+      a.dispatchEvent(e);
+      this.showSnackbar("Archivo JSON Guardado", "success", 4000);
+    },
+
+
+
     getRepoPRcant(search) {
       var self = this;
       //Hago la consulta
@@ -615,7 +997,7 @@ export default {
         })
         .then(() => {
           self.getPR.pullRequests.nodes.forEach((PR) => {
-            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); } 
+            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); }
             else { console.log("then. Se saltea el PR Nº: ", PR.number); }
           });
           self.progressbar();
@@ -935,7 +1317,7 @@ export default {
           //Limpio el comentario
           var comentario = this.cleanComment(comment.bodyHTML);
           let row;
-          
+
           row = {
             Repository: this.search.owner,
             RepoTotalFollowers: this.repository.followers,
@@ -1005,7 +1387,7 @@ export default {
             elements[0].parentNode.removeChild(elements[0])
         }
 
-        tags = [ 'a', 'p', 'strong', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'input', 'em', 'ol', 'ul' ] // 'ul' 
+        tags = [ 'a', 'p', 'strong', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'input', 'em', 'ol', 'ul' ] // 'ul'
         for (let i = 0; i < tags.length; i++) {
           let elements = div.getElementsByTagName(tags[i]);
           while(elements.length) {
@@ -1025,6 +1407,23 @@ export default {
       }
     },
     setParticipantsList(){
+      //////////////////////////////////////////////////////////
+      //TODO: Esta funcion se podria optimizar usando set
+      //luego se deberia cambiar todos los lugares donde se
+      //consulta la lista por participantsList.exist(<participante>)
+      ///////////////////////////////////////////////////////////
+      // let participantsList = new Set();
+      // this.pullRequests.forEach((PR) => {
+      //   PR.participants.nodes.forEach((participante) => {
+      //     if (participante.login) console.log(
+      //       `No se encontró el nombre del participante para el PR N° ${PR}:`, error);
+      //     else participantsList.add(participante); //agrega participante, si ya existe no lo agrega
+      //   });
+      // });
+      // return participantsList;
+      ///////////////////////////////////////////////////////////////
+
+
       //Creo una lista de los participantes del Repositorio
       this.participantsList = [];
       try {
@@ -1101,7 +1500,7 @@ export default {
             this.getParticipantsData(listaParticipantes);
           });
         } catch (err) {
-          console.log("Hubo un error al descargar datos del participante: ", 
+          console.log("Hubo un error al descargar datos del participante: ",
           listaParticipantes[0] , " | Error: ", err);
         }
       } else {

@@ -46,7 +46,7 @@ export const GET_COMMITCOMMENTS = gql`
 export const GET_REPO = gql`
   query getRepo($owner: String!, $name: String!, $number: Int!) {
     repository(owner: $owner, name: $name) {
-      pullRequest(number: $number) { 
+      pullRequest(number: $number) {
         id
         number
         title
@@ -357,12 +357,12 @@ export const DOWN_REPOS = gql`
   }
 `;
 
-/*{"owner": "twitter", 
-"name": "serial", 
+/*{"owner": "twitter",
+"name": "serial",
 "afterCursor": null,
 "comments": 1,
 "commentsReactions": 1,
-"rvThreads": 1, 
+"rvThreads": 1,
 "rvThreadsComments": 1
 }*/
 
@@ -440,3 +440,230 @@ export const RATE_LIMIT = gql`
     }
   }
 `;
+
+export const GET_QUERY_PR = gql`
+query getQueryMax($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    id
+    name
+    owner {
+      login
+    }
+    pullRequests(first: 10) {
+      totalCount
+      nodes {
+        labels(first: 10) {
+          totalCount
+          nodes {
+            description
+            name
+            id
+          }
+          pageInfo {
+            startCursor
+            hasNextPage
+            endCursor
+          }
+        }
+        publishedAt
+        mergedAt
+        createdAt
+        closedAt
+        merged
+        closed
+        mergeable
+        id
+        number
+        title
+        author {
+          login
+        }
+        commits {
+          totalCount
+        }
+        additions
+        deletions
+        state
+        bodyHTML
+        reactions(first: 10) {
+          totalCount
+          nodes {
+            content
+            createdAt
+            id
+          }
+          pageInfo {
+            startCursor
+            hasNextPage
+            endCursor
+          }
+        }
+        comments(first: 10) {
+          totalCount
+          nodes {
+            id
+            bodyHTML
+            createdAt
+            publishedAt
+            author {
+              login
+            }
+            editor {
+              login
+            }
+            reactions(first: 10) {
+              totalCount
+              nodes {
+                id
+                content
+                createdAt
+              }
+              pageInfo {
+                startCursor
+                hasNextPage
+                endCursor
+              }
+            }
+          }
+          pageInfo {
+            startCursor
+            hasNextPage
+            endCursor
+          }
+        }
+        reviews(first: 10) {
+          totalCount
+          pageInfo {
+            startCursor
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            id
+            publishedAt
+            bodyHTML
+            reactions(first: 10) {
+              totalCount
+              pageInfo {
+                startCursor
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                id
+                content
+                createdAt
+              }
+            }
+            comments(first: 10) {
+              totalCount
+              pageInfo {
+                startCursor
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                bodyHTML
+                createdAt
+                publishedAt
+                id
+                author {
+                  login
+                }
+                editor {
+                  login
+                }
+                reactions(first: 10) {
+                  totalCount
+                  nodes {
+                    id
+                    content
+                    createdAt
+                  }
+                  pageInfo {
+                    startCursor
+                    hasNextPage
+                    endCursor
+                  }
+                }
+              }
+            }
+          }
+        }
+        reviewThreads(first: 10) {
+          totalCount
+          nodes {
+            isResolved
+            id
+            comments(first: 10) {
+              totalCount
+              pageInfo {
+                startCursor
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                id
+                bodyHTML
+                createdAt
+                publishedAt
+                author {
+                  login
+                }
+                editor {
+                  login
+                }
+                reactions(first: 10) {
+                  totalCount
+                  nodes {
+                    id
+                    content
+                    createdAt
+                  }
+                  pageInfo {
+                    startCursor
+                    hasNextPage
+                    endCursor
+                  }
+                }
+              }
+            }
+          }
+          pageInfo {
+            startCursor
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+      pageInfo {
+        startCursor
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+`;
+/*export const GET_QUERY_PR = gql`
+query getQueryPR($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    nameWithOwner
+    pullRequests(first: 5, orderBy: {field: COMMENTS, direction: DESC}) {
+      totalCount
+      nodes {
+        number
+        reactions(first: 1) {
+          totalCount
+        }
+        participants(first: 1) {
+          totalCount
+        }
+        comments(first: 3) {
+          totalCount
+        }
+      }
+    }
+  }
+}
+`;*/

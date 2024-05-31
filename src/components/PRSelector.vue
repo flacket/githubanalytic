@@ -7,7 +7,7 @@
             v-model="search.owner"
             :rules="emptyRules"
             label="Usuario / Organización"
-            placeholder="ej: twitter"
+            placeholder="ej: cemu-project"
             required
           ></v-text-field>
         </v-col>
@@ -17,7 +17,7 @@
             v-model="search.name"
             :rules="emptyRules"
             label="Repositorio"
-            placeholder="ej: serial"
+            placeholder="ej: cemu"
             required
           ></v-text-field>
         </v-col>
@@ -28,7 +28,7 @@
             :rules="emptyRules"
             label="Pull Request #"
             required
-            placeholder="ej: 23"
+            placeholder="ej: 9"
             :disabled="hideNumber"
           ></v-text-field>
         </v-col>

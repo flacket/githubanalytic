@@ -121,22 +121,22 @@
         <v-progress-linear :value="item.cohesionGrupal*100" height="25">
           <strong>{{ (item.cohesionGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.colaboracionGrupal`]="{ item }">
         <v-progress-linear :value="item.colaboracionGrupal*100" height="25">
           <strong>{{ (item.colaboracionGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.mimicaGrupal`]="{ item }">
         <v-progress-linear :value="item.mimicaGrupal*100" height="25">
           <strong>{{ (item.mimicaGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.tonoGrupal`]="{ item }">
         <v-progress-linear :value="item.tonoGrupal*100" height="25">
           <strong>{{ (item.tonoGrupal*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.estado`]="{ item }">
       <v-chip :color="getColor(item.estado)" dark>
         {{ item.estado }}
@@ -159,17 +159,17 @@
         <v-progress-linear :value="item.coheInd*100" height="25">
           <strong>{{ (item.coheInd*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.habilidad`]="{ item }">
         <v-progress-linear :value="item.habilidad*100" height="25">
           <strong>{{ (item.habilidad*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.mimicaInd`]="{ item }">
         <v-progress-linear :value="item.mimicaInd*100" height="25">
           <strong>{{ (item.mimicaInd*100).toFixed(2) }}%</strong>
         </v-progress-linear>
-      </template> 
+      </template>
       <template v-slot:[`item.tonoInd`]="{ item }">
         <v-progress-linear :value="item.tonoInd*100" height="25">
           <strong>{{ (item.tonoInd*100).toFixed(2) }}%</strong>
@@ -208,7 +208,7 @@ export default {
   watch: {
     loading () {
       if (!this.loading) this.setAnalytics(this.search);
-      
+
     },
   },
   data() {
@@ -379,7 +379,7 @@ export default {
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(this.estadisticas);
       //Exporto ahora el archivo CSV
-      const exportName = this.search.owner + " - " + this.search.name + 
+      const exportName = this.search.owner + " - " + this.search.name +
       " - informePRs.csv" || "export.csv";
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       if (navigator.msSaveBlob) {
@@ -418,7 +418,7 @@ export default {
       const json2csvParser = new Parser({ fields });
       const csv = json2csvParser.parse(this.estadisticasPersona);
       //Exporto ahora el archivo CSV
-      const exportName = this.search.owner + " - " + this.search.name + 
+      const exportName = this.search.owner + " - " + this.search.name +
       " - informePersonas.csv" || "export.csv";
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       if (navigator.msSaveBlob) {
@@ -482,6 +482,7 @@ export default {
       const repo ={
         owner: this.search.owner,
         name: this.search.name,
+        usersDataList: [],
         pullRequests: this.pullRequests
       }
       const data = JSON.stringify(repo),
@@ -714,7 +715,7 @@ export default {
         })
         .then(() => {
           self.getPR.pullRequests.nodes.forEach((PR) => {
-            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); } 
+            if (PR.participants.totalCount > 1) { this.pullRequests.push(PR); }
             else { console.log("then. Se saltea el PR Nº: ", PR.number); }
           });
           self.progressbar();
@@ -905,7 +906,7 @@ export default {
       //concateno los comentarios
       let comentarios = this.CommentsRow(pullRequest);
       //console.log(comentarios)
-      
+
       //Adjunto las estadisticas a los datos del Pull Request
       let estadisticaPR = {
         //TODO:id: index,
@@ -919,6 +920,9 @@ export default {
         fechaInicio: duracionDias.createdAt,
         fechaCierre: duracionDias.closedAt,
         duraccionDias: duracionDias.diff || "-",
+        codigoAdd: pullRequest.additions,
+        codigoRem: pullRequest.deletions,
+        sizePR: pullRequest.additions + pullRequest.deletions,
         estado: estado,
         cohesionMatrix: this.cohesionMatrix,
         participantes: cantPersonas,
@@ -1037,7 +1041,7 @@ export default {
           elements[0].parentNode.removeChild(elements[0])
       }
 
-      tags = [ 'p', 'strong', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'input', 'em', 'ol', 'ul' ] // 'ul' 
+      tags = [ 'p', 'strong', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'input', 'em', 'ol', 'ul' ] // 'ul'
       for (let i = 0; i < tags.length; i++) {
         let elements = div.getElementsByTagName(tags[i]);
         while(elements.length) {
@@ -1083,54 +1087,59 @@ export default {
         self.getEstadisticas(PR);
       });
 
-      if (!self.$apollo.skipAll) {
-        self.$apollo.skipAll = false;
+      try {
+        if (!self.$apollo.skipAll) {
+          self.$apollo.skipAll = false;
+        }
+        self.$apollo.queries.getOrgMembers
+        .refetch({
+          owner: search.owner
+        })
+        .then(() => {
+          self.OrgMembers = self.getOrgMembers;
+        });
+      } catch (error) {
+        self.OrgMembers = "";
       }
-      self.$apollo.queries.getOrgMembers
-      .refetch({
-        owner: search.owner
-      })
-      .then(() => {
-        self.OrgMembers = self.getOrgMembers;
-        
-        //llamo a crear la tabla de estadisticas de cada persona
-        self.estadisticasPersona = getParticipantesRepoStat(
-          self.estadisticas, self.OrgMembers
-        );
 
-        //Calculo las estadisticas generales del tablero principal
-        self.estadisticasPersona.forEach((persona) => {
-          switch(persona.rol) {
-            case "miembro":
-              self.datosRepo.miembros++;
-              break;
-            case "colaborador":
-              self.datosRepo.colaboradores++;
-              break;
-            default:
-              self.datosRepo.participantes++;
-          }
-        });
+      //llamo a crear la tabla de estadisticas de cada persona
+      self.estadisticasPersona = getParticipantesRepoStat(
+        self.estadisticas, self.OrgMembers
+      );
 
-        self.estadisticas.forEach((PR) => {
-          switch(PR.estado) {
-            case "MERGED":
-              self.datosRepo.PRmerged++;
-              break;
-            case "CLOSED":
-              self.datosRepo.PRclosed++;
-              break;
-          }
-        });
-        self.datosRepo.PRtotal = self.datosRepo.PRclosed + self.datosRepo.PRmerged;
-
-        //Doy formato a las gráficas
-        self.chartsDataGrupal();
-
-        self.progress.bar = 0;
-        self.show = true;
-        self.showSnackbar("Análisis Finalizado", "success", 4000);
+      //Calculo las estadisticas generales del tablero principal
+      self.estadisticasPersona.forEach((persona) => {
+        switch(persona.rol) {
+          case "miembro":
+            self.datosRepo.miembros++;
+            break;
+          case "colaborador":
+            self.datosRepo.colaboradores++;
+            break;
+          default:
+            self.datosRepo.participantes++;
+        }
       });
+
+      self.estadisticas.forEach((PR) => {
+        switch(PR.estado) {
+          case "MERGED":
+            self.datosRepo.PRmerged++;
+            break;
+          case "CLOSED":
+            self.datosRepo.PRclosed++;
+            break;
+        }
+      });
+      self.datosRepo.PRtotal = self.datosRepo.PRclosed + self.datosRepo.PRmerged;
+
+      //Doy formato a las gráficas
+      self.chartsDataGrupal();
+
+      self.progress.bar = 0;
+      self.show = true;
+      self.showSnackbar("Análisis Finalizado", "success", 4000);
+
     }
   },
 };

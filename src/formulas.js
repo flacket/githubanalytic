@@ -77,7 +77,8 @@ export function getParticipantesRepoStat(estadisticasPR, orgMembers) {
             pStat[i].cantPRAuthor;
         }
 
-        try {
+        if (orgMembers != "") {
+          try {
             orgMembers.forEach(member => {
               //console.log("pStat[i].login: ", pStat[i].login);
               //console.log("-member.login: ", member.login);
@@ -89,6 +90,7 @@ export function getParticipantesRepoStat(estadisticasPR, orgMembers) {
           }catch (error) {
             console.log("Error en Formulas.js | SetOrgMembers: ", error);
           }
+        }
       });
     });
   } catch (error) {
@@ -440,7 +442,7 @@ export function matrizConteoPR(pullRequest) {
   //Primer Cometario
   for (i = 1; i < cantPersonas; i++) {
     countMatrix[0][i]++;
-    
+
   }
   pullRequest.reactions.nodes.forEach(function(element) {
     let encontrado = false;

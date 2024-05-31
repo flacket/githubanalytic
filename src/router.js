@@ -30,15 +30,18 @@ let router = new Router({
       path: "/repositorio",
       name: "repositorio",
       component: () => import('./views/RepositorioPage.vue'),
+      meta: {
+        requiresAuth: true,
+      },
     },
-    {
+    /*{
       path: "/repodescarga",
       name: "repodescarga",
       component: () => import('./views/repoDescarga.vue'),
       meta: {
         requiresAuth: true,
       },
-    },
+    },*/
     {
       path: "/acerca",
       name: "acerca",
