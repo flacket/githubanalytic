@@ -34,7 +34,7 @@
     "@vue/cli-service": "^5.0.8",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^9.3.0",
+    "eslint-plugin-vue": "^9.26.0",
     "graphql-tag": "^2.12.6",
     "sass": "^1.57.1",
     "sass-loader": "^10.3.1",
